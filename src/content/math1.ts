@@ -6,6 +6,7 @@ export const MATH1: Lesson[] = [
     id: 'm-number-sense', subject: 'math', title: 'Number Sense & Order of Operations', minutes: 40,
     blurb: 'PEMDAS, divisibility, primes, GCF and LCM: the foundation of every other topic.',
     videos: [VID.pemdas, VID.gcdLcm, VID.pemdasGon],
+    interactive: { k: 'steps', data: { prompt: 'Evaluate $18 \\div 3 \\times 2 + 4^2 - (7-3)$.', steps: ['Parentheses first: $(7-3)=4$', 'Exponent: $4^2=16$', 'Multiply and divide left to right: $18\\div3\\times2=12$', 'Add and subtract left to right: $12+16-4=24$'], why: 'Order: Parentheses, Exponents, Multiply/Divide (left to right), Add/Subtract (left to right).' } },
     blocks: [
       { t: 'h', text: 'Order of operations (PEMDAS)' },
       { t: 'p', text: 'Math needs “traffic rules”: $2+3\\times4$ is **14**, not 20. The order is **P**arentheses → **E**xponents → **M**ultiplication/**D**ivision (left to right, equal rank) → **A**ddition/**S**ubtraction (left to right, equal rank).' },
@@ -73,6 +74,7 @@ export const MATH1: Lesson[] = [
     id: 'm-exponents', subject: 'math', title: 'Exponents, Radicals & Scientific Notation', minutes: 45,
     blurb: 'Exponent laws, simplifying square roots, rationalizing, and big/small numbers.',
     videos: [VID.expIntro, VID.expRules, VID.sqrt],
+    interactive: { k: 'flash', data: { frontLabel: 'RULE / VALUE', cards: [['$a^m\\cdot a^n$', '$a^{m+n}$ (add the exponents)'], ['$a^m\\div a^n$', '$a^{m-n}$ (subtract)'], ['$(a^m)^n$', '$a^{mn}$ (multiply)'], ['$a^0$', '1 (for $a\\neq0$)'], ['$a^{-n}$', '$\\frac1{a^n}$ (flip it)'], ['$(ab)^n$', '$a^nb^n$'], ['$\\sqrt a\\cdot\\sqrt b$', '$\\sqrt{ab}$'], ['$\\sqrt{50}$', '$5\\sqrt2$'], ['$2^{10}$', '1024'], ['$12^2$', '144'], ['$15^2$', '225'], ['$16^2$', '256']] } },
     blocks: [
       { t: 'h', text: 'Exponent laws (rebuild them, do not just memorize)' },
       { t: 'formula', items: ['$a^m\\cdot a^n=a^{m+n}$', '$\\dfrac{a^m}{a^n}=a^{m-n}$', '$(a^m)^n=a^{mn}$', '$a^0=1$ (for $a\\neq0$)', '$a^{-n}=\\dfrac1{a^n}$', '$(ab)^n=a^nb^n$', '$a^{m/n}=\\sqrt[n]{a^m}$'] },
@@ -106,6 +108,7 @@ export const MATH1: Lesson[] = [
     id: 'm-ratio', subject: 'math', title: 'Ratio, Proportion & Variation', minutes: 40,
     blurb: 'Set up ratio and proportion problems, direct/inverse variation, rates and averages.',
     videos: [VID.ratio],
+    interactive: { k: 'steps', data: { prompt: '5 pens cost ₱60. What do 8 pens cost?', steps: ['Decide: more pens means more cost, so it is a direct proportion', 'Set up the proportion: $\\frac{5}{60}=\\frac{8}{x}$', 'Cross-multiply: $5x=8\\times60=480$', 'Divide by 5: $x=96$, so 8 pens cost ₱96'], why: 'Direct proportion: both quantities rise together, so cross-multiplication works.' } },
     blocks: [
       { t: 'h', text: 'Ratios and proportions' },
       { t: 'p', text: 'A ratio $a:b$ compares two quantities. A **proportion** says two ratios are equal: $\\frac ab=\\frac cd \\iff ad=bc$ (cross-products are equal).' },

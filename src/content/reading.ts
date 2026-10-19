@@ -12,6 +12,7 @@ export const READING: Lesson[] = [
     id: 'r-basics', subject: 'reading', title: 'Reading Comprehension: Main Idea, Details & Inference', minutes: 40,
     blurb: 'A repeatable system for reading a passage once and answering every question type.',
     videos: [VID.mainIdea, VID.infer],
+    interactive: { k: 'steps', data: { prompt: 'Put the 4-step reading system in order.', steps: ['Skim the question stems to know what to look for', 'Read the passage once, underlining the main claim and the contrast words', 'Predict the answer in your own words before looking at the choices', 'Eliminate extreme, off-topic and half-true choices; pick the one with line support'], why: 'Reading with a purpose is faster and more accurate than reading everything equally.' } },
     blocks: [
       { t: 'h', text: 'The 4-step reading system' },
       { t: 'list', items: ['**1. Skim the questions first** (just the question stems) so you know what to look for.', '**2. Read the passage once, actively:** underline the main claim and mark contrast words (but, however, although, yet).', '**3. Predict the answer in your own words** before reading the choices.', '**4. Eliminate** choices that are too extreme, off-topic, or only partly true.'] },
@@ -48,6 +49,7 @@ export const READING: Lesson[] = [
     id: 'r-strategy', subject: 'reading', title: 'Tone, Purpose & Author’s Argument', minutes: 35,
     blurb: 'Handle tone, purpose, opinion vs fact and logic questions, with timed practice passages.',
     videos: [VID.mcq, VID.mcq2],
+    interactive: { k: 'flash', data: { frontLabel: 'TONE WORD', cards: [['skeptical', 'doubtful about a claim'], ['objective', 'neutral and fact-based'], ['indignant', 'angry about unfairness'], ['sarcastic', 'saying the opposite to mock'], ['optimistic', 'hopeful about the future'], ['dismissive', 'treating something as unimportant'], ['admiring', 'full of respect'], ['pessimistic', 'expecting the worst'], ['analytical', 'examining carefully, piece by piece'], ['nostalgic', 'longing for the past']] } },
     blocks: [
       { t: 'h', text: 'Fact vs opinion; claim vs evidence' },
       { t: 'p', text: 'A **fact** can be checked (“The town banned plastic bags in 2019”). An **opinion** is a judgment (“The ban was worth it”). Authors support a **claim** with **evidence** (statistics, examples, expert quotes). Ask: what is the claim? what supports it? what would weaken it?' },

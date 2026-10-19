@@ -114,6 +114,13 @@ export const ENGLISH: Lesson[] = [
     id: 'e-tenses-pronouns', subject: 'english', title: 'Tenses, Pronouns & Modifiers', minutes: 40,
     blurb: 'Keep tenses consistent, pick the right pronoun case, and avoid dangling modifiers.',
     videos: [VID.tenses],
+    interactive: { k: 'errors', data: { items: [
+      { parts: ['She', 'don’t', 'like', 'coffee.'], err: 1, why: 'The subject “She” is singular, so the verb must be “doesn’t”.' },
+      { parts: ['Me and my friend', 'went', 'to', 'the mall.'], err: 0, why: 'Use the subject case and put yourself last: “My friend and I went to the mall.”' },
+      { parts: ['He has', 'wrote', 'the', 'report.'], err: 1, why: 'After “has” use the past participle: “has written”.' },
+      { parts: ['Walking home,', 'the rain', 'started', 'to fall.'], err: 0, why: 'Dangling modifier: the rain was not walking. Fix: “Walking home, I felt the rain start to fall.”' },
+      { parts: ['By the time we arrived,', 'the film', 'had already', 'started.'], err: -1, why: 'No error. Past perfect (“had started”) correctly shows the earlier event.' },
+    ] } },
     blocks: [
       { t: 'h', text: 'Verb tenses in 60 seconds' },
       { t: 'table', head: ['Tense', 'Form', 'Example', 'Use'], rows: [

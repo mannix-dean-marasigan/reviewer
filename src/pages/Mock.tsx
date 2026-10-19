@@ -5,6 +5,7 @@ import { Rich } from '../components/Rich'
 import { mathDrill } from '../lib/drills'
 import { makeNumberSeries, makePuzzle, Puzzle } from '../lib/patterns'
 import { rng, shuffleChoices } from '../lib/rand'
+import { lessonPool } from '../lib/pool'
 import { update, useStore } from '../lib/store'
 import type { Question, Subject } from '../types'
 
@@ -16,7 +17,7 @@ export function buildMock(kind: 'full' | 'math' | 'mental' | 'english', seed: nu
 }
 
 function build(kind: 'full' | 'math' | 'mental' | 'english', r: ReturnType<typeof rng>): Item[] {
-  const pool = (s: Subject) => r.shuffle(LESSONS.filter(l => l.subject === s).flatMap(l => l.quiz.map(q => ({ sub: s, q }))))
+  const pool = (s: Subject) => r.shuffle(LESSONS.filter(l => l.subject === s).flatMap(l => lessonPool(l).map(q => ({ sub: s, q }))))
   const mathItems = (n: number): Item[] => {
     const stat = pool('math').slice(0, Math.ceil(n / 2))
     const gen = Array.from({ length: n - stat.length }, () => ({ sub: 'math' as Subject, q: mathDrill(r) }))

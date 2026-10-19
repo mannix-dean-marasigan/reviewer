@@ -56,3 +56,16 @@ export function addMinutes(m: number) {
   update(s => ({ ...s, minutes: { ...s.minutes, [today()]: (s.minutes[today()] ?? 0) + m } }))
 }
 export function resetAll() { update(() => ({ ...empty })) }
+
+/** Save missed checkpoint/practice questions (indexes into the lesson's full pool) without changing the quiz score. */
+export function recordWrong(lesson: string, idxs: number[]) {
+  if (!idxs.length) return
+  update(s => {
+    const wrong = { ...s.wrong }
+    idxs.forEach(i => {
+      const k = `${lesson}:${i}`
+      wrong[k] = { lesson, idx: i, at: Date.now(), count: (wrong[k]?.count ?? 0) + 1 }
+    })
+    return { ...s, wrong }
+  })
+}

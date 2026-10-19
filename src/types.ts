@@ -27,6 +27,15 @@ export type Block =
   | { t: 'trap'; text: string }
   | { t: 'table'; head: string[]; rows: string[][] }
 
+/** Questions placed between the lesson stages (Finlab-style checkpoints). */
+export interface Checks {
+  video: Question[] // right after the videos
+  learn: Question[] // one per section of the written lesson (shown after that section)
+  lab?: Question[] // right after the interactive
+  more?: Question[] // extra practice bank (also feeds mock exams + mistakes notebook)
+  drill?: string[] // generated-drill kinds that match this lesson (math)
+}
+
 export interface Lesson {
   id: string
   subject: Subject
@@ -38,6 +47,7 @@ export interface Lesson {
   tricks: string[]
   interactive?: { k: string; data?: any } // key into the interactives registry + optional data
   quiz: Question[]
+  checks?: Checks
 }
 
 export interface PlanItem {

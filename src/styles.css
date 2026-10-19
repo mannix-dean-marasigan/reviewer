@@ -150,3 +150,7 @@ details summary { cursor: pointer; font-weight: 600; }
   .puzzle .opts { grid-template-columns: repeat(2, auto); }
 }
 @media print { .side, .top-mobile, .tabs, .btn { display: none !important; } .app { display: block; } }
+
+.checkpoint { border-left: 5px solid var(--gold); padding-left: 10px; margin: 6px 0 18px; }
+.checkpoint .card { margin-top: 6px; }
+.linkbtn { background: none; border: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font: inherit; font-size: .85rem; padding: 4px 0; }

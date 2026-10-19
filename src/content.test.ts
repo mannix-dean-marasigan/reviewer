@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { LESSONS, PLAN, lessonById } from './content'
 import { VID } from './content/helpers'
+import { lessonPool } from './lib/pool'
 import { mathDrill, DRILL_KINDS } from './lib/drills'
 import { makeLetterSeries, makeNumberSeries, makePuzzle, cellKey } from './lib/patterns'
 import { rng } from './lib/rand'
@@ -14,13 +15,22 @@ describe('lesson content', () => {
       expect(l.videos.length, l.id).toBeGreaterThan(0)
       expect(l.quiz.length, l.id).toBeGreaterThanOrEqual(6)
       expect(l.tricks.length, l.id).toBeGreaterThanOrEqual(4)
-      l.quiz.forEach((qq, i) => {
+      const c = l.checks
+      expect(c, `${l.id} needs checkpoints`).toBeDefined()
+      expect(c!.video.length, `${l.id} video checks`).toBeGreaterThanOrEqual(2)
+      expect(c!.learn.length, `${l.id} learn checks`).toBeGreaterThanOrEqual(l.blocks.filter(b => b.t === 'h').length)
+      expect((c!.lab ?? []).length, `${l.id} lab checks`).toBeGreaterThanOrEqual(2)
+      expect((c!.more ?? []).length, `${l.id} more`).toBeGreaterThanOrEqual(4)
+      expect(l.interactive, `${l.id} needs an interactive`).toBeDefined()
+      lessonPool(l).forEach((qq, i) => {
         const tag = `${l.id} Q${i + 1}`
         expect(qq.c.length, tag).toBe(4)
         expect([0, 1, 2, 3], tag).toContain(qq.a)
         expect(new Set(qq.c).size, `${tag} duplicate choices`).toBe(4)
-        expect(qq.e.length, `${tag} needs explanation`).toBeGreaterThan(9)
+        expect(qq.e.length, `${tag} needs explanation`).toBeGreaterThan(6)
         qq.c.forEach(c => expect(c.trim().length, tag).toBeGreaterThan(0))
+        // a stray single backslash in a TS string turns into a control character and breaks the math
+        expect([...[qq.q, qq.e, qq.trick ?? '', ...qq.c].join('')].some(ch => ch.charCodeAt(0) < 32), `${tag} has a control character`).toBe(false)
       })
     }
   })

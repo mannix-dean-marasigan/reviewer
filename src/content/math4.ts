@@ -90,7 +90,7 @@ export const MATH4: Lesson[] = [
     ],
     quiz: [
       q('A menu offers 4 appetizers, 5 mains and 3 desserts. How many different 3-course meals?', ['60', '12', '47', '120'], 0, '$4\\times5\\times3=60$.'),
-      q('In how many ways can 5 people be seated in a row?', ['120', '25', '60', '720'], 0, '5 choices for the first seat, 4 for the next, then 3, 2, 1: $5\times4\times3\times2\times1=5!=120$.'),
+      q('In how many ways can 5 people be seated in a row?', ['120', '25', '60', '720'], 0, '5 choices for the first seat, 4 for the next, then 3, 2, 1: $5\\times4\\times3\\times2\\times1=5!=120$.'),
       q('How many ways can a committee of 3 be chosen from 8 people?', ['56', '336', '24', '120'], 0, '$C(8,3)=\\frac{8\\cdot7\\cdot6}{3\\cdot2\\cdot1}=56$.'),
       q('Two dice are rolled. What is the probability that the sum is 7?', ['$\\frac16$', '$\\frac1{12}$', '$\\frac7{36}$', '$\\frac19$'], 0, 'Favorable: (1,6),(2,5),(3,4),(4,3),(5,2),(6,1) = 6 out of 36 = $\\frac16$.'),
       q('How many distinct arrangements are there of the letters in “LEVEL”?', ['30', '120', '60', '24'], 0, '5 letters with L twice and E twice: $\\frac{5!}{2!\\,2!}=\\frac{120}{4}=30$.'),

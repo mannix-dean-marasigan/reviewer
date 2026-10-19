@@ -2,6 +2,7 @@
 
 A personal entrance-exam trainer: YouTube video lessons, written lessons with worked examples, interactive labs, quizzes with step-by-step explanations, a timed mock exam, a mistakes notebook, an essay studio, and a 5-day study plan (5 h × 4 days + 10 h on the last day, math-heavy).
 
+- **Guided lessons (Finlab-style):** video → checkpoint → written lesson with a question after every section → interactive → checkpoint → tricks → extra practice → final quiz. 500+ written questions plus unlimited generated ones.
 - **Math (16 lessons):** number sense, fractions, exponents, ratio, percent, equations, factoring, quadratics, lines, sequences, angles, shapes, similar triangles, trig, counting/probability, sets and logic.
 - **English (5) + Reading (2):** vocabulary, grammar, sentence errors, analogies, passage questions.
 - **Mental ability (5):** number/letter series, figure sequences, matrices, odd-one-out, spatial and logic. Unlimited procedurally generated puzzles.
