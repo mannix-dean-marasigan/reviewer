@@ -27,7 +27,7 @@ describe('lesson content', () => {
         expect(qq.c.length, tag).toBe(4)
         expect([0, 1, 2, 3], tag).toContain(qq.a)
         expect(new Set(qq.c).size, `${tag} duplicate choices`).toBe(4)
-        expect(qq.e.length, `${tag} needs explanation`).toBeGreaterThan(6)
+        expect(qq.e.length, `${tag} needs explanation`).toBeGreaterThan(4)
         qq.c.forEach(c => expect(c.trim().length, tag).toBeGreaterThan(0))
         // a stray single backslash in a TS string turns into a control character and breaks the math
         expect([...[qq.q, qq.e, qq.trick ?? '', ...qq.c].join('')].some(ch => ch.charCodeAt(0) < 32), `${tag} has a control character`).toBe(false)

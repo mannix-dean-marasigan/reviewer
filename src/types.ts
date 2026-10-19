@@ -34,6 +34,8 @@ export interface Checks {
   lab?: Question[] // right after the interactive
   more?: Question[] // extra practice bank (also feeds mock exams + mistakes notebook)
   drill?: string[] // generated-drill kinds that match this lesson (math)
+  extra?: Question[] // fills the checkpoint after each video (non-math)
+  gen?: 'series' // generate number/letter series to fill the checkpoints
 }
 
 export interface Lesson {

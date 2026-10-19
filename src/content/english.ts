@@ -5,7 +5,7 @@ export const ENGLISH: Lesson[] = [
   {
     id: 'e-vocab', subject: 'english', title: 'Vocabulary, Context Clues & Word Roots', minutes: 40,
     blurb: 'Decode unfamiliar words using context, roots and prefixes, plus a deck of high-frequency exam words.',
-    videos: [VID.context, VID.roots, VID.contextKhan],
+    videos: [VID.context, VID.roots],
     interactive: {
       k: 'flash', data: {
         frontLabel: 'WORD', cards: [
@@ -156,7 +156,7 @@ export const ENGLISH: Lesson[] = [
   {
     id: 'e-sentence-errors', subject: 'english', title: 'Parallelism, Punctuation & Sentence Errors', minutes: 40,
     blurb: 'Fix faulty parallelism, commas, semicolons, apostrophes and the other standard error types.',
-    videos: [VID.parallel, VID.punct, VID.semicolon],
+    videos: [VID.parallel, VID.punct],
     interactive: {
       k: 'errors', data: {
         items: [

@@ -7,6 +7,7 @@ import { Rich } from '../components/Rich'
 import { INTERACTIVES } from '../interactives'
 import { addMinutes, recordQuiz, recordWrong, update, useStore } from '../lib/store'
 import { mathDrill } from '../lib/drills'
+import { makeLetterSeries, makeNumberSeries } from '../lib/patterns'
 import { rng } from '../lib/rand'
 import { lessonPool, poolOffsets } from '../lib/pool'
 import type { Block, Lesson, Question, Subject } from '../types'
@@ -52,16 +53,62 @@ function sections(blocks: Block[]): Block[][] {
   return out
 }
 
-function Checkpoint({ lesson, qs, offset, onDone, title = '✋ Checkpoint' }: { lesson: Lesson; qs: Question[]; offset: number; onDone?: () => void; title?: string }) {
+function Checkpoint({ lesson, qs, offset, idxs, onDone, title = '✋ Checkpoint' }: { lesson: Lesson; qs: Question[]; offset?: number; idxs?: (number | null)[]; onDone?: () => void; title?: string }) {
   const [skipped, setSkipped] = useState(false)
   const [finished, setFinished] = useState(false)
   if (!qs.length || skipped) return null
   return (
     <div className="checkpoint">
       <Quiz questions={qs} title={title} retryLabel="Redo checkpoint"
-        onFinish={r => { recordWrong(lesson.id, r.wrongIdx.map(i => offset + i)); setFinished(true); onDone?.() }} />
+        onFinish={r => {
+          const saved = r.wrongIdx.map(i => (idxs ? idxs[i] : (offset ?? 0) + i)).filter((x): x is number => x !== null && x !== undefined)
+          recordWrong(lesson.id, saved)
+          setFinished(true); onDone?.()
+        }} />
       {!finished && <button className="linkbtn" onClick={() => { setSkipped(true); onDone?.() }}>Skip this checkpoint →</button>}
     </div>
+  )
+}
+
+/** One video at a time, each followed by its own checkpoint of up to 10 questions. */
+function VideoFlow({ lesson, onDone }: { lesson: Lesson; onDone: () => void }) {
+  const c = lesson.checks
+  const off = poolOffsets(lesson)
+  const n = lesson.videos.length
+  const [k, setK] = useState(0)
+  const [cleared, setCleared] = useState<Record<number, boolean>>({})
+  const banks = useMemo(() => {
+    const r = rng((Date.now() + 7919) % 2147483000)
+    const extra = c?.extra ?? []
+    const per = Math.ceil(extra.length / n)
+    return lesson.videos.map((_, i) => {
+      const qs: Question[] = []
+      const idxs: (number | null)[] = []
+      if (i === 0) (c?.video ?? []).forEach((x, j) => { qs.push(x); idxs.push(off.video + j) })
+      extra.slice(i * per, (i + 1) * per).forEach((x, j) => { qs.push(x); idxs.push(off.extra + i * per + j) })
+      const need = 10 - qs.length
+      if (need > 0 && c?.drill?.length) for (let t = 0; t < need; t++) { qs.push(mathDrill(r, r.pick(c.drill))); idxs.push(null) }
+      if (need > 0 && c?.gen === 'series') for (let t = 0; t < need; t++) {
+        const s = t % 3 === 2 ? makeLetterSeries(r) : makeNumberSeries(r, t < 4 ? 1 : 2)
+        qs.push({ q: `What comes next?  **${s.prompt}**`, c: s.options.map(String) as Question['c'], a: s.correctIndex as 0, e: `Rule: ${s.rule}. The answer is **${s.answer}**.` }); idxs.push(null)
+      }
+      return { qs, idxs }
+    })
+  }, [lesson]) // eslint-disable-line react-hooks/exhaustive-deps
+  const v = lesson.videos[k]
+  const last = k === n - 1
+  const done = cleared[k] || !banks[k].qs.length
+  return (
+    <section>
+      {n > 1 && <p className="muted"><b>Video {k + 1} of {n}</b>: watch it, then clear the checkpoint to unlock {last ? 'the written lesson' : 'the next video'}.</p>}
+      {n === 1 && <p className="muted">Watch at 1.25× if you already know the basics. Pause and try the example before the teacher solves it.</p>}
+      <VideoCard key={v.id} v={v} onWatched={() => update(s => ({ ...s, watched: { ...s.watched, [v.id]: true } }))} />
+      <Checkpoint key={k} lesson={lesson} qs={banks[k].qs} idxs={banks[k].idxs} onDone={() => setCleared(x => ({ ...x, [k]: true }))} title={`✋ Checkpoint ${k + 1}: ${banks[k].qs.length} questions`} />
+      {done && (last
+        ? <button className="btn" onClick={onDone}>Next: written lesson →</button>
+        : <button className="btn" onClick={() => { setK(k + 1); window.scrollTo(0, 0) }}>Next video →</button>)}
+      {!done && <p className="muted">Finish the checkpoint ↑ (or skip it) to continue.</p>}
+    </section>
   )
 }
 
@@ -120,14 +167,7 @@ export function LessonPage() {
       <p className="muted">{lesson.blurb} · ~{lesson.minutes} min</p>
       <div className="tabs">{tabs.map(([t, label]) => <button key={t} className={tab === t ? 'on' : ''} onClick={() => go(t)}>{label}</button>)}</div>
 
-      {tab === 'watch' && (
-        <section>
-          <p className="muted">Watch at 1.25× if you already know the basics. Pause and try the example before the teacher solves it. Then clear the checkpoint.</p>
-          {lesson.videos.map(v => <VideoCard key={v.id} v={v} onWatched={() => update(s => ({ ...s, watched: { ...s.watched, [v.id]: true } }))} />)}
-          <Checkpoint lesson={lesson} qs={c?.video ?? []} offset={off.video} title="✋ Did the video land?" />
-          <button className="btn" onClick={() => go('learn')}>Next: written lesson →</button>
-        </section>
-      )}
+      {tab === 'watch' && <VideoFlow key={lesson.id} lesson={lesson} onDone={() => go('learn')} />}
       {tab === 'learn' && (
         <section>
           {secs.map((sec, k) => k < unlocked && (
