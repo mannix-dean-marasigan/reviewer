@@ -59,7 +59,7 @@ function Checkpoint({ lesson, qs, offset, idxs, onDone, title = '✋ Checkpoint'
   if (!qs.length || skipped) return null
   return (
     <div className="checkpoint">
-      <Quiz questions={qs} title={title} retryLabel="Redo checkpoint"
+      <Quiz questions={qs} title={title} retryLabel="Redo checkpoint" glossary={lesson.subject === 'math'}
         onFinish={r => {
           const saved = r.wrongIdx.map(i => (idxs ? idxs[i] : (offset ?? 0) + i)).filter((x): x is number => x !== null && x !== undefined)
           recordWrong(lesson.id, saved)
@@ -125,12 +125,12 @@ function Practice({ lesson }: { lesson: Lesson }) {
   return (
     <>
       {c?.more && c.more.length > 0 && (
-        <Quiz questions={c.more} title="More practice" retryLabel="Redo practice"
+        <Quiz questions={c.more} title="More practice" retryLabel="Redo practice" glossary={lesson.subject === 'math'}
           onFinish={r => { recordWrong(lesson.id, r.wrongIdx.map(i => off.more + i)); addMinutes(Math.round(lesson.minutes / 4)) }} />
       )}
       {gen.length > 0 && (
         <>
-          <Quiz key={round} questions={gen} title="Fresh generated problems" retryLabel="New set" />
+          <Quiz key={round} questions={gen} title="Fresh generated problems" retryLabel="New set" glossary={lesson.subject === 'math'} />
           <button className="btn gold" onClick={() => setRound(round + 1)}>🔄 Generate 8 new problems on this topic</button>
         </>
       )}
@@ -203,7 +203,7 @@ export function LessonPage() {
         </section>
       )}
       {tab === 'quiz' && (
-        <Quiz questions={lesson.quiz} title={`${lesson.title}: final quiz`}
+        <Quiz questions={lesson.quiz} title={`${lesson.title}: final quiz`} glossary={lesson.subject === 'math'}
           onFinish={r => { recordQuiz(lesson.id, r.wrongIdx, Math.round((r.correct / r.total) * 100)); addMinutes(lesson.minutes) }} />
       )}
       {tab === 'quiz' && st.done[lesson.id] !== undefined && next && (

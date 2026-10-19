@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { LESSONS, SUBJECTS } from '../content'
 import { PuzzleView } from '../components/Figure'
 import { Rich } from '../components/Rich'
+import { Words } from '../components/Quiz'
 import { mathDrill } from '../lib/drills'
 import { makeNumberSeries, makePuzzle, Puzzle } from '../lib/patterns'
 import { rng, shuffleChoices } from '../lib/rand'
@@ -133,6 +134,7 @@ function Runner({ items, minutes, kind, onExit }: { items: Item[]; minutes: numb
                   <p><Rich text={it.q.q} /></p>
                   <p>Your answer: {ans[k] === null ? <i>blank</i> : <Rich text={it.q.c[ans[k]!]} />} · <span className="ans">Correct: <Rich text={it.q.c[it.q.a]} /></span></p>
                   <Rich text={it.q.e} block />
+                  {it.sub === 'math' && <Words text={`${it.q.q} ${it.q.e}`} />}
                 </>
               ) : (
                 <>

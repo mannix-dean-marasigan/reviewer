@@ -2,12 +2,24 @@ import { useMemo, useState } from 'react'
 import type { Question } from '../types'
 import { Rich } from './Rich'
 import { rng, shuffleChoices } from '../lib/rand'
+import { termsIn } from '../lib/glossary'
+
+export function Words({ text }: { text: string }) {
+  const terms = termsIn(text)
+  if (!terms.length) return null
+  return (
+    <details className="words" open>
+      <summary>📖 Words used here (tap to hide)</summary>
+      <ul>{terms.map(t => <li key={t.name}><b>{t.name}:</b> {t.def}</li>)}</ul>
+    </details>
+  )
+}
 
 export interface QuizResult { correct: number; total: number; wrongIdx: number[] }
 
 /** One-question-at-a-time quiz with instant feedback + detailed explanations. */
-export function Quiz({ questions: source, onFinish, title = 'Check yourself', retryLabel = 'Try again' }: {
-  questions: Question[]; onFinish?: (r: QuizResult) => void; title?: string; retryLabel?: string
+export function Quiz({ questions: source, onFinish, title = 'Check yourself', retryLabel = 'Try again', glossary = false }: {
+  questions: Question[]; onFinish?: (r: QuizResult) => void; title?: string; retryLabel?: string; glossary?: boolean
 }) {
   const [round, setRound] = useState(0)
   // choices are re-shuffled on every attempt so the right letter is never predictable
@@ -53,6 +65,7 @@ export function Quiz({ questions: source, onFinish, title = 'Check yourself', re
                 <p><b>Q{k + 1}.</b> <Rich text={questions[k].q} /></p>
                 <p className="ans">Correct: <Rich text={questions[k].c[questions[k].a]} /></p>
                 <div className="expl"><Rich text={questions[k].e} block /></div>
+                {glossary && <Words text={`${questions[k].q} ${questions[k].e}`} />}
               </div>
             ))}
           </details>
@@ -82,6 +95,7 @@ export function Quiz({ questions: source, onFinish, title = 'Check yourself', re
         <div className={`feedback ${picked === q.a ? 'good' : 'bad'}`}>
           <strong>{picked === q.a ? '✓ Correct' : `✗ Not quite. The answer is ${'ABCD'[q.a]}.`}</strong>
           <Rich text={q.e} block />
+          {glossary && <Words text={`${q.q} ${q.c.join(' ')} ${q.e}`} />}
           {q.trick && <p className="trick">⚡ <b>Shortcut:</b> <Rich text={q.trick} /></p>}
           <button className="btn" onClick={next}>{i + 1 >= questions.length ? 'See results' : 'Next question →'}</button>
         </div>

@@ -1,5 +1,6 @@
 import type { Lesson } from '../types'
 import { CHECKS } from './checks'
+import { withSteps } from './explain'
 import { ENGLISH } from './english'
 import { ESSAY } from './essay'
 import { MATH1 } from './math1'
@@ -12,5 +13,5 @@ import { READING } from './reading'
 export * from './extras'
 
 const BASE: Lesson[] = [...MATH1, ...MATH2, ...MATH3, ...MATH4, ...ENGLISH, ...READING, ...MENTAL, ...ESSAY]
-export const LESSONS: Lesson[] = BASE.map(l => ({ ...l, checks: CHECKS[l.id] }))
+export const LESSONS: Lesson[] = BASE.map(l => withSteps({ ...l, checks: CHECKS[l.id] }))
 export const lessonById = (id: string) => LESSONS.find(l => l.id === id)

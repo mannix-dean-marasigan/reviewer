@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { Question } from '../types'
 import { Link } from 'react-router-dom'
 import { lessonById } from '../content'
-import { Quiz } from '../components/Quiz'
+import { Quiz, Words } from '../components/Quiz'
 import { Rich } from '../components/Rich'
 import { lessonPool } from '../lib/pool'
 import { clearWrong, useStore } from '../lib/store'
@@ -19,7 +19,7 @@ export default function Mistakes() {
     return (
       <>
         <h1>🧠 Retry your mistakes</h1>
-        <Quiz questions={qs} title="Mistakes retry" onFinish={r => keys.forEach((k, i) => { if (!r.wrongIdx.includes(i)) clearWrong(k) })} />
+        <Quiz questions={qs} title="Mistakes retry" glossary={items.every(x => x.l!.subject === 'math')} onFinish={r => keys.forEach((k, i) => { if (!r.wrongIdx.includes(i)) clearWrong(k) })} />
         <button className="btn ghost" onClick={() => setRetry(null)}>Back to list</button>
       </>
     )
@@ -39,6 +39,7 @@ export default function Mistakes() {
                 <p className="muted">From <Link to={`/lesson/${l!.id}`}>{l!.title}</Link></p>
                 <p className="ans">Answer: <Rich text={q.c[q.a]} /></p>
                 <div className="expl"><Rich text={q.e} block /></div>
+                {l!.subject === 'math' && <Words text={`${q.q} ${q.e}`} />}
                 {q.trick && <p className="trick">⚡ <Rich text={q.trick} /></p>}
               </details>
             )

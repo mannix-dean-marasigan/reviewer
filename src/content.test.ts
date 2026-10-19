@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { LESSONS, PLAN, lessonById } from './content'
 import { VID } from './content/helpers'
 import { lessonPool } from './lib/pool'
+import { stepEntries } from './content/explain'
 import { mathDrill, DRILL_KINDS } from './lib/drills'
 import { makeLetterSeries, makeNumberSeries, makePuzzle, cellKey } from './lib/patterns'
 import { rng } from './lib/rand'
@@ -30,7 +31,7 @@ describe('lesson content', () => {
         expect(qq.e.length, `${tag} needs explanation`).toBeGreaterThan(4)
         qq.c.forEach(c => expect(c.trim().length, tag).toBeGreaterThan(0))
         // a stray single backslash in a TS string turns into a control character and breaks the math
-        expect([...[qq.q, qq.e, qq.trick ?? '', ...qq.c].join('')].some(ch => ch.charCodeAt(0) < 32), `${tag} has a control character`).toBe(false)
+        expect([...[qq.q, qq.e, qq.trick ?? '', ...qq.c].join('')].some(ch => ch.charCodeAt(0) < 32 && ch !== String.fromCharCode(10)), `${tag} has a control character`).toBe(false)
       })
     }
   })
@@ -56,6 +57,9 @@ describe('generators', () => {
         const q = mathDrill(r, k)
         expect(new Set(q.c).size, `${k} seed ${s}`).toBe(4)
         expect(q.c[q.a]).toBeTruthy()
+        expect(q.e.includes('**Step 1'), `${k} explanation should be step by step`).toBe(true)
+        expect(q.e.includes('**Answer'), `${k} explanation should state the answer`).toBe(true)
+        expect(q.e.includes('undefined') || q.e.includes('NaN'), `${k} explanation has a bad value`).toBe(false)
       }
     }
   })
@@ -75,6 +79,23 @@ describe('generators', () => {
       const b = makeLetterSeries(rng(s * 11))
       expect(b.options[b.correctIndex]).toBe(b.answer)
       expect(new Set(b.options).size).toBe(4)
+    }
+  })
+})
+
+describe('step-by-step math explanations', () => {
+  it('cover every math question, aligned and containing steps', () => {
+    for (const l of LESSONS.filter(x => x.subject === 'math')) {
+      const list = stepEntries(l.id)
+      expect(list, `${l.id} has no step explanations`).toBeDefined()
+      const pool = lessonPool(l)
+      expect(list.length, `${l.id} count`).toBe(pool.length)
+      pool.forEach((q, i) => {
+        expect(q.q.startsWith(list[i][0]), `${l.id} #${i} misaligned: ${list[i][0]}`).toBe(true)
+        expect(q.e, `${l.id} #${i} not replaced`).toBe(list[i][1])
+        expect(q.e.includes('**Step 1') || q.e.includes('**Idea') || q.e.includes('**Rule') || q.e.includes('**Memory') || q.e.includes('**Words'), `${l.id} #${i} should be step by step`).toBe(true)
+        expect(q.e.includes('**Answer'), `${l.id} #${i} should state the answer`).toBe(true)
+      })
     }
   })
 })

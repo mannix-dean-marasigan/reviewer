@@ -40,7 +40,7 @@ export default function Drills() {
             </div>
             <div className="seg"><span>Questions:</span>{[5, 10, 20].map(n => <button key={n} className={count === n ? 'on' : ''} onClick={() => setCount(n)}>{n}</button>)}</div>
           </details>
-          <Quiz key={round} questions={qs} title="Math speed drill" retryLabel="New set"
+          <Quiz key={round} questions={qs} title="Math speed drill" retryLabel="New set" glossary
             onFinish={r => { update(s => ({ ...s, drills: [...s.drills, { at: Date.now(), kind: 'math', score: r.correct, total: r.total }] })); }} />
           <button className="btn gold" onClick={() => setRound(round + 1)}>🔄 Fresh set of questions</button>
         </>
