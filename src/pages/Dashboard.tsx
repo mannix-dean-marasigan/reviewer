@@ -16,7 +16,7 @@ export default function Dashboard() {
   const studiedToday = st.minutes[today()] ?? 0
   const mocks = st.mocks
   const lastMock = mocks[mocks.length - 1]
-  const bySubject = SUBJECTS.map(s => {
+  const bySubject = SUBJECTS.filter(s => s.id === 'math').map(s => {
     const ls = LESSONS.filter(l => l.subject === s.id)
     const scores = ls.map(l => st.done[l.id]).filter((x): x is number => x !== undefined)
     return { ...s, total: ls.length, done: scores.length, avg: scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null }
@@ -26,7 +26,7 @@ export default function Dashboard() {
   return (
     <>
       <h1>You can pass this. Here's the plan. 💪</h1>
-      <p className="muted">5 days · {totalMin / 60} study hours · math gets the biggest slice. Do the checklist for the day, in order, and don't skip the quizzes: they are where the learning sticks.</p>
+      <p className="muted">5 days · {totalMin / 60} study hours · math only, as you asked. Do the checklist for the day, in order, and don't skip the quizzes: they are where the learning sticks.</p>
 
       <div className="card">
         <div className="stat">

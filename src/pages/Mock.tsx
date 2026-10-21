@@ -44,7 +44,7 @@ const TIMES = { full: 90, math: 40, mental: 25, english: 35 }
 
 export default function Mock() {
   const st = useStore()
-  const [kind, setKind] = useState<keyof typeof TIMES>('full')
+  const [kind, setKind] = useState<keyof typeof TIMES>('math')
   const [run, setRun] = useState<{ items: Item[]; seed: number } | null>(null)
   if (run) return <Runner items={run.items} minutes={TIMES[kind]} kind={kind} onExit={() => setRun(null)} />
   return (

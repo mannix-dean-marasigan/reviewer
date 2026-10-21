@@ -14,7 +14,7 @@ import type { Block, Lesson, Question, Subject } from '../types'
 
 export function LessonList() {
   const st = useStore()
-  const [filter, setFilter] = useState<Subject | 'all'>('all')
+  const [filter, setFilter] = useState<Subject | 'all'>('math')
   const list = LESSONS.filter(l => filter === 'all' || l.subject === filter)
   const total = LESSONS.reduce((a, l) => a + lessonPool(l).length, 0)
   return (

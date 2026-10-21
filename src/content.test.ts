@@ -45,7 +45,7 @@ describe('lesson content', () => {
       expect(d.items.filter(i => !i.optional).reduce((a, i) => a + i.minutes, 0)).toBeLessThanOrEqual(d.hours * 60)
     }
     const all = new Set(PLAN.flatMap(d => d.items.map(i => i.lesson)).filter(Boolean))
-    for (const l of LESSONS) expect(all.has(l.id), `${l.id} missing from plan`).toBe(true)
+    for (const l of LESSONS.filter(x => x.subject === 'math')) expect(all.has(l.id), `${l.id} missing from plan`).toBe(true)
   })
 })
 

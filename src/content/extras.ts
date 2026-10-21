@@ -8,19 +8,19 @@ export const SUBJECTS: { id: Subject; label: string }[] = [
   { id: 'essay', label: 'Essay' },
 ]
 
-// 5 days: 5h, 5h, 5h, 5h, 10h = 30h. Items marked optional are extra if you have time; the rest fits the hours.
+// 5 days: 5h, 5h, 5h, 5h, 10h = 30h. MATH ONLY. Items marked optional are extra if you have time; the rest fits the hours.
 export const PLAN: PlanDay[] = [
-  { day: 1, hours: 5, theme: 'Number sense, fractions, exponents, ratio, percent, equations', items: [
+  { day: 1, hours: 5, theme: 'Foundations: numbers, fractions, exponents, ratio, percent, equations', items: [
     { label: 'Number sense & order of operations', minutes: 40, lesson: 'm-number-sense' },
     { label: 'Fractions, decimals & percent', minutes: 45, lesson: 'm-fractions' },
     { label: 'Exponents, radicals & scientific notation', minutes: 45, lesson: 'm-exponents' },
     { label: 'Ratio, proportion & variation', minutes: 40, lesson: 'm-ratio' },
     { label: 'Percent applications', minutes: 40, lesson: 'm-percent' },
     { label: 'Equations, inequalities & word problems', minutes: 50, lesson: 'm-equations' },
-    { label: 'Vocabulary, context clues & word roots', minutes: 40, lesson: 'e-vocab' },
-    { label: 'Variation: direct, inverse, joint & combined', minutes: 35, lesson: 'm-variation', optional: true },
+    { label: 'Variation: direct, inverse, joint & combined', minutes: 35, lesson: 'm-variation' },
+    { label: 'Mistakes notebook', minutes: 5, route: '/mistakes' },
   ] },
-  { day: 2, hours: 5, theme: 'Algebra day (JHS Grades 8–10)', items: [
+  { day: 2, hours: 5, theme: 'Algebra (JHS Grades 8–10)', items: [
     { label: 'Systems of linear equations', minutes: 45, lesson: 'm-systems' },
     { label: 'Algebraic expressions & factoring', minutes: 45, lesson: 'm-factoring' },
     { label: 'Polynomials: operations, division & remainder theorem', minutes: 50, lesson: 'm-polynomials' },
@@ -29,7 +29,7 @@ export const PLAN: PlanDay[] = [
     { label: 'Quadratic functions & inequalities', minutes: 50, lesson: 'm-quad-fn' },
     { label: 'Mistakes notebook', minutes: 15, route: '/mistakes' },
   ] },
-  { day: 3, hours: 5, theme: 'General Mathematics: functions, exp/log, business math', items: [
+  { day: 3, hours: 5, theme: 'General Mathematics: functions, exponentials/logs, business math', items: [
     { label: 'Functions: domain, range, piecewise, composition, inverse', minutes: 55, lesson: 'm-functions' },
     { label: 'Rational functions: asymptotes & intercepts', minutes: 45, lesson: 'm-rational-fn' },
     { label: 'Exponential & logarithmic functions and equations', minutes: 55, lesson: 'm-exp-log' },
@@ -38,42 +38,30 @@ export const PLAN: PlanDay[] = [
     { label: 'Sequences & series', minutes: 40, lesson: 'm-sequences' },
     { label: 'Mistakes notebook', minutes: 10, route: '/mistakes' },
   ] },
-  { day: 4, hours: 5, theme: 'Geometry (JHS)', items: [
+  { day: 4, hours: 5, theme: 'Geometry (JHS): angles, triangles, quadrilaterals, circles, area', items: [
     { label: 'Lines, angles & triangles', minutes: 40, lesson: 'm-angles' },
+    { label: 'Points, lines, segments & if-then statements', minutes: 45, lesson: 'g-basics' },
     { label: 'Triangles: types, congruence & CPCTC', minutes: 45, lesson: 'g-congruence' },
     { label: 'Quadrilaterals', minutes: 45, lesson: 'g-quads' },
     { label: 'Area, perimeter, circles & volume', minutes: 50, lesson: 'm-shapes' },
     { label: 'Circles: arcs, chords, tangents & secants', minutes: 50, lesson: 'g-circles' },
-    { label: 'Pythagorean theorem & similar triangles', minutes: 45, lesson: 'm-similar' },
     { label: 'Mistakes notebook', minutes: 25, route: '/mistakes' },
-    { label: 'Points, lines, segments & if-then statements', minutes: 45, lesson: 'g-basics', optional: true },
-    { label: 'Skew lines, planes & right-triangle tests', minutes: 45, lesson: 'g-lines-planes', optional: true },
   ] },
-  { day: 5, hours: 10, theme: 'Trig, probability, statistics, logic + English, mental ability, essay + mock exam', items: [
+  { day: 5, hours: 10, theme: 'Right triangles, trig, probability, statistics, logic + math mock exams', items: [
+    { label: 'Skew lines, planes & right-triangle tests', minutes: 45, lesson: 'g-lines-planes' },
+    { label: 'Pythagorean theorem & similar triangles', minutes: 45, lesson: 'm-similar' },
     { label: 'Basic trigonometry', minutes: 40, lesson: 'm-trig' },
+    { label: 'Law of sines & cosines', minutes: 45, lesson: 'm-trig2' },
     { label: 'Counting, probability & statistics', minutes: 50, lesson: 'm-counting' },
     { label: 'Probability of compound events', minutes: 45, lesson: 'm-probability' },
     { label: 'Statistics: quartiles, variance & standard deviation', minutes: 45, lesson: 'm-stats' },
+    { label: 'Sets, Venn diagrams & logic', minutes: 40, lesson: 'm-sets' },
     { label: 'Propositions, truth tables & valid arguments', minutes: 45, lesson: 'm-logic' },
-    { label: 'Subject–verb agreement & sentence structure', minutes: 40, lesson: 'e-grammar-sva' },
-    { label: 'Reading: main idea, details & inference', minutes: 40, lesson: 'r-basics' },
-    { label: 'Number & letter series', minutes: 40, lesson: 'a-series' },
-    { label: 'Figure sequences (pattern rules)', minutes: 40, lesson: 'a-patterns' },
-    { label: 'Essay structure', minutes: 40, lesson: 'essay-structure' },
-    { label: 'Full mock exam (62 questions, 90 min) + review every miss', minutes: 135, route: '/mock' },
-    { label: 'Mistakes notebook: retry everything', minutes: 20, route: '/mistakes' },
-    { label: 'Test-day playbook + formula skim', minutes: 20, route: '/cheatsheet' },
-    { label: 'Law of sines & cosines', minutes: 45, lesson: 'm-trig2', optional: true },
-    { label: 'Sets, Venn diagrams & logic', minutes: 40, lesson: 'm-sets', optional: true },
-    { label: 'Tenses, pronouns & modifiers', minutes: 40, lesson: 'e-tenses-pronouns', optional: true },
-    { label: 'Parallelism, punctuation & sentence errors', minutes: 40, lesson: 'e-sentence-errors', optional: true },
-    { label: 'Analogies, synonyms, antonyms & idioms', minutes: 30, lesson: 'e-word-relations', optional: true },
-    { label: 'Reading: tone, purpose & argument', minutes: 35, lesson: 'r-strategy', optional: true },
-    { label: 'Matrices & grid patterns', minutes: 35, lesson: 'a-matrices', optional: true },
-    { label: 'Odd-one-out, mirrors & spatial reasoning', minutes: 35, lesson: 'a-odd-spatial', optional: true },
-    { label: 'Logical & analytical reasoning', minutes: 25, lesson: 'a-logic', optional: true },
-    { label: 'Essay style, timing & proofreading + a timed essay', minutes: 65, lesson: 'essay-practice', optional: true },
-    { label: 'Math speed drills (use any spare 20 minutes)', minutes: 20, route: '/drills', optional: true },
+    { label: 'Math mock exam (30 questions, 40 min) + review every miss', minutes: 70, route: '/mock' },
+    { label: 'Math speed drills (pick your weakest topics)', minutes: 60, route: '/drills' },
+    { label: 'Mistakes notebook: retry everything', minutes: 40, route: '/mistakes' },
+    { label: 'Formula sheet + test-day playbook', minutes: 30, route: '/cheatsheet' },
+    { label: 'Second math mock (only if you still have energy)', minutes: 70, route: '/mock', optional: true },
   ] },
 ]
 
