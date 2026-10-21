@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { LESSONS, PLAN, lessonById } from './content'
+import { LESSONS, MATH_ORDER, PLAN, lessonById } from './content'
 import { VID } from './content/helpers'
 import { lessonPool } from './lib/pool'
 import { stepEntries } from './content/explain'
@@ -98,6 +98,26 @@ describe('step-by-step math explanations', () => {
         expect(q.e.includes('**Step 1') || q.e.includes('**Idea') || q.e.includes('**Rule') || q.e.includes('**Memory') || q.e.includes('**Words'), `${l.id} #${i} should be step by step`).toBe(true)
         expect(q.e.includes('**Answer'), `${l.id} #${i} should state the answer`).toBe(true)
       })
+    }
+  })
+})
+
+describe('math learning order', () => {
+  it('lists every math lesson exactly once and the app uses that order', () => {
+    const ids = LESSONS.filter(l => l.subject === 'math').map(l => l.id)
+    expect(new Set(MATH_ORDER).size).toBe(MATH_ORDER.length)
+    expect([...MATH_ORDER].sort()).toEqual([...ids].sort())
+    expect(ids).toEqual(MATH_ORDER)
+  })
+  it('the study plan follows that order, within each day and from day to day', () => {
+    let last = -1
+    for (const d of PLAN) {
+      for (const it of d.items) {
+        if (!it.lesson) continue
+        const r = MATH_ORDER.indexOf(it.lesson)
+        expect(r, `${it.lesson} is out of order on day ${d.day}`).toBeGreaterThan(last)
+        last = r
+      }
     }
   })
 })

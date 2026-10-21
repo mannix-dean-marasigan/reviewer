@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { LESSONS, SUBJECTS, lessonById } from '../content'
+import { LESSONS, SUBJECTS, lessonById, lessonNumber } from '../content'
 import { Blocks, VideoCard } from '../components/Blocks'
 import { Quiz } from '../components/Quiz'
 import { Rich } from '../components/Rich'
@@ -30,7 +30,7 @@ export function LessonList() {
           <Link key={l.id} to={`/lesson/${l.id}`} className="card lcard">
             <span className={`pill ${l.subject}`}>{SUBJECTS.find(s => s.id === l.subject)?.label}</span>
             {st.done[l.id] !== undefined && <span className="done">✓ {st.done[l.id]}%</span>}
-            <h3>{l.title}</h3>
+            <h3>{lessonNumber(l.id) ? `${lessonNumber(l.id)}. ` : ''}{l.title}</h3>
             <p className="muted">{l.blurb}</p>
             <span className="muted">~{l.minutes} min · {lessonPool(l).length} questions</span>
           </Link>
@@ -163,7 +163,7 @@ export function LessonPage() {
     <>
       <p className="muted"><Link to="/lessons">← Lessons</Link></p>
       <span className={`pill ${lesson.subject}`}>{SUBJECTS.find(s => s.id === lesson.subject)?.label}</span>
-      <h1>{lesson.title}</h1>
+      <h1>{lessonNumber(lesson.id) ? `Lesson ${lessonNumber(lesson.id)}: ` : ''}{lesson.title}</h1>
       <p className="muted">{lesson.blurb} · ~{lesson.minutes} min</p>
       <div className="tabs">{tabs.map(([t, label]) => <button key={t} className={tab === t ? 'on' : ''} onClick={() => go(t)}>{label}</button>)}</div>
 

@@ -16,6 +16,17 @@ import { READING } from './reading'
 
 export * from './extras'
 
+// Learning order of the math lessons: each lesson builds on the ones before it.
+export const MATH_ORDER = [
+  'm-number-sense', 'm-fractions', 'm-exponents', 'm-ratio', 'm-percent', 'm-equations', 'm-variation', 'm-lines', 'm-systems', 'm-sequences',
+  'm-factoring', 'm-polynomials', 'm-rational', 'm-quadratics', 'm-quad-fn', 'm-functions', 'm-rational-fn', 'm-exp-log', 'm-finance', 'm-logic',
+  'g-basics', 'm-angles', 'g-congruence', 'm-similar', 'm-shapes', 'g-quads', 'g-lines-planes', 'g-circles', 'm-trig', 'm-trig2',
+  'm-sets', 'm-counting', 'm-probability', 'm-stats',
+]
+/** 1-based lesson number in the math learning order (0 if the lesson is not a math lesson). */
+export const lessonNumber = (id: string) => MATH_ORDER.indexOf(id) + 1
+
 const BASE: Lesson[] = [...MATH1, ...MATH2, ...MATH3, ...MATH4, ...MATH5, ...MATH6, ...MATH7, ...MATH8, ...ENGLISH, ...READING, ...MENTAL, ...ESSAY]
-export const LESSONS: Lesson[] = BASE.map(l => withSteps({ ...l, checks: CHECKS[l.id] }))
+const rank = (l: Lesson) => { const i = MATH_ORDER.indexOf(l.id); return i === -1 ? 1000 + BASE.indexOf(l) : i }
+export const LESSONS: Lesson[] = BASE.map(l => withSteps({ ...l, checks: CHECKS[l.id] })).sort((a, b) => rank(a) - rank(b))
 export const lessonById = (id: string) => LESSONS.find(l => l.id === id)
