@@ -26,7 +26,7 @@ export default function Dashboard() {
   return (
     <>
       <h1>You can pass this. Here's the plan. 💪</h1>
-      <p className="muted">5 days · {totalMin / 60} study hours · math only, as you asked. Do the checklist for the day, in order, and don't skip the quizzes: they are where the learning sticks.</p>
+      <p className="muted">{PLAN.length} days · {totalMin / 60} study hours · math only, as you asked. Do the checklist for the day, in order, and don't skip the quizzes: they are where the learning sticks.</p>
 
       <div className="card">
         <div className="stat">
@@ -37,7 +37,7 @@ export default function Dashboard() {
         </div>
         <div className="progress"><i style={{ width: `${(doneCount / LESSONS.length) * 100}%` }} /></div>
         {!st.startDate && (
-          <p>Start Day 1 today? <button className="btn small" onClick={() => update(s => ({ ...s, startDate: today() }))}>Start my 5-day countdown</button></p>
+          <p>Start Day 1 today? <button className="btn small" onClick={() => update(s => ({ ...s, startDate: today() }))}>Start my countdown</button></p>
         )}
         {st.startDate && <p className="muted">Day 1 started {st.startDate}. You are on <b>Day {cur}</b>. <button className="btn small ghost" onClick={() => update(s => ({ ...s, startDate: null }))}>Reset start date</button></p>}
         {weak.length > 0 && <p>⚠️ Weak spots (avg under 70%): {weak.map(w => <span key={w.id} className={`pill ${w.id}`}>{w.label} {w.avg}%</span>)} → redo those quizzes and drills.</p>}
