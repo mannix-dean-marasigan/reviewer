@@ -42,7 +42,9 @@ describe('lesson content', () => {
   it('study plan only references existing lessons and totals the stated hours', () => {
     for (const d of PLAN) {
       d.items.forEach(i => { if (i.lesson) expect(lessonById(i.lesson), i.lesson).toBeDefined() })
-      expect(d.items.filter(i => !i.optional).reduce((a, i) => a + i.minutes, 0)).toBeLessThanOrEqual(d.hours * 60)
+      const sum = (f: (i: typeof d.items[number]) => boolean) => d.items.filter(f).reduce((a, i) => a + i.minutes, 0)
+      expect(sum(i => !i.tier), `day ${d.day} core`).toBeLessThanOrEqual(d.minHours * 60)
+      expect(sum(i => i.tier !== 'bonus'), `day ${d.day} core + stretch`).toBeLessThanOrEqual(d.hours * 60)
     }
     const all = new Set(PLAN.flatMap(d => d.items.map(i => i.lesson)).filter(Boolean))
     for (const l of LESSONS.filter(x => x.subject === 'math')) expect(all.has(l.id), `${l.id} missing from plan`).toBe(true)

@@ -57,11 +57,12 @@ export interface PlanItem {
   minutes: number
   lesson?: string
   route?: string
-  optional?: boolean // only if you have time
+  tier?: 'stretch' | 'bonus' // none = core; stretch = to fill an 8-hour day; bonus = only if time is left
 }
 export interface PlanDay {
   day: number
-  hours: number
+  minHours: number // the core items fit in this many hours
+  hours: number // core + stretch fit in this many hours
   theme: string
   items: PlanItem[]
 }

@@ -11,8 +11,7 @@ function dayNumber(start: string | null) {
 export default function Dashboard() {
   const st = useStore()
   const cur = dayNumber(st.startDate)
-  const totalMin = PLAN.reduce((a, d) => a + d.hours * 60, 0)
-  const doneCount = LESSONS.filter(l => st.done[l.id] !== undefined).length
+    const doneCount = LESSONS.filter(l => st.done[l.id] !== undefined).length
   const studiedToday = st.minutes[today()] ?? 0
   const mocks = st.mocks
   const lastMock = mocks[mocks.length - 1]
@@ -26,7 +25,7 @@ export default function Dashboard() {
   return (
     <>
       <h1>You can pass this. Here's the plan. 💪</h1>
-      <p className="muted">{PLAN.length} days · {totalMin / 60} study hours · math only, as you asked. Do the checklist for the day, in order, and don't skip the quizzes: they are where the learning sticks.</p>
+      <p className="muted">{PLAN.length} days · {PLAN[0].minHours}–{PLAN[0].hours} hours a day · math only, as you asked. Do the checklist for the day, in order, and don't skip the quizzes: they are where the learning sticks.</p>
 
       <div className="card">
         <div className="stat">
@@ -45,14 +44,14 @@ export default function Dashboard() {
 
       {PLAN.map(day => {
         const isCur = day.day === cur
-        const core = day.items.filter(i => !i.optional)
+        const core = day.items.filter(i => i.tier !== 'bonus')
         const mins = core.reduce((a, i) => a + i.minutes, 0)
         const doneMin = core.reduce((a, i) => a + (st.checks[`${day.day}:${i.label}`] ? i.minutes : 0), 0)
         return (
           <section key={day.day} className="card" style={isCur ? { borderColor: 'var(--accent)', borderWidth: 2 } : undefined}>
             <div className="dayhead">
               <h2>Day {day.day}{isCur ? ' · today' : ''} — {day.theme}</h2>
-              <span className="muted">{day.hours} h plan · {Math.round(doneMin / 60 * 10) / 10}/{Math.round(mins / 60 * 10) / 10} h ticked</span>
+              <span className="muted">{day.minHours}–{day.hours} h · {Math.round(doneMin / 60 * 10) / 10}/{Math.round(mins / 60 * 10) / 10} h ticked</span>
             </div>
             <div className="progress"><i style={{ width: `${(doneMin / mins) * 100}%` }} /></div>
             {day.items.map(item => {
@@ -63,7 +62,7 @@ export default function Dashboard() {
                   <input type="checkbox" checked={!!st.checks[k]} onChange={e => update(s => { const c = { ...s.checks }; if (e.target.checked) c[k] = true; else delete c[k]; return { ...s, checks: c } })} aria-label={`Done: ${item.label}`} />
                   {l ? <Link to={`/lesson/${l.id}`}>{item.label}</Link> : item.route ? <Link to={item.route}>{item.label}</Link> : <span>{item.label}</span>}
                   {l && st.done[l.id] !== undefined && <span className="pill">{st.done[l.id]}%</span>}
-                  <span className="min">{item.optional ? 'if time · ' : ''}{item.minutes} min</span>
+                  <span className="min">{item.tier === 'stretch' ? 'stretch · ' : item.tier === 'bonus' ? 'bonus · ' : ''}{item.minutes} min</span>
                 </div>
               )
             })}
