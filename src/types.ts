@@ -57,6 +57,7 @@ export interface PlanItem {
   minutes: number
   lesson?: string
   route?: string
+  optional?: boolean // only if you have time
 }
 export interface PlanDay {
   day: number

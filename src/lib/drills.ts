@@ -267,6 +267,95 @@ const GEN: Record<string, (r: Rng) => Question> = {
       `**Words:** the **roots** of an equation are the x-values that make it true.\n**Step 1 (factor the left side):** find two numbers with product ${C} and sum ${B}. They are ${-a} and ${-b}.\n**Step 2 (write the brackets):** $(x${-a < 0 ? '-' : '+'}${Math.abs(a)})(x${-b < 0 ? '-' : '+'}${Math.abs(b)})=0$.\n**Step 3 (each bracket must be 0 for the product to be 0):** $x=${a}$ or $x=${b}$.\n**Step 4 (pick the larger):** ${a}.\n**Answer: ${a}**`,
       'Sum of roots = −b, product = c.')
   },
+  segAdd(r) {
+    const x = r.int(2, 9), a = r.int(2, 6), c = r.int(1, a - 1), b = r.int(1, 8)
+    const d = (a - c) * x + b
+    const pm = a * x + b
+    return mk(r, `M is the midpoint of $\\overline{PQ}$. $PM=${a}x+${b}$ and $MQ=${c}x+${d}$. Find $PQ$.`, `${2 * pm}`,
+      [`${pm}`, `${x}`, `${2 * pm + 2}`, `${2 * pm - 2}`],
+      `**Words:** a **midpoint** splits a segment into two EQUAL parts, so $PM=MQ$. The **Segment Addition Postulate** says $PQ=PM+MQ$.\n**Step 1 (set the halves equal):** ${a}x+${b}=${c}x+${d}.\n**Step 2 (subtract ${c}x from both sides):** ${a - c}x+${b}=${d}.\n**Step 3 (subtract ${b}):** ${a - c}x=${d - b}, so x=${x}.\n**Step 4 (find one half):** PM = ${a}(${x})+${b} = ${pm}.\n**Step 5 (whole segment = 2 halves):** PQ = 2 × ${pm} = ${2 * pm}.\n**Answer: ${2 * pm}**`,
+      'Midpoint → the two halves are equal; solve for x first, then double.')
+  },
+  triIneq(r) {
+    const s1 = r.int(4, 12), s2 = r.int(s1 + 1, 16)
+    const lo = s2 - s1, hi = s1 + s2
+    const ok = r.int(lo + 1, hi - 1)
+    return mk(r, `Two sides of a triangle are ${s1} and ${s2}. Which could be the length of the third side?`, `${ok}`,
+      [`${hi}`, `${lo}`, `${hi + 3}`, `${lo - 1}`].map(String),
+      `**Words:** the **Triangle Inequality Theorem** says any two sides of a triangle must add up to MORE than the third side.\n**Step 1 (largest the third side can be):** it must be less than ${s1}+${s2} = ${hi}.\n**Step 2 (smallest the third side can be):** it must be more than ${s2}−${s1} = ${lo}.\n**Step 3:** the third side is between ${lo} and ${hi} (not equal to either).\n**Step 4:** only ${ok} is inside that range.\n**Answer: ${ok}**`,
+      'Third side is between the DIFFERENCE and the SUM of the other two.')
+  },
+  parAngle(r) {
+    const A = r.int(40, 130)
+    return mk(r, `One angle of a parallelogram measures ${A}°. What is the measure of an angle NEXT to it (a consecutive angle)?`, `${180 - A}°`,
+      [`${A}°`, `${360 - A}°`, `${90 - (A % 90)}°`, `${180 - A + 10}°`],
+      `**Words:** a **parallelogram** has two pairs of parallel sides. **Consecutive** angles are angles that share a side.\n**Step 1:** the sides are parallel, so consecutive angles are **supplementary** (they add to 180°, like co-interior angles).\n**Step 2:** 180° − ${A}° = ${180 - A}°.\n**Check:** opposite angles are equal, so the four angles are ${A}°, ${180 - A}°, ${A}°, ${180 - A}°, and they add to 360° ✓\n**Answer: ${180 - A}°**`,
+      'Next-door angles add to 180°; opposite angles are equal.')
+  },
+  arcAngle(r) {
+    const kind = r.pick(['inscribed', 'central', 'chords', 'secants', 'tangent'] as const)
+    if (kind === 'inscribed') {
+      const arc = 2 * r.int(20, 80)
+      return mk(r, `An inscribed angle intercepts an arc of ${arc}°. What is the measure of the inscribed angle?`, `${arc / 2}°`, [`${arc}°`, `${arc * 2}°`, `${180 - arc / 2}°`, `${arc / 4}°`],
+        `**Words:** an **inscribed angle** has its corner ON the circle. The **arc** it “looks at” is the curved part between its two sides.\n**Step 1:** an inscribed angle is HALF of its arc.\n**Step 2:** ${arc}° ÷ 2 = ${arc / 2}°.\n**Answer: ${arc / 2}°**`,
+        'Inscribed angle = half the arc. Central angle = the arc.')
+    }
+    if (kind === 'central') {
+      const ang = r.int(30, 150)
+      return mk(r, `A central angle measures ${ang}°. What is the measure of the arc it intercepts?`, `${ang}°`, [`${ang / 2}°`, `${ang * 2}°`, `${360 - ang}°`, `${180 - ang}°`],
+        `**Words:** a **central angle** has its corner at the centre of the circle.\n**Step 1:** the arc between its sides has the SAME measure as the central angle.\n**Answer: ${ang}°**`,
+        'Central angle = its arc.')
+    }
+    if (kind === 'chords') {
+      const a = 2 * r.int(20, 60), b = 2 * r.int(15, 50)
+      return mk(r, `Two chords cross inside a circle. The two arcs cut off by the angle and its vertical angle are ${a}° and ${b}°. What is the measure of the angle?`, `${(a + b) / 2}°`, [`${a + b}°`, `${Math.abs(a - b) / 2}°`, `${(a + b) / 4}°`, `${a}°`],
+        `**Words:** a **chord** is a straight line joining two points on a circle.\n**Step 1:** for two chords that cross INSIDE a circle, the angle is half the SUM of the two arcs.\n**Step 2:** (${a} + ${b}) ÷ 2 = ${a + b} ÷ 2 = ${(a + b) / 2}°.\n**Answer: ${(a + b) / 2}°**`,
+        'Inside the circle: half the SUM. Outside the circle: half the DIFFERENCE.')
+    }
+    if (kind === 'secants') {
+      const far = 2 * r.int(40, 80), near = 2 * r.int(10, 30)
+      return mk(r, `Two secants meet at a point OUTSIDE a circle. They cut off a far arc of ${far}° and a near arc of ${near}°. What is the angle between the secants?`, `${(far - near) / 2}°`, [`${(far + near) / 2}°`, `${far - near}°`, `${(far - near) / 4}°`, `${far / 2}°`],
+        `**Words:** a **secant** is a line that cuts through a circle at two points.\n**Step 1:** for an angle formed OUTSIDE the circle, the angle is half the DIFFERENCE of the arcs (far minus near).\n**Step 2:** (${far} − ${near}) ÷ 2 = ${far - near} ÷ 2 = ${(far - near) / 2}°.\n**Answer: ${(far - near) / 2}°**`,
+        'Outside: half of (far arc − near arc).')
+    }
+    const arc = 2 * r.int(25, 80)
+    return mk(r, `A tangent and a chord meet at a point on a circle and cut off an arc of ${arc}°. What is the angle between the tangent and the chord?`, `${arc / 2}°`, [`${arc}°`, `${arc * 2}°`, `${180 - arc / 2}°`, `${arc / 4}°`],
+      `**Words:** a **tangent** is a line that touches the circle at exactly one point.\n**Step 1:** the angle between a tangent and a chord is HALF the arc it cuts off (just like an inscribed angle).\n**Step 2:** ${arc}° ÷ 2 = ${arc / 2}°.\n**Answer: ${arc / 2}°**`,
+      'Tangent-chord angle = half its arc.')
+  },
+  pythCheck(r) {
+    const type = r.pick(['right', 'acute', 'obtuse'] as const)
+    const bank = {
+      right: [[3, 4, 5], [5, 12, 13], [6, 8, 10], [8, 15, 17], [9, 12, 15], [7, 24, 25]],
+      acute: [[5, 6, 7], [6, 7, 8], [7, 8, 9], [4, 5, 5], [8, 9, 10]],
+      obtuse: [[2, 3, 4], [3, 4, 6], [5, 6, 10], [4, 5, 8], [6, 7, 11]],
+    }
+    const [a, b, c] = r.pick(bank[type])
+    const lhs = a * a + b * b, rhs = c * c
+    return mk(r, `A triangle has sides ${a}, ${b} and ${c}. Is it acute, right or obtuse?`, type === 'right' ? 'Right' : type === 'acute' ? 'Acute' : 'Obtuse',
+      ['Acute', 'Right', 'Obtuse', 'Not a triangle'],
+      `**Words:** in a right triangle $a^2+b^2=c^2$ where $c$ is the longest side. **Acute** means all angles are less than 90°; **obtuse** means one angle is bigger than 90°.\n**Step 1 (square the two shorter sides and add):** ${a}² + ${b}² = ${a * a} + ${b * b} = ${lhs}.\n**Step 2 (square the longest side):** ${c}² = ${rhs}.\n**Step 3 (compare):** ${lhs} ${lhs === rhs ? '=' : lhs > rhs ? '>' : '<'} ${rhs}. ${lhs === rhs ? 'Equal → right triangle.' : lhs > rhs ? 'The short sides are “strong enough” → acute triangle.' : 'The short sides are too short → obtuse triangle.'}\n**Answer: ${type === 'right' ? 'Right' : type === 'acute' ? 'Acute' : 'Obtuse'}**`,
+      'Short² + short² vs long²: bigger = acute, equal = right, smaller = obtuse.')
+  },
+  logicForm(r) {
+    const bank = [
+      ['a shape is a square', 'it is a rectangle'], ['it rains', 'the street is wet'], ['a number is divisible by 4', 'it is even'],
+      ['an animal is a dog', 'it is a mammal'], ['a number ends in 0', 'it is divisible by 5'], ['a figure is a triangle', 'it has three sides'],
+    ]
+    const [p, q] = r.pick(bank)
+    const neg = (s: string) => s.replace(' is ', ' is not ').replace(' ends ', ' does not end ').replace(' rains', ' does not rain').replace(' has ', ' does not have ')
+    const forms: Record<string, string> = {
+      original: `If ${p}, then ${q}.`,
+      converse: `If ${q}, then ${p}.`,
+      inverse: `If ${neg(p)}, then ${neg(q)}.`,
+      contrapositive: `If ${neg(q)}, then ${neg(p)}.`,
+    }
+    const want = r.pick(['converse', 'inverse', 'contrapositive'] as const)
+    return mk(r, `Statement: “${forms.original}” Which is its ${want}?`, forms[want],
+      Object.entries(forms).filter(([k]) => k !== want).map(([, v]) => v),
+      `**Words:** a **conditional** statement has the form “If p, then q”. Its relatives: the **converse** swaps p and q; the **inverse** negates both (adds “not”); the **contrapositive** swaps AND negates.\n**Step 1 (identify):** p = “${p}”, q = “${q}”.\n**Step 2 (build the ${want}):** ${want === 'converse' ? 'swap them: If q, then p' : want === 'inverse' ? 'add “not” to both: If not p, then not q' : 'swap and add “not”: If not q, then not p'}.\n**Step 3 (write it out):** ${forms[want]}\n**Answer: ${forms[want]}**`,
+      'Only the contrapositive always has the same truth value as the original.')
+  },
 }
 
 export const DRILL_KINDS = Object.keys(GEN)

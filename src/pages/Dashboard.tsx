@@ -45,8 +45,9 @@ export default function Dashboard() {
 
       {PLAN.map(day => {
         const isCur = day.day === cur
-        const mins = day.items.reduce((a, i) => a + i.minutes, 0)
-        const doneMin = day.items.reduce((a, i) => a + (st.checks[`${day.day}:${i.label}`] ? i.minutes : 0), 0)
+        const core = day.items.filter(i => !i.optional)
+        const mins = core.reduce((a, i) => a + i.minutes, 0)
+        const doneMin = core.reduce((a, i) => a + (st.checks[`${day.day}:${i.label}`] ? i.minutes : 0), 0)
         return (
           <section key={day.day} className="card" style={isCur ? { borderColor: 'var(--accent)', borderWidth: 2 } : undefined}>
             <div className="dayhead">
@@ -62,7 +63,7 @@ export default function Dashboard() {
                   <input type="checkbox" checked={!!st.checks[k]} onChange={e => update(s => { const c = { ...s.checks }; if (e.target.checked) c[k] = true; else delete c[k]; return { ...s, checks: c } })} aria-label={`Done: ${item.label}`} />
                   {l ? <Link to={`/lesson/${l.id}`}>{item.label}</Link> : item.route ? <Link to={item.route}>{item.label}</Link> : <span>{item.label}</span>}
                   {l && st.done[l.id] !== undefined && <span className="pill">{st.done[l.id]}%</span>}
-                  <span className="min">{item.minutes} min</span>
+                  <span className="min">{item.optional ? 'if time · ' : ''}{item.minutes} min</span>
                 </div>
               )
             })}

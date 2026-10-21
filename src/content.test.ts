@@ -42,7 +42,7 @@ describe('lesson content', () => {
   it('study plan only references existing lessons and totals the stated hours', () => {
     for (const d of PLAN) {
       d.items.forEach(i => { if (i.lesson) expect(lessonById(i.lesson), i.lesson).toBeDefined() })
-      expect(d.items.reduce((a, i) => a + i.minutes, 0)).toBeLessThanOrEqual(d.hours * 60)
+      expect(d.items.filter(i => !i.optional).reduce((a, i) => a + i.minutes, 0)).toBeLessThanOrEqual(d.hours * 60)
     }
     const all = new Set(PLAN.flatMap(d => d.items.map(i => i.lesson)).filter(Boolean))
     for (const l of LESSONS) expect(all.has(l.id), `${l.id} missing from plan`).toBe(true)
@@ -87,8 +87,8 @@ describe('step-by-step math explanations', () => {
   it('cover every math question, aligned and containing steps', () => {
     for (const l of LESSONS.filter(x => x.subject === 'math')) {
       const list = stepEntries(l.id)
-      expect(list, `${l.id} has no step explanations`).toBeDefined()
       const pool = lessonPool(l)
+      if (!list) { pool.forEach((q, i) => { expect(q.e.includes('**Step 1') && q.e.includes('**Answer'), `${l.id} #${i} must be step by step`).toBe(true) }); continue }
       expect(list.length, `${l.id} count`).toBe(pool.length)
       pool.forEach((q, i) => {
         expect(q.q.startsWith(list[i][0]), `${l.id} #${i} misaligned: ${list[i][0]}`).toBe(true)

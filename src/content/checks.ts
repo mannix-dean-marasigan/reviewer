@@ -1,4 +1,5 @@
 import type { Checks } from '../types'
+import { CHECKS_GEO } from './checks-geo'
 import { CHECKS_LANG } from './checks-lang'
 import { CHECKS_MATH1 } from './checks-math1'
 import { CHECKS_MATH2 } from './checks-math2'
@@ -23,9 +24,14 @@ const DRILLS: Record<string, string[]> = {
   'm-trig': ['trig'],
   'm-counting': ['combos', 'mean', 'dice'],
   'm-sets': ['venn'],
+  'g-basics': ['segAdd', 'logicForm'],
+  'g-congruence': ['triIneq', 'angles'],
+  'g-quads': ['parAngle', 'polyAngle'],
+  'g-circles': ['arcAngle', 'circle'],
+  'g-lines-planes': ['pythCheck', 'triIneq', 'angles'],
 }
 
-const BASE: Record<string, Checks> = { ...CHECKS_MATH1, ...CHECKS_MATH2, ...CHECKS_LANG, ...CHECKS_OTHER }
+const BASE: Record<string, Checks> = { ...CHECKS_MATH1, ...CHECKS_MATH2, ...CHECKS_GEO, ...CHECKS_LANG, ...CHECKS_OTHER }
 export const CHECKS: Record<string, Checks> = Object.fromEntries(
   Object.entries(BASE).map(([id, c]) => [id, { ...c, drill: DRILLS[id] ?? c.drill, extra: EXTRA[id], gen: id === 'a-series' ? 'series' : undefined }]),
 )

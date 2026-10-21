@@ -2,6 +2,7 @@
 import type { ComponentType } from 'react'
 import * as M from './math'
 import * as G from './general'
+import { TriangleLab } from './geo'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const INTERACTIVES: Record<string, ComponentType<{ data?: any }>> = {
@@ -16,6 +17,7 @@ export const INTERACTIVES: Record<string, ComponentType<{ data?: any }>> = {
   similar: M.SimilarLab,
   count: M.CountLab,
   percent: M.PercentLab,
+  tri: TriangleLab,
   steps: G.StepOrder as ComponentType<{ data?: any }>,
   flash: G.FlashDeck as ComponentType<{ data?: any }>,
   errors: G.ErrorHunt as ComponentType<{ data?: any }>,

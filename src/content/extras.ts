@@ -49,6 +49,11 @@ export const PLAN: PlanDay[] = [
     { label: 'Logical & analytical reasoning', minutes: 25, lesson: 'a-logic' },
     { label: 'First timed essay (30 min) in the Essay Studio', minutes: 35, route: '/essay' },
     { label: 'Mistakes notebook', minutes: 5, route: '/mistakes' },
+    { label: 'Geometry: points, lines & if-then statements', minutes: 45, lesson: 'g-basics', optional: true },
+    { label: 'Geometry: triangles & congruence', minutes: 45, lesson: 'g-congruence', optional: true },
+    { label: 'Geometry: quadrilaterals', minutes: 45, lesson: 'g-quads', optional: true },
+    { label: 'Geometry: circles', minutes: 50, lesson: 'g-circles', optional: true },
+    { label: 'Geometry: skew lines & right-triangle tests', minutes: 45, lesson: 'g-lines-planes', optional: true },
   ] },
   { day: 5, hours: 10, theme: 'Marathon: mocks, weak spots, polish', items: [
     { label: 'Full mock exam (62 questions, 90 min) + review every miss', minutes: 135, route: '/mock' },
