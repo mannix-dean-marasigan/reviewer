@@ -356,6 +356,183 @@ const GEN: Record<string, (r: Rng) => Question> = {
       `**Words:** a **conditional** statement has the form “If p, then q”. Its relatives: the **converse** swaps p and q; the **inverse** negates both (adds “not”); the **contrapositive** swaps AND negates.\n**Step 1 (identify):** p = “${p}”, q = “${q}”.\n**Step 2 (build the ${want}):** ${want === 'converse' ? 'swap them: If q, then p' : want === 'inverse' ? 'add “not” to both: If not p, then not q' : 'swap and add “not”: If not q, then not p'}.\n**Step 3 (write it out):** ${forms[want]}\n**Answer: ${forms[want]}**`,
       'Only the contrapositive always has the same truth value as the original.')
   },
+  sys2(r) {
+    const x = r.int(3, 9), y = r.int(1, x - 1)
+    const s = x + y, d = x - y
+    return mk(r, `Solve the system: $x+y=${s}$ and $x-y=${d}$. What is $x$?`, `${x}`, [`${y}`, `${s}`, `${d}`, `${x + 1}`],
+      `**Words:** a **system of equations** is two equations with the same unknowns. **Elimination** means adding or subtracting the equations so one variable disappears.\n**Step 1 (add the two equations):** $(x+y)+(x-y)=${s}+${d}$, so $2x=${s + d}$.\n**Step 2 (divide by 2):** $x=${x}$.\n**Step 3 (find y):** $${x}+y=${s}$, so $y=${y}$.\n**Check:** ${x}−${y}=${d} ✓\n**Answer: ${x}**`,
+      'If one equation has +y and the other −y, adding them removes y.')
+  },
+  polyRem(r) {
+    const c = r.int(-3, 4), a = r.int(1, 3), b = r.int(-5, 5), d = r.int(-6, 6)
+    const val = a * c ** 3 + b * c + d
+    const poly = `${a === 1 ? '' : a}x^3${b === 0 ? '' : b > 0 ? `+${b}x` : `${b}x`}${d === 0 ? '' : d > 0 ? `+${d}` : d}`
+    return mk(r, `Find the remainder when $${poly}$ is divided by $x${c < 0 ? '+' : '-'}${Math.abs(c)}$.`, `${val}`, [`${val + c}`, `${-val}`, `${a * c ** 3}`, `${val + d}`].map(String),
+      `**Words:** the **Remainder Theorem** says the remainder when $p(x)$ is divided by $(x-c)$ is simply $p(c)$. No long division needed.\n**Step 1 (find c):** the divisor is $x${c < 0 ? '+' : '-'}${Math.abs(c)}$, so $c=${c}$.\n**Step 2 (substitute x = ${c}):** $${a}(${c})^3${b < 0 ? '' : '+'}${b}(${c})${d < 0 ? '' : '+'}${d}$.\n**Step 3 (cubes first, then multiply, then add):** $${a}\\times${c ** 3}=${a * c ** 3}$; $${b}\\times${c}=${b * c}$; total $${a * c ** 3}+(${b * c})+(${d})=${val}$.\n**Answer: ${val}**`,
+      'Remainder when dividing by (x − c) is p(c).')
+  },
+  ratEq(r) {
+    const k = r.pick([2, 3, 4, 6, 8, 12]), m = r.int(1, 5), x = r.pick([1, 2, 3, 4, 6].filter(v => k % v === 0))
+    const n = m + k / x
+    return mk(r, `Solve for $x$: $\\dfrac{${k}}{x}+${m}=${n}$`, `${x}`, [`${k / (n + m)}`, `${n - m}`, `${k * x}`, `${x + 1}`].map(String),
+      `**Words:** a **rational equation** has the unknown in a denominator. Clear the fraction by multiplying by $x$ (and remember $x\\ne0$).\n**Step 1 (get the fraction alone, subtract ${m}):** $\\frac{${k}}{x}=${n - m}$.\n**Step 2 (cross-multiply):** ${k} = ${n - m}x.\n**Step 3 (divide by ${n - m}):** $x=\\frac{${k}}{${n - m}}=${x}$.\n**Check:** ${k}/${x} + ${m} = ${k / x} + ${m} = ${n} ✓\n**Answer: ${x}**`,
+      'Isolate the fraction, then cross-multiply. Always check for extraneous solutions.')
+  },
+  vertex(r) {
+    const h = r.pick([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6]), k = r.pick([-8, -6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 7, 8])
+    const b = -2 * h, c = h * h + k
+    const eq = `x^2${b === 0 ? '' : b > 0 ? `+${b}x` : `${b}x`}${c === 0 ? '' : c > 0 ? `+${c}` : c}`
+    return mk(r, `What is the vertex of $y=${eq}$?`, `$(${h},${k})$`, [`$(${-h},${k})$`, `$(${h},${-k})$`, `$(${k},${h})$`, `$(${h},${c})$`],
+      `**Words:** the **vertex** is the turning point of a parabola (its lowest or highest point). For $y=ax^2+bx+c$ the vertex has $x=-\\frac{b}{2a}$.\n**Step 1 (read a, b, c):** $a=1$, $b=${b}$, $c=${c}$.\n**Step 2 (x of the vertex):** $x=-\\frac{${b}}{2(1)}=${h}$.\n**Step 3 (y of the vertex, substitute x back):** $y=(${h})^2${b < 0 ? '' : '+'}${b}(${h})${c < 0 ? '' : '+'}${c}=${h * h}+(${b * h})+(${c})=${k}$.\n**Answer: (${h}, ${k})**`,
+      'Vertex x = −b ÷ 2a, then plug in to get y.')
+  },
+  quadIneq(r) {
+    const p = r.int(-5, 1), q = r.int(p + 2, p + 7)
+    const gt = r.pick([true, false])
+    const ans = gt ? `$x<${p}$ or $x>${q}$` : `$${p}<x<${q}$`
+    return mk(r, `Solve: $(x${p < 0 ? '+' : '-'}${Math.abs(p)})(x${q < 0 ? '+' : '-'}${Math.abs(q)})${gt ? '>' : '<'}0$`, ans,
+      [gt ? `$${p}<x<${q}$` : `$x<${p}$ or $x>${q}$`, gt ? `$x>${q}$` : `$x<${q}$`, `$x=${p}$ or $x=${q}$`, `$x>${p}$`],
+      `**Words:** a **quadratic inequality** asks for the x-values that make a quadratic positive (>0) or negative (<0).\n**Step 1 (find where it equals 0):** the **critical values** are $x=${p}$ and $x=${q}$. They split the number line into three parts.\n**Step 2 (test one number in each part):** left of ${p} the product of the two brackets is positive; between ${p} and ${q} it is negative; right of ${q} it is positive again.\n**Step 3 (pick the parts that match “${gt ? '>' : '<'} 0”):** ${gt ? 'positive parts: the outside pieces' : 'negative part: the middle piece'}.\n**Answer: ${ans.replace(/\$/g, '')}**`,
+      'Parabola opens up: > 0 outside the roots, < 0 between the roots.')
+  },
+  joint(r) {
+    const k = r.int(2, 6), x1 = r.int(1, 4), y1 = r.int(2, 5), x2 = r.int(2, 6), y2 = r.int(2, 6)
+    const z1 = k * x1 * y1, z2 = k * x2 * y2
+    return mk(r, `$z$ varies jointly as $x$ and $y$. If $z=${z1}$ when $x=${x1}$ and $y=${y1}$, find $z$ when $x=${x2}$ and $y=${y2}$.`, `${z2}`, [`${z1 + x2 * y2}`, `${z2 + k}`, `${x2 * y2}`, `${z1 * x2 * y2}`].map(String),
+      `**Words:** **joint variation** means $z=kxy$: z grows with the PRODUCT of x and y. The number $k$ is the **constant of variation**.\n**Step 1 (find k):** ${z1} = k × ${x1} × ${y1} = k × ${x1 * y1}, so $k=${k}$.\n**Step 2 (use k with the new values):** $z=${k}\\times${x2}\\times${y2}$.\n**Step 3:** ${x2} × ${y2} = ${x2 * y2}, and ${k} × ${x2 * y2} = ${z2}.\n**Answer: ${z2}**`,
+      'Find k from the first set of numbers, then reuse it.')
+  },
+  funcEval(r) {
+    const a = r.int(1, 4), b = r.int(-6, 6), c = r.int(-8, 8), x = r.int(-3, 4)
+    const v = a * x * x + b * x + c
+    return mk(r, `If $f(x)=${a === 1 ? '' : a}x^2${b === 0 ? '' : b > 0 ? `+${b}x` : `${b}x`}${c === 0 ? '' : c > 0 ? `+${c}` : c}$, find $f(${x})$.`, `${v}`, [`${v + 2 * Math.abs(b)}`, `${a * x + b * x + c}`, `${v - c}`, `${-v}`].map(String),
+      `**Words:** $f(x)$ is read “f of x”. It is a rule: put a number in place of x and calculate.\n**Step 1 (replace every x by ${x}):** $f(${x})=${a}(${x})^2${b < 0 ? '' : '+'}${b}(${x})${c < 0 ? '' : '+'}${c}$.\n**Step 2 (square first):** $(${x})^2=${x * x}$, so $${a}\\times${x * x}=${a * x * x}$.\n**Step 3 (the middle term):** $${b}\\times(${x})=${b * x}$.\n**Step 4 (add everything):** ${a * x * x} + (${b * x}) + (${c}) = ${v}.\n**Answer: ${v}**`,
+      'Put brackets around negative inputs: (−3)² = 9, not −9.')
+  },
+  composite(r) {
+    const a = r.int(2, 5), b = r.int(-4, 5), c = r.int(2, 4), d = r.int(-3, 4), x = r.int(1, 4)
+    const g = c * x + d, v = a * g + b
+    return mk(r, `Let $f(x)=${a}x${b < 0 ? '' : '+'}${b}$ and $g(x)=${c}x${d < 0 ? '' : '+'}${d}$. Find $(f\\circ g)(${x})$.`, `${v}`, [`${c * (a * x + b) + d}`, `${a * x + b + c * x + d}`, `${g}`, `${v + 1}`].map(String),
+      `**Words:** $(f\\circ g)(x)$ means $f(g(x))$: do g first, then feed the answer into f.\n**Step 1 (inner function g):** $g(${x})=${c}(${x})${d < 0 ? '' : '+'}${d}=${g}$.\n**Step 2 (outer function f at ${g}):** $f(${g})=${a}(${g})${b < 0 ? '' : '+'}${b}$.\n**Step 3:** ${a}×${g} = ${a * g}, and ${a * g} + (${b}) = ${v}.\n**Answer: ${v}**`,
+      'Work from the inside out.')
+  },
+  inverseFn(r) {
+    const a = r.int(2, 6), b = r.int(1, 9)
+    const sign = r.pick([1, -1])
+    const bb = sign * b
+    return mk(r, `Find the inverse of $f(x)=${a}x${bb < 0 ? '' : '+'}${bb}$.`, `$f^{-1}(x)=\\dfrac{x${bb < 0 ? '+' : '-'}${Math.abs(bb)}}{${a}}$`,
+      [`$f^{-1}(x)=\\dfrac{x${bb < 0 ? '-' : '+'}${Math.abs(bb)}}{${a}}$`, `$f^{-1}(x)=${a}x${bb < 0 ? '+' : '-'}${Math.abs(bb)}$`, `$f^{-1}(x)=\\dfrac{${a}}{x${bb < 0 ? '+' : '-'}${Math.abs(bb)}}$`, `$f^{-1}(x)=\\dfrac{x}{${a}}${bb < 0 ? '+' : '-'}${Math.abs(bb)}$`],
+      `**Words:** the **inverse** function $f^{-1}$ undoes f: it takes the output back to the input.\n**Step 1 (write y for f(x)):** $y=${a}x${bb < 0 ? '' : '+'}${bb}$.\n**Step 2 (swap x and y):** $x=${a}y${bb < 0 ? '' : '+'}${bb}$.\n**Step 3 (solve for y, undo the ${bb < 0 ? 'minus' : 'plus'} first):** $${a}y=x${bb < 0 ? '+' : '-'}${Math.abs(bb)}$.\n**Step 4 (divide by ${a}):** $y=\\frac{x${bb < 0 ? '+' : '-'}${Math.abs(bb)}}{${a}}$.\n**Answer: $f^{-1}(x)=\\frac{x${bb < 0 ? '+' : '-'}${Math.abs(bb)}}{${a}}$**`,
+      'Swap x and y, then solve for y.')
+  },
+  asymptote(r) {
+    const a = r.int(1, 5), c = r.int(1, 4), dd = r.pick([-3, -2, -1, 1, 2, 3]) * c, b = r.int(-5, 5)
+    const vx = -dd / c, hy = a / c
+    return mk(r, `Find the vertical asymptote of $f(x)=\\dfrac{${a}x${b < 0 ? '' : '+'}${b}}{${c === 1 ? '' : c}x${dd < 0 ? '' : '+'}${dd}}$.`, `$x=${vx}$`, [`$y=${frac(a, c)}$`, `$x=${-vx}$`, `$x=${dd}$`, `$y=${vx}$`],
+      `**Words:** a **rational function** is a fraction of two polynomials. A **vertical asymptote** is a vertical line the graph gets closer and closer to but never touches. It sits where the DENOMINATOR is 0 (and the top is not 0).\n**Step 1 (set the denominator equal to 0):** ${c === 1 ? '' : c}x${dd < 0 ? '' : '+'}${dd}=0.\n**Step 2 (solve):** ${c}x=${-dd}, so $x=${vx}$.\n**Answer: x = ${vx}** (the horizontal asymptote is $y=\\frac{${a}}{${c}}=${frac(a, c)}$, the ratio of the leading coefficients).`,
+      'Vertical asymptote: bottom = 0. Horizontal asymptote: ratio of the x-coefficients.')
+  },
+  expEq(r) {
+    const base = r.pick([2, 3, 5]), x = r.int(2, 5), k = r.int(1, 3)
+    return mk(r, `Solve for $x$: $${base}^{x+${k}}=${base ** (x + k)}$`, `${x}`, [`${x + k}`, `${x - k}`, `${base ** (x + k) / base}`, `${x + 1}`].map(String),
+      `**Words:** an **exponential equation** has the unknown in the exponent. If both sides have the SAME base, the exponents must be equal.\n**Step 1 (write the right side as a power of ${base}):** ${base ** (x + k)} = ${base}^${x + k}.\n**Step 2 (same base, so equate exponents):** $x+${k}=${x + k}$.\n**Step 3 (subtract ${k}):** $x=${x}$.\n**Answer: ${x}**`,
+      'Rewrite both sides with the same base, then compare the exponents.')
+  },
+  logVal(r) {
+    const base = r.pick([2, 3, 4, 5, 10]), k = r.int(2, 4)
+    const kind = r.pick(['single', 'sum', 'diff'] as const)
+    if (kind === 'single') {
+      return mk(r, `Evaluate: $\\log_{${base}}${base ** k}$`, `${k}`, [`${base * k}`, `${base ** k}`, `${k + 1}`, `${base}`].map(String),
+        `**Words:** $\\log_{${base}}${base ** k}$ asks: “${base} raised to WHAT power gives ${base ** k}?” A **logarithm** is an exponent.\n**Step 1:** ${base}^1 = ${base}, ${base}^2 = ${base ** 2}${k >= 3 ? `, ${base}^3 = ${base ** 3}` : ''}${k >= 4 ? `, ${base}^4 = ${base ** 4}` : ''}.\n**Step 2:** ${base ** k} = ${base}^${k}.\n**Answer: ${k}**`,
+        'log_b(N) = the power you raise b to in order to get N.')
+    }
+    const m = r.int(1, 3), n = r.int(1, 3)
+    if (kind === 'sum') {
+      return mk(r, `Evaluate: $\\log_{${base}}${base ** m}+\\log_{${base}}${base ** n}$`, `${m + n}`, [`${m * n}`, `${base ** (m + n)}`, `${m + n + 1}`, `${Math.abs(m - n)}`].map(String),
+        `**Words:** a **logarithm** is an exponent: $\\log_{${base}}${base ** m}=${m}$ because ${base}^${m} = ${base ** m}.\n**Step 1 (first log):** $\\log_{${base}}${base ** m}=${m}$.\n**Step 2 (second log):** $\\log_{${base}}${base ** n}=${n}$.\n**Step 3 (add):** ${m} + ${n} = ${m + n}.\n**Check with the product rule:** $\\log_b M+\\log_b N=\\log_b(MN)=\\log_{${base}}${base ** (m + n)}=${m + n}$ ✓\n**Answer: ${m + n}**`,
+        'Product rule: log M + log N = log (M × N).')
+    }
+    return mk(r, `Evaluate: $\\log_{${base}}${base ** (m + n)}-\\log_{${base}}${base ** n}$`, `${m}`, [`${m + n}`, `${m * n}`, `${m + 1}`, `${n}`].map(String),
+      `**Words:** a **logarithm** is an exponent: $\\log_{${base}}${base ** (m + n)}=${m + n}$ because ${base}^${m + n} = ${base ** (m + n)}.\n**Step 1 (first log):** ${m + n}.\n**Step 2 (second log):** $\\log_{${base}}${base ** n}=${n}$.\n**Step 3 (subtract):** ${m + n} − ${n} = ${m}.\n**Check with the quotient rule:** $\\log_b M-\\log_b N=\\log_b\\frac{M}{N}=\\log_{${base}}${base ** m}=${m}$ ✓\n**Answer: ${m}**`,
+      'Quotient rule: log M − log N = log (M ÷ N).')
+  },
+  simpleInt(r) {
+    const P = r.pick([2000, 5000, 8000, 10000, 20000]), rate = r.pick([3, 4, 5, 6, 8, 10]), t = r.int(2, 6)
+    const I = (P * rate * t) / 100
+    return mk(r, `How much simple interest does ₱${P.toLocaleString('en-US')} earn at ${rate}% per year in ${t} years?`, `₱${I.toLocaleString('en-US')}`, [`₱${(I + P).toLocaleString('en-US')}`, `₱${(P * rate).toLocaleString('en-US')}`, `₱${(I / t).toLocaleString('en-US')}`, `₱${(I * 2).toLocaleString('en-US')}`],
+      `**Words:** **simple interest** is earned only on the starting amount, the **principal** (P). Formula: $I=Prt$, where r is the yearly rate written as a decimal and t is the time in years.\n**Step 1 (rate as a decimal):** ${rate}% = ${rate / 100}.\n**Step 2 (substitute):** $I=${P}\\times${rate / 100}\\times${t}$.\n**Step 3:** ${P} × ${rate / 100} = ${(P * rate) / 100} per year, and × ${t} years = ${I}.\n**Answer: ₱${I.toLocaleString('en-US')}**`,
+      'I = Prt. Rate as a decimal; time in years.')
+  },
+  compInt(r) {
+    const P = r.pick([1000, 2000, 5000, 10000]), rate = r.pick([10, 20]), t = r.int(2, 3)
+    const A = P * (1 + rate / 100) ** t
+    const simple = P * (1 + (rate / 100) * t)
+    return mk(r, `₱${P.toLocaleString('en-US')} is invested at ${rate}% compounded annually for ${t} years. What is the final amount?`, `₱${Math.round(A).toLocaleString('en-US')}`, [`₱${Math.round(simple).toLocaleString('en-US')}`, `₱${Math.round(P * (1 + rate / 100)).toLocaleString('en-US')}`, `₱${Math.round(A + P / 10).toLocaleString('en-US')}`, `₱${Math.round(P * rate * t).toLocaleString('en-US')}`],
+      `**Words:** **compound interest** earns interest on the interest too. Each year the money is multiplied by $1+r$. Formula: $F=P(1+r)^t$.\n**Step 1 (yearly multiplier):** 1 + ${rate / 100} = ${1 + rate / 100}.\n**Step 2 (multiply once per year, ${t} times):** ${P} × ${1 + rate / 100}${t === 3 ? ` × ${1 + rate / 100} × ${1 + rate / 100}` : ` × ${1 + rate / 100}`}.\n**Step 3 (result):** ₱${Math.round(A).toLocaleString('en-US')}.\n**Compare:** simple interest would give only ₱${Math.round(simple).toLocaleString('en-US')}.\n**Answer: ₱${Math.round(A).toLocaleString('en-US')}**`,
+      'Compound: multiply by (1 + r) once for each year.')
+  },
+  annuity(r) {
+    const R = r.pick([1000, 2000, 5000]), n = r.int(2, 3)
+    const FV = R * (((1.1 ** n) - 1) / 0.1)
+    return mk(r, `₱${R.toLocaleString('en-US')} is deposited at the END of each year for ${n} years at 10% interest compounded yearly. What is the total at the end of year ${n}?`, `₱${Math.round(FV).toLocaleString('en-US')}`, [`₱${(R * n).toLocaleString('en-US')}`, `₱${Math.round(R * 1.1 ** n).toLocaleString('en-US')}`, `₱${Math.round(FV + R / 2).toLocaleString('en-US')}`, `₱${Math.round(R * n * 1.1).toLocaleString('en-US')}`],
+      `**Words:** an **annuity** is a series of equal payments made at regular times. An **ordinary annuity** pays at the END of each period. Future value: $F=R\\times\\frac{(1+i)^n-1}{i}$, where R is the payment, i the rate per period and n the number of payments.\n**Step 1 (list the values):** R = ${R}, i = 0.10, n = ${n}.\n**Step 2 ($(1+i)^n$):** 1.1^${n} = ${(1.1 ** n).toFixed(2)}.\n**Step 3 (subtract 1, divide by i):** (${(1.1 ** n).toFixed(2)} − 1) ÷ 0.10 = ${((1.1 ** n - 1) / 0.1).toFixed(2)}.\n**Step 4 (multiply by R):** ${R} × ${((1.1 ** n - 1) / 0.1).toFixed(2)} = ${Math.round(FV)}.\n**Answer: ₱${Math.round(FV).toLocaleString('en-US')}**`,
+      'Future value of an ordinary annuity = payment × [(1+i)^n − 1] ÷ i.')
+  },
+  truthVal(r) {
+    const p = r.pick([true, false]), q = r.pick([true, false])
+    const forms: [string, boolean, string][] = [
+      ['p \\wedge q', p && q, 'both must be true'], ['p \\vee q', p || q, 'at least one must be true'], ['p \\rightarrow q', !p || q, 'false only if p is true and q is false'],
+      ['\\sim p \\vee q', !p || q, 'NOT p, or q'], ['p \\leftrightarrow q', p === q, 'true when p and q match'], ['\\sim(p \\wedge q)', !(p && q), 'the opposite of (p AND q)'],
+    ]
+    const [sym, val, rule] = r.pick(forms)
+    const T = (b: boolean) => (b ? 'True' : 'False')
+    return mk(r, `Let $p$ be ${T(p)} and $q$ be ${T(q)}. What is the truth value of $${sym}$?`, T(val), ['True', 'False', 'Cannot be determined', 'Both true and false'].filter(x => x !== T(val)),
+      `**Words:** a **proposition** is a statement that is either true or false. Symbols: ∧ means AND, ∨ means OR, → means IF-THEN, ↔ means “if and only if”, ~ means NOT.\n**Step 1 (what the symbol needs):** $${sym}$: ${rule}.\n**Step 2 (plug in p = ${T(p)}, q = ${T(q)}):** ${T(val)}.\n**Answer: ${T(val)}**`,
+      'p → q is false ONLY when p is true and q is false.')
+  },
+  quartile(r) {
+    const xs: number[] = []
+    let cur = r.int(1, 8)
+    for (let i = 0; i < 9; i++) { cur += r.int(1, 5); xs.push(cur) }
+    const q1 = (xs[1] + xs[2]) / 2, q3 = (xs[6] + xs[7]) / 2, med = xs[4]
+    const which = r.pick(['Q1', 'Q3', 'IQR'] as const)
+    const val = which === 'Q1' ? q1 : which === 'Q3' ? q3 : q3 - q1
+    const nice = (x: number) => (Number.isInteger(x) ? `${x}` : `${x}`)
+    return mk(r, `For the data ${xs.join(', ')}, find ${which === 'IQR' ? 'the interquartile range (IQR)' : which}.`, nice(val), [nice(med), nice(val + 1), nice(which === 'IQR' ? q3 : q1), nice(Math.abs(val - 2))],
+      `**Words:** **quartiles** split sorted data into four equal parts. Q2 is the median. **Q1** is the median of the lower half and **Q3** is the median of the upper half. The **IQR** = Q3 − Q1.\n**Step 1 (the data is sorted; the middle value is ${med}):** the lower half is ${xs.slice(0, 4).join(', ')} and the upper half is ${xs.slice(5).join(', ')} (the middle value is left out).\n**Step 2 (Q1 = middle of the lower half = average of ${xs[1]} and ${xs[2]}):** ${q1}.\n**Step 3 (Q3 = middle of the upper half = average of ${xs[6]} and ${xs[7]}):** ${q3}.\n${which === 'IQR' ? `**Step 4 (IQR):** ${q3} − ${q1} = ${q3 - q1}.\n` : ''}**Answer: ${nice(val)}**`,
+      'Split the sorted list in half (drop the middle for odd n), then take the median of each half.')
+  },
+  variance(r) {
+    const s = r.int(1, 10), d = r.int(1, 4)
+    const xs = [0, 1, 2, 3, 4].map(i => s + i * d)
+    const mean = s + 2 * d
+    return mk(r, `Find the population variance of ${xs.join(', ')}.`, `${2 * d * d}`, [`${d * d}`, `${4 * d * d}`, `${Math.sqrt(2) * d}`.slice(0, 4), `${(10 * d * d) / 4}`].map(String),
+      `**Words:** the **mean** is the average. The **variance** measures how spread out data is: the average of the squared distances from the mean. The **standard deviation** is the square root of the variance.\n**Step 1 (mean):** (${xs.join(' + ')}) ÷ 5 = ${mean}.\n**Step 2 (distance from the mean, squared):** ${xs.map(x => `(${x}−${mean})²=${(x - mean) ** 2}`).join(', ')}.\n**Step 3 (add the squares):** ${xs.reduce((a, x) => a + (x - mean) ** 2, 0)}.\n**Step 4 (divide by n = 5):** ${xs.reduce((a, x) => a + (x - mean) ** 2, 0)} ÷ 5 = ${2 * d * d}.\n**Answer: ${2 * d * d}**`,
+      'Variance = (sum of squared distances from the mean) ÷ n.')
+  },
+  probOr(r) {
+    const pa = r.pick([0.3, 0.4, 0.5, 0.6]), pb = r.pick([0.2, 0.3, 0.4]), both = r.pick([0.05, 0.1, 0.15])
+    const ans = Math.round((pa + pb - both) * 100) / 100
+    return mk(r, `$P(A)=${pa}$, $P(B)=${pb}$ and $P(A\\text{ and }B)=${both}$. Find $P(A\\text{ or }B)$.`, `${ans}`, [`${Math.round((pa + pb) * 100) / 100}`, `${Math.round(pa * pb * 100) / 100}`, `${Math.round((pa + pb + both) * 100) / 100}`, `${Math.round((ans + 0.1) * 100) / 100}`],
+      `**Words:** $P(A\\text{ or }B)$ is the chance that A happens, or B happens, or both. The “both” part is counted twice when we add, so we subtract it once.\n**Step 1 (formula):** $P(A\\cup B)=P(A)+P(B)-P(A\\cap B)$.\n**Step 2 (substitute):** ${pa} + ${pb} − ${both}.\n**Step 3:** ${pa} + ${pb} = ${Math.round((pa + pb) * 100) / 100}, and ${Math.round((pa + pb) * 100) / 100} − ${both} = ${ans}.\n**Answer: ${ans}**`,
+      'OR: add, then subtract the overlap. If mutually exclusive, the overlap is 0.')
+  },
+  probAnd(r) {
+    const pa = r.pick([0.2, 0.4, 0.5, 0.6, 0.8]), pb = r.pick([0.25, 0.5, 0.4, 0.3])
+    const ans = Math.round(pa * pb * 1000) / 1000
+    return mk(r, `A and B are INDEPENDENT events with $P(A)=${pa}$ and $P(B)=${pb}$. Find $P(A\\text{ and }B)$.`, `${ans}`, [`${Math.round((pa + pb) * 1000) / 1000}`, `${Math.round((pa + pb - ans) * 1000) / 1000}`, `${Math.round(Math.abs(pa - pb) * 1000) / 1000}`, `${Math.round(pa * pb * 10000) / 1000}`],
+      `**Words:** two events are **independent** when one happening does not change the chance of the other (like two coin tosses).\n**Step 1 (rule):** for independent events, multiply: $P(A\\cap B)=P(A)\\times P(B)$.\n**Step 2:** ${pa} × ${pb}.\n**Step 3:** ${ans}.\n**Answer: ${ans}**`,
+      'AND (independent): multiply. OR (mutually exclusive): add.')
+  },
+  lawCos(r) {
+    const bank: [number, number, number, number][] = [[3, 8, 60, 7], [5, 8, 60, 7], [7, 15, 60, 13], [8, 15, 60, 13], [3, 5, 120, 7], [5, 16, 120, 19], [7, 8, 120, 13]]
+    const [a, b, C, c] = r.pick(bank)
+    const sign = C === 60 ? '-' : '+'
+    const prod = a * b
+    return mk(r, `In a triangle two sides are ${a} and ${b} and the angle between them is ${C}°. Find the third side.`, `${c}`, [`${a + b}`, `${Math.abs(b - a)}`, `${c + 1}`, `${c * c}`].map(String),
+      `**Words:** the **Law of Cosines** works for ANY triangle: $c^2=a^2+b^2-2ab\\cos C$, where C is the angle between sides a and b. (For a right angle, cos 90° = 0 and it becomes the Pythagorean theorem.)\n**Step 1 (cos ${C}°):** ${C === 60 ? 'cos 60° = ½' : 'cos 120° = −½'}.\n**Step 2 (the middle term $2ab\\cos C$):** 2 × ${a} × ${b} × (${C === 60 ? '½' : '−½'}) = ${C === 60 ? prod : -prod}.\n**Step 3 (substitute):** $c^2=${a}^2+${b}^2${sign}${prod}=${a * a}+${b * b}${sign}${prod}=${c * c}$.\n**Step 4 (square root):** $c=${c}$.\n**Answer: ${c}**`,
+      'Law of Cosines: c² = a² + b² − 2ab cos C.')
+  },
 }
 
 export const DRILL_KINDS = Object.keys(GEN)

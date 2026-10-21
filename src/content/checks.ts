@@ -1,5 +1,8 @@
 import type { Checks } from '../types'
+import { CHECKS_ALG } from './checks-alg'
 import { CHECKS_GEO } from './checks-geo'
+import { CHECKS_GM } from './checks-gm'
+import { CHECKS_JHS } from './checks-jhs'
 import { CHECKS_LANG } from './checks-lang'
 import { CHECKS_MATH1 } from './checks-math1'
 import { CHECKS_MATH2 } from './checks-math2'
@@ -24,6 +27,19 @@ const DRILLS: Record<string, string[]> = {
   'm-trig': ['trig'],
   'm-counting': ['combos', 'mean', 'dice'],
   'm-sets': ['venn'],
+  'm-systems': ['sys2', 'linear'],
+  'm-polynomials': ['polyRem', 'funcEval'],
+  'm-rational': ['ratEq', 'fracDiv'],
+  'm-quad-fn': ['vertex', 'quadIneq'],
+  'm-variation': ['joint', 'ratioShare'],
+  'm-functions': ['funcEval', 'composite', 'inverseFn'],
+  'm-rational-fn': ['asymptote', 'ratEq'],
+  'm-exp-log': ['expEq', 'logVal'],
+  'm-finance': ['simpleInt', 'compInt', 'annuity'],
+  'm-logic': ['truthVal'],
+  'm-stats': ['quartile', 'variance'],
+  'm-probability': ['probOr', 'probAnd', 'dice'],
+  'm-trig2': ['lawCos'],
   'g-basics': ['segAdd', 'logicForm'],
   'g-congruence': ['triIneq', 'angles'],
   'g-quads': ['parAngle', 'polyAngle'],
@@ -31,7 +47,7 @@ const DRILLS: Record<string, string[]> = {
   'g-lines-planes': ['pythCheck', 'triIneq', 'angles'],
 }
 
-const BASE: Record<string, Checks> = { ...CHECKS_MATH1, ...CHECKS_MATH2, ...CHECKS_GEO, ...CHECKS_LANG, ...CHECKS_OTHER }
+const BASE: Record<string, Checks> = { ...CHECKS_MATH1, ...CHECKS_MATH2, ...CHECKS_ALG, ...CHECKS_GM, ...CHECKS_JHS, ...CHECKS_GEO, ...CHECKS_LANG, ...CHECKS_OTHER }
 export const CHECKS: Record<string, Checks> = Object.fromEntries(
   Object.entries(BASE).map(([id, c]) => [id, { ...c, drill: DRILLS[id] ?? c.drill, extra: EXTRA[id], gen: id === 'a-series' ? 'series' : undefined }]),
 )

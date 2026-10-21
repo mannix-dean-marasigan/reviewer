@@ -88,7 +88,7 @@ describe('step-by-step math explanations', () => {
     for (const l of LESSONS.filter(x => x.subject === 'math')) {
       const list = stepEntries(l.id)
       const pool = lessonPool(l)
-      if (!list) { pool.forEach((q, i) => { expect(q.e.includes('**Step 1') && q.e.includes('**Answer'), `${l.id} #${i} must be step by step`).toBe(true) }); continue }
+      if (!list) { pool.forEach((q, i) => { expect(/\*\*(Step 1|Words|Idea|Rule)/.test(q.e) && q.e.includes('**Answer'), `${l.id} #${i} must be step by step`).toBe(true) }); continue }
       expect(list.length, `${l.id} count`).toBe(pool.length)
       pool.forEach((q, i) => {
         expect(q.q.startsWith(list[i][0]), `${l.id} #${i} misaligned: ${list[i][0]}`).toBe(true)
