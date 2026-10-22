@@ -5,7 +5,7 @@ export const MATH3: Lesson[] = [
   {
     id: 'm-lines', subject: 'math', title: 'Lines, Slope & Linear Functions', minutes: 40,
     blurb: 'Slope, equations of lines, parallel/perpendicular, and building a linear rule from two data points.',
-    videos: [VID.lineTwoPts, VID.lineBrian],
+    videos: [VID.ocSlope, VID.ocLineEq, VID.ocDistance],
     interactive: { k: 'line' },
     blocks: [
       { t: 'h', text: 'Slope = rise over run' },
@@ -34,7 +34,7 @@ export const MATH3: Lesson[] = [
   {
     id: 'm-sequences', subject: 'math', title: 'Sequences & Series', minutes: 40,
     blurb: 'Arithmetic and geometric sequences: nth term, sums, and finding missing terms.',
-    videos: [VID.arithSeq],
+    videos: [VID.arithSeq, VID.ocGeoSeq],
     interactive: { k: 'seq' },
     blocks: [
       { t: 'h', text: 'Arithmetic: add the same amount' },
@@ -65,7 +65,7 @@ export const MATH3: Lesson[] = [
   {
     id: 'm-angles', subject: 'math', title: 'Lines, Angles & Triangles', minutes: 40,
     blurb: 'Angle rules, parallel lines, the triangle sum and exterior angle theorem, and polygon angles.',
-    videos: [VID.angles, VID.extAngle],
+    videos: [VID.ocAnglesTypes, VID.extAngle, VID.ocParallel],
     interactive: { k: 'angles' },
     blocks: [
       { t: 'h', text: 'Angle facts' },
@@ -97,7 +97,7 @@ export const MATH3: Lesson[] = [
   {
     id: 'm-shapes', subject: 'math', title: 'Area, Perimeter, Circles & Volume', minutes: 50,
     blurb: 'Every area/volume formula you need, circle theorems, and how scale changes area and volume.',
-    videos: [VID.area],
+    videos: [VID.area, VID.ocCircles, VID.ocVolume],
     interactive: { k: 'circle' },
     blocks: [
       { t: 'h', text: 'Area & perimeter' },

@@ -5,7 +5,7 @@ export const MATH2: Lesson[] = [
   {
     id: 'm-percent', subject: 'math', title: 'Percent Applications', minutes: 40,
     blurb: 'Discounts, markups, percent change, interest and mixtures without fear.',
-    videos: [VID.percentChange],
+    videos: [VID.percentChange, VID.ocPctWord, VID.ocMixture],
     interactive: { k: 'percent' },
     blocks: [
       { t: 'h', text: 'Percent = per hundred' },
@@ -38,7 +38,7 @@ export const MATH2: Lesson[] = [
   {
     id: 'm-equations', subject: 'math', title: 'Equations, Inequalities & Word Problems', minutes: 50,
     blurb: 'Solve linear equations, inequalities and the classic age, coin, work and motion problems.',
-    videos: [VID.ageGon],
+    videos: [VID.ocLinEq, VID.ocWork],
     interactive: { k: 'steps', data: { prompt: 'Solve $3(x-2)=2x+5$.', steps: ['Distribute: $3x-6=2x+5$', 'Subtract $2x$ from both sides: $x-6=5$', 'Add 6 to both sides: $x=11$', 'Check: $3(11-2)=27$ and $2(11)+5=27$ ✓'], why: 'Always finish by plugging the answer back in.' } },
     blocks: [
       { t: 'h', text: 'Equations are balance scales' },
@@ -77,7 +77,7 @@ export const MATH2: Lesson[] = [
   {
     id: 'm-factoring', subject: 'math', title: 'Algebraic Expressions & Factoring', minutes: 45,
     blurb: 'Products, special products, factoring patterns and simplifying rational expressions.',
-    videos: [VID.factoring],
+    videos: [VID.factoring, VID.ocGcfPoly],
     interactive: { k: 'flash', data: { frontLabel: 'EXPAND OR FACTOR', cards: [['$(a+b)^2$', '$a^2+2ab+b^2$'], ['$(a-b)^2$', '$a^2-2ab+b^2$'], ['$(a+b)(a-b)$', '$a^2-b^2$'], ['$x^2-49$', '$(x-7)(x+7)$'], ['$x^2+6x+9$', '$(x+3)^2$'], ['$a^3-b^3$', '$(a-b)(a^2+ab+b^2)$'], ['$a^3+b^3$', '$(a+b)(a^2-ab+b^2)$'], ['$x^2+5x+6$', '$(x+2)(x+3)$'], ['$4x^2-25$', '$(2x-5)(2x+5)$'], ['$2x^2+7x+3$', '$(2x+1)(x+3)$']] } },
     blocks: [
       { t: 'h', text: 'Special products (memorize!)' },
@@ -109,7 +109,7 @@ export const MATH2: Lesson[] = [
   {
     id: 'm-quadratics', subject: 'math', title: 'Quadratic Equations & the Discriminant', minutes: 45,
     blurb: 'Solve by factoring or formula, and read the number of roots from the discriminant.',
-    videos: [VID.quadFormula, VID.discGon],
+    videos: [VID.quadFormula, VID.ocDisc],
     interactive: { k: 'quad' },
     blocks: [
       { t: 'h', text: 'Three ways to solve $ax^2+bx+c=0$' },

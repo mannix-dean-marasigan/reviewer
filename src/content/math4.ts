@@ -5,7 +5,7 @@ export const MATH4: Lesson[] = [
   {
     id: 'm-similar', subject: 'math', title: 'Pythagorean Theorem & Similar Triangles', minutes: 45,
     blurb: 'Right-triangle shortcuts, special triangles, and setting up similar-triangle proportions.',
-    videos: [VID.special, VID.similar],
+    videos: [VID.ocPyth, VID.ocSpecial, VID.similar],
     interactive: { k: 'similar' },
     blocks: [
       { t: 'h', text: 'Pythagorean theorem' },
@@ -38,7 +38,7 @@ export const MATH4: Lesson[] = [
   {
     id: 'm-trig', subject: 'math', title: 'Basic Trigonometry', minutes: 40,
     blurb: 'SOH-CAH-TOA, special angles, angles of elevation/depression and word problems.',
-    videos: [VID.trig, VID.trigGon],
+    videos: [VID.trig, VID.ocRightTri, VID.ocElev],
     interactive: { k: 'trig' },
     blocks: [
       { t: 'h', text: 'SOH-CAH-TOA' },
@@ -102,7 +102,7 @@ export const MATH4: Lesson[] = [
   {
     id: 'm-sets', subject: 'math', title: 'Sets, Venn Diagrams & Logic', minutes: 40,
     blurb: 'Venn word problems, inclusion-exclusion and syllogisms drawn as circles.',
-    videos: [VID.vennUpcat, VID.syllogism, VID.venn3],
+    videos: [VID.ocSets, VID.ocVenn, VID.venn3],
     interactive: { k: 'venn' },
     blocks: [
       { t: 'h', text: 'Sets' },

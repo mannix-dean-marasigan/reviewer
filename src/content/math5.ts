@@ -8,7 +8,7 @@ export const MATH5: Lesson[] = [
   {
     id: 'g-basics', subject: 'math', title: 'Points, Lines, Segments & If-Then Statements', minutes: 45,
     blurb: 'Basic geometry words, segment addition and midpoints with algebra, and converse/inverse/contrapositive.',
-    videos: [VID.geoPoints, VID.segAdd, VID.conditional],
+    videos: [VID.geoPoints, VID.ocMidpoint, VID.conditional],
     interactive: { k: 'steps', data: { prompt: 'C is the midpoint of $\\overline{AD}$. $AC=5y-8$ and $AD=4y+8$. Find $DC$.', steps: ['A midpoint splits the segment into two equal halves, so $AC=DC$ and $AD=2\\times AC$', 'Write the equation: $4y+8=2(5y-8)$', 'Distribute the 2: $4y+8=10y-16$', 'Move the y-terms and numbers: $24=6y$, so $y=4$', 'Find the half: $AC=5(4)-8=12$, so $DC=12$'], why: 'Midpoint problems always give two equal halves: set them equal (or set the whole equal to 2 × a half) and solve.' } },
     blocks: [
       { t: 'h', text: 'Points, lines and planes' },
@@ -45,7 +45,7 @@ export const MATH5: Lesson[] = [
   {
     id: 'g-congruence', subject: 'math', title: 'Triangles: Types, Congruence & CPCTC', minutes: 45,
     blurb: 'Classify triangles, know the congruence shortcuts (SSS, SAS, ASA, AAS) and use CPCTC.',
-    videos: [VID.triCong, VID.triCong2],
+    videos: [VID.ocCong, VID.ocTriangles],
     interactive: { k: 'flash', data: { frontLabel: 'WHAT YOU KNOW', cards: [['all 3 sides equal to the matching 3 sides', 'SSS: Side-Side-Side'], ['2 sides and the angle BETWEEN them', 'SAS: Side-Angle-Side'], ['2 angles and the side BETWEEN them', 'ASA: Angle-Side-Angle'], ['2 angles and a side NOT between them', 'AAS: Angle-Angle-Side'], ['right triangles: hypotenuse and one leg', 'HL: Hypotenuse-Leg'], ['3 equal angles only (no sides)', 'NOT enough: only similar (AAA), not congruent'], ['2 sides and an angle NOT between them', 'NOT enough: SSA does not work'], ['what CPCTC stands for', 'Corresponding Parts of Congruent Triangles are Congruent']] } },
     blocks: [
       { t: 'h', text: 'Classifying triangles' },
@@ -80,7 +80,7 @@ export const MATH5: Lesson[] = [
   {
     id: 'g-quads', subject: 'math', title: 'Quadrilaterals: Parallelograms, Rectangles, Rhombi, Trapezoids', minutes: 45,
     blurb: 'Properties of every four-sided shape and how to tell them apart.',
-    videos: [VID.quads, VID.quadsTL],
+    videos: [VID.quads, VID.ocRect],
     interactive: { k: 'flash', data: { frontLabel: 'WHICH SHAPE?', cards: [['diagonals are equal and bisect each other, 4 right angles', 'Rectangle'], ['4 equal sides, diagonals perpendicular, diagonals bisect angles', 'Rhombus'], ['4 equal sides AND 4 right angles', 'Square'], ['only ONE pair of parallel sides', 'Trapezoid'], ['2 pairs of equal adjacent sides, diagonals perpendicular', 'Kite'], ['opposite sides parallel and equal, opposite angles equal', 'Parallelogram'], ['median = average of the two bases', 'Trapezoid'], ['area = ½ × d₁ × d₂', 'Rhombus or kite']] } },
     blocks: [
       { t: 'h', text: 'Parallelograms' },
@@ -113,7 +113,7 @@ export const MATH5: Lesson[] = [
   {
     id: 'g-circles', subject: 'math', title: 'Circles: Arcs, Chords, Tangents & Secants', minutes: 50,
     blurb: 'Every circle angle rule and the segment-length rules for chords, secants and tangents.',
-    videos: [VID.circles3, VID.powerThm],
+    videos: [VID.ocCircleAll, VID.powerThm],
     interactive: { k: 'circle' },
     blocks: [
       { t: 'h', text: 'Parts of a circle and arcs' },
@@ -147,7 +147,7 @@ export const MATH5: Lesson[] = [
   {
     id: 'g-lines-planes', subject: 'math', title: 'Skew Lines, Planes & Right-Triangle Tests', minutes: 45,
     blurb: 'Parallel, skew and perpendicular lines in space; acute/obtuse/right tests; triangle inequality.',
-    videos: [VID.skew, VID.pythIneq, VID.triIneq],
+    videos: [VID.skew, VID.ocPyth2],
     interactive: { k: 'tri' },
     blocks: [
       { t: 'h', text: 'Lines and planes in space' },

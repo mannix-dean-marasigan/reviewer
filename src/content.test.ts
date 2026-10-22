@@ -121,3 +121,12 @@ describe('math learning order', () => {
     }
   })
 })
+
+describe('math videos', () => {
+  it('come from The Organic Chemistry Tutor (the only exception is the truth-table video, which has no equivalent)', () => {
+    const notOct: string[] = []
+    for (const l of LESSONS.filter(x => x.subject === 'math'))
+      for (const v of l.videos) if (v.channel !== 'The Organic Chemistry Tutor') notOct.push(`${l.id}: ${v.title}`)
+    expect(notOct).toEqual(['m-logic: Truth Table Tutorial'])
+  })
+})

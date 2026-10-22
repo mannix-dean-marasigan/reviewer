@@ -46,7 +46,7 @@ export const MATH7: Lesson[] = [
   {
     id: 'm-rational-fn', subject: 'math', title: 'Rational Functions: Asymptotes, Intercepts, Domain & Range', minutes: 45,
     blurb: 'Read a rational function: where it is undefined, its asymptotes, holes and intercepts.',
-    videos: [VID.ratFn, VID.ratFn2],
+    videos: [VID.ocAsymptotes],
     interactive: { k: 'graph', data: { kind: 'rational' } },
     blocks: [
       { t: 'h', text: 'Rational functions and their domain' },
@@ -79,7 +79,7 @@ export const MATH7: Lesson[] = [
   {
     id: 'm-exp-log', subject: 'math', title: 'Exponential & Logarithmic Functions and Equations', minutes: 55,
     blurb: 'Solve exponential equations, understand logarithms as exponents, use the log laws, and solve log equations.',
-    videos: [VID.expEq, VID.logProps, VID.logEq],
+    videos: [VID.ocExpEq, VID.logProps, VID.ocLogEq],
     interactive: { k: 'graph', data: { kind: 'exponential' } },
     blocks: [
       { t: 'h', text: 'Exponential functions and equations' },
@@ -114,7 +114,7 @@ export const MATH7: Lesson[] = [
   {
     id: 'm-finance', subject: 'math', title: 'Business Math: Interest, Annuities, Loans, Stocks & Bonds', minutes: 55,
     blurb: 'Simple and compound interest, annuities, loan payments, and basic stock/bond vocabulary (General Mathematics).',
-    videos: [VID.interestGon, VID.annuity, VID.loans],
+    videos: [VID.ocSimple, VID.ocCompound, VID.ocAnnuity],
     interactive: { k: 'interest' },
     blocks: [
       { t: 'h', text: 'Simple interest' },

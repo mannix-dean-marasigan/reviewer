@@ -8,7 +8,7 @@ export const MATH8: Lesson[] = [
   {
     id: 'm-logic', subject: 'math', title: 'Propositions, Truth Tables & Valid Arguments', minutes: 45,
     blurb: 'Statements and connectives, truth tables, tautologies, De Morgan, quantifiers and valid arguments (General Mathematics).',
-    videos: [VID.truth, VID.taut],
+    videos: [VID.conditional, VID.truth],
     interactive: { k: 'truth' },
     blocks: [
       { t: 'h', text: 'Propositions and connectives' },
@@ -45,7 +45,7 @@ export const MATH8: Lesson[] = [
   {
     id: 'm-stats', subject: 'math', title: 'Statistics: Measures of Position & Variability', minutes: 45,
     blurb: 'Frequency tables, quartiles, percentiles, interquartile range, variance and standard deviation.',
-    videos: [VID.quartiles, VID.sdev],
+    videos: [VID.ocIqr, VID.ocSd, VID.ocVar],
     interactive: { k: 'stats' },
     blocks: [
       { t: 'h', text: 'Mean, median, mode and frequency tables' },
@@ -80,7 +80,7 @@ export const MATH8: Lesson[] = [
   {
     id: 'm-probability', subject: 'math', title: 'Probability of Compound Events', minutes: 45,
     blurb: 'AND/OR rules, independent and dependent events, mutually exclusive events, conditional probability and “at least one”.',
-    videos: [VID.probRules, VID.probExcl],
+    videos: [VID.probRules, VID.ocProbVenn],
     interactive: { k: 'flash', data: { frontLabel: 'WHEN?', cards: [['“A and B” and independent', 'Multiply: $P(A)\\times P(B)$'], ['“A or B” and mutually exclusive', 'Add: $P(A)+P(B)$'], ['“A or B” and NOT mutually exclusive', 'Add then subtract the overlap: $P(A)+P(B)-P(A\\cap B)$'], ['“at least one”', '$1-P(\\text{none})$'], ['without replacement', 'The second probability changes: dependent events'], ['conditional $P(B\\mid A)$', '$\\dfrac{P(A\\cap B)}{P(A)}$ (A is “given”)'], ['complement', '$P(\\text{not }A)=1-P(A)$'], ['mutually exclusive', 'Cannot happen at the same time (overlap is 0)']] } },
     blocks: [
       { t: 'h', text: 'Sample space, events and the complement' },
@@ -112,7 +112,7 @@ export const MATH8: Lesson[] = [
   {
     id: 'm-trig2', subject: 'math', title: 'Law of Sines & Law of Cosines (Oblique Triangles)', minutes: 45,
     blurb: 'Solve triangles that are NOT right triangles, and find area with the sine formula.',
-    videos: [VID.lawBoth, VID.lawCos],
+    videos: [VID.lawCos, VID.ocLawSines],
     interactive: { k: 'steps', data: { prompt: 'Two sides of a triangle are 3 and 8, and the angle between them is $60^\\circ$. Find the third side.', steps: ['Name the unknown side $c$, the known sides $a=3$ and $b=8$, and the angle between them $C=60^\\circ$', 'Write the Law of Cosines: $c^2=a^2+b^2-2ab\\cos C$', 'Substitute: $c^2=9+64-2(3)(8)\\cdot\\frac12$', 'Simplify: $c^2=73-24=49$', 'Square root: $c=7$'], why: 'Two sides and the angle BETWEEN them (SAS): use the Law of Cosines.' } },
     blocks: [
       { t: 'h', text: 'Which law do I use?' },

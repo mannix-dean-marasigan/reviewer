@@ -8,7 +8,7 @@ export const MATH6: Lesson[] = [
   {
     id: 'm-systems', subject: 'math', title: 'Systems of Linear Equations', minutes: 45,
     blurb: 'Solve two equations at once by graphing, substitution or elimination, and turn word problems into systems.',
-    videos: [VID.systems, VID.systemsWP],
+    videos: [VID.systems, VID.ocSysWord],
     interactive: { k: 'system' },
     blocks: [
       { t: 'h', text: 'What is a system, and what is its solution?' },
@@ -43,7 +43,7 @@ export const MATH6: Lesson[] = [
   {
     id: 'm-polynomials', subject: 'math', title: 'Polynomials: Operations, Division & the Remainder Theorem', minutes: 50,
     blurb: 'Add, multiply and divide polynomials, use synthetic division, and test factors with the Remainder and Factor Theorems.',
-    videos: [VID.polyRem, VID.polyGon],
+    videos: [VID.polyRem, VID.ocSynDiv, VID.ocLongDiv],
     interactive: { k: 'steps', data: { prompt: 'Divide $x^3+2x^2-5x-6$ by $x-2$ using synthetic division.', steps: ['Write the root $c=2$ (from $x-2$) and the coefficients $1,\\ 2,\\ -5,\\ -6$', 'Bring down the first coefficient: $1$', 'Multiply by 2 and add: $2\\times1=2$, then $2+2=4$', 'Multiply and add again: $2\\times4=8$, then $-5+8=3$; then $2\\times3=6$, $-6+6=0$', 'Read the answer: quotient $x^2+4x+3$ and remainder $0$, so $x-2$ is a factor'], why: 'Synthetic division is bring down, multiply, add, repeat. A remainder of 0 means the divisor is a factor.' } },
     blocks: [
       { t: 'h', text: 'Polynomial words and basic operations' },
@@ -77,7 +77,7 @@ export const MATH6: Lesson[] = [
   {
     id: 'm-rational', subject: 'math', title: 'Rational Expressions & Equations', minutes: 50,
     blurb: 'Simplify, multiply, divide, add and subtract fractions with x, then solve equations and spot extraneous answers.',
-    videos: [VID.rationalOps, VID.rationalEq],
+    videos: [VID.ocRatSimp, VID.ocRatAdd, VID.rationalEq],
     interactive: { k: 'steps', data: { prompt: 'Solve $\\dfrac{2}{x-1}+\\dfrac13=1$.', steps: ['Note first that $x\\ne1$ (it would make the denominator 0)', 'Multiply every term by the LCD $3(x-1)$: $6+(x-1)=3(x-1)$', 'Simplify both sides: $x+5=3x-3$', 'Solve: $8=2x$, so $x=4$', 'Check $x=4$: $\\frac23+\\frac13=1$ ✓ and 4 is allowed (not 1)'], why: 'Clear the denominators with the LCD, solve, then CHECK that the answer does not make a denominator zero.' } },
     blocks: [
       { t: 'h', text: 'Simplifying, multiplying and dividing' },
@@ -112,7 +112,7 @@ export const MATH6: Lesson[] = [
   {
     id: 'm-quad-fn', subject: 'math', title: 'Quadratic Functions & Inequalities', minutes: 50,
     blurb: 'Vertex, axis of symmetry, maximum/minimum, parabola problems, and solving quadratic inequalities.',
-    videos: [VID.quadVertex, VID.quadIneq],
+    videos: [VID.ocVertex, VID.quadIneq],
     interactive: { k: 'graph', data: { kind: 'quadratic' } },
     blocks: [
       { t: 'h', text: 'The parabola and its vertex' },
@@ -146,7 +146,7 @@ export const MATH6: Lesson[] = [
   {
     id: 'm-variation', subject: 'math', title: 'Variation: Direct, Inverse, Joint & Combined', minutes: 35,
     blurb: 'Write and solve variation equations, including joint and combined variation.',
-    videos: [VID.variation, VID.variationGon],
+    videos: [VID.ocVariation],
     interactive: { k: 'flash', data: { frontLabel: 'EQUATION / PHRASE', cards: [['$y=kx$', 'Direct variation: y varies directly as x'], ['$y=\\frac kx$ or $xy=k$', 'Inverse variation: y varies inversely as x'], ['$z=kxy$', 'Joint variation: z varies jointly as x and y'], ['$y=\\frac{kx}{z}$', 'Combined: y varies directly as x and inversely as z'], ['$y=kx^2$', 'y varies directly as the square of x'], ['$y=\\frac{k}{x^2}$', 'y varies inversely as the square of x'], ['x doubles and y doubles', 'Direct variation'], ['x doubles and y halves', 'Inverse variation']] } },
     blocks: [
       { t: 'h', text: 'Direct and inverse variation' },
