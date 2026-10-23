@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { LESSONS, SUBJECTS, lessonById, lessonNumber } from '../content'
+import { LESSONS, SUBJECTS, isPriority, lessonById, lessonNumber } from '../content'
 import { Blocks, VideoCard } from '../components/Blocks'
 import { Quiz } from '../components/Quiz'
 import { Rich } from '../components/Rich'
@@ -15,21 +15,23 @@ import type { Block, Lesson, Question, Subject } from '../types'
 
 export function LessonList() {
   const st = useStore()
-  const [filter, setFilter] = useState<Subject | 'all'>('math')
-  const list = LESSONS.filter(l => filter === 'all' || l.subject === filter)
+  const [filter, setFilter] = useState<Subject | 'all' | 'priority'>('math')
+  const list = LESSONS.filter(l => filter === 'all' || (filter === 'priority' ? isPriority(l.id) : l.subject === filter))
   const total = LESSONS.reduce((a, l) => a + lessonPool(l).length, 0)
   return (
     <>
       <h1>All lessons</h1>
       <p className="muted">{LESSONS.length} lessons · {total} written questions (plus unlimited generated drills and puzzles).</p>
       <div className="seg">
+        <button className={filter === 'priority' ? 'on' : ''} onClick={() => setFilter('priority')}>⭐ Exam priority ({LESSONS.filter(x => isPriority(x.id)).length})</button>
         <button className={filter === 'all' ? 'on' : ''} onClick={() => setFilter('all')}>All ({LESSONS.length})</button>
         {SUBJECTS.map(s => <button key={s.id} className={filter === s.id ? 'on' : ''} onClick={() => setFilter(s.id)}>{s.label}</button>)}
       </div>
       <div className="grid">
         {list.map(l => (
-          <Link key={l.id} to={`/lesson/${l.id}`} className="card lcard">
+          <Link key={l.id} to={`/lesson/${l.id}`} className={`card lcard ${isPriority(l.id) ? 'prio' : ''}`}>
             <span className={`pill ${l.subject}`}>{SUBJECTS.find(s => s.id === l.subject)?.label}</span>
+            {isPriority(l.id) && <span className="pill star">⭐ Likely on the exam</span>}
             {st.done[l.id] !== undefined && <span className="done">✓ {st.done[l.id]}%</span>}
             <h3>{lessonNumber(l.id) ? `${lessonNumber(l.id)}. ` : ''}{l.title}</h3>
             <p className="muted">{l.blurb}</p>
@@ -171,6 +173,7 @@ export function LessonPage() {
     <>
       <p className="muted"><Link to="/lessons">← Lessons</Link></p>
       <span className={`pill ${lesson.subject}`}>{SUBJECTS.find(s => s.id === lesson.subject)?.label}</span>
+      {isPriority(lesson.id) && <span className="pill star">⭐ Likely on the exam: test-takers report this topic most</span>}
       <h1>{lessonNumber(lesson.id) ? `Lesson ${lessonNumber(lesson.id)}: ` : ''}{lesson.title}</h1>
       <p className="muted">{lesson.blurb} · ~{lesson.minutes} min</p>
       <div className="tabs">{tabs.map(([t, label]) => <button key={t} className={tab === t ? 'on' : ''} onClick={() => go(t)}>{label}</button>)}</div>

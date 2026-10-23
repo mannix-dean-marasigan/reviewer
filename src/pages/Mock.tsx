@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { LESSONS, PLAN, SUBJECTS, lessonNumber } from '../content'
+import { LESSONS, PLAN, PRIORITY_IDS, SUBJECTS, lessonNumber } from '../content'
 import { PuzzleView } from '../components/Figure'
 import { Rich } from '../components/Rich'
 import { QFig } from '../components/QFig'
@@ -12,7 +12,7 @@ import { update, useStore } from '../lib/store'
 import type { Question, Subject } from '../types'
 
 type Item = { sub: Subject; q?: Question; p?: Puzzle; topic?: string }
-export type MockKind = 'full' | 'math' | 'mental' | 'english' | 'day1' | 'day2' | 'day3'
+export type MockKind = 'priority' | 'full' | 'math' | 'mental' | 'english' | 'day1' | 'day2' | 'day3'
 
 export function buildMock(kind: MockKind, seed: number): Item[] {
   const r = rng(seed)
@@ -21,9 +21,12 @@ export function buildMock(kind: MockKind, seed: number): Item[] {
 
 /** 100 questions covering EVERY lesson of one plan day, split evenly between the lessons. */
 function buildDay(day: number, r: ReturnType<typeof rng>): Item[] {
-  const lessons = [...new Set(PLAN[day - 1].items.map(i => i.lesson).filter((x): x is string => !!x))]
-    .map(id => LESSONS.find(l => l.id === id)!).filter(Boolean)
-  const total = 100
+  const ids = [...new Set(PLAN[day - 1].items.map(i => i.lesson).filter((x): x is string => !!x))]
+  return buildFrom(ids, 100, r)
+}
+
+function buildFrom(ids: string[], total: number, r: ReturnType<typeof rng>): Item[] {
+  const lessons = ids.map(id => LESSONS.find(l => l.id === id)!).filter(Boolean)
   const base = Math.floor(total / lessons.length)
   const items: Item[] = []
   lessons.forEach((l, i) => {
@@ -40,6 +43,7 @@ function buildDay(day: number, r: ReturnType<typeof rng>): Item[] {
 }
 
 function build(kind: MockKind, r: ReturnType<typeof rng>): Item[] {
+  if (kind === 'priority') return buildFrom(PRIORITY_IDS, 42, r)
   if (kind === 'day1') return buildDay(1, r)
   if (kind === 'day2') return buildDay(2, r)
   if (kind === 'day3') return buildDay(3, r)
@@ -65,11 +69,11 @@ function build(kind: MockKind, r: ReturnType<typeof rng>): Item[] {
   return [...pool('english').slice(0, 12), ...pool('reading').slice(0, 6), ...mathItems(30), ...mentalItems(14)]
 }
 
-const TIMES: Record<MockKind, number> = { full: 90, math: 40, mental: 25, english: 35, day1: 150, day2: 150, day3: 150 }
+const TIMES: Record<MockKind, number> = { priority: 50, full: 90, math: 40, mental: 25, english: 35, day1: 150, day2: 150, day3: 150 }
 
 export default function Mock() {
   const st = useStore()
-  const [kind, setKind] = useState<MockKind>('math')
+  const [kind, setKind] = useState<MockKind>('priority')
   const [run, setRun] = useState<{ items: Item[]; seed: number } | null>(null)
   if (run) return <Runner items={run.items} minutes={TIMES[kind]} kind={kind} onExit={() => setRun(null)} />
   return (
@@ -78,8 +82,8 @@ export default function Mock() {
       <p className="muted">Timed, no feedback until you submit, just like the real thing. Questions are drawn from the lesson banks plus freshly generated math and pattern items, so every attempt is different. The real UA&amp;P test layout may differ (check the official admissions page); this mock trains the same skills under the same pressure.</p>
       <div className="card">
         <div className="seg">
-          {(['day1', 'day2', 'day3', 'math', 'full', 'english', 'mental'] as const).map(k => (
-            <button key={k} className={kind === k ? 'on' : ''} onClick={() => setKind(k)}>{k === 'day1' ? 'Day 1 mock (100 q)' : k === 'day2' ? 'Day 2 mock (100 q)' : k === 'day3' ? 'Day 3 mock (100 q)' : k === 'full' ? 'Full mock (62 q)' : k === 'math' ? 'Quick math mock (30 q)' : k === 'english' ? 'English + reading (30 q)' : 'Mental ability (20 q)'}</button>
+          {(['priority', 'day1', 'day2', 'day3', 'math', 'full', 'english', 'mental'] as const).map(k => (
+            <button key={k} className={kind === k ? 'on' : ''} onClick={() => setKind(k)}>{k === 'priority' ? '⭐ Priority mock (42 q)' : k === 'day1' ? 'Day 1 mock (100 q)' : k === 'day2' ? 'Day 2 mock (100 q)' : k === 'day3' ? 'Day 3 mock (100 q)' : k === 'full' ? 'Full mock (62 q)' : k === 'math' ? 'Quick math mock (30 q)' : k === 'english' ? 'English + reading (30 q)' : 'Mental ability (20 q)'}</button>
           ))}
         </div>
         <p>Time limit: <b>{TIMES[kind]} minutes</b>. Tip: don't spend more than ~1.3 min per question; flag and skip hard ones.</p>

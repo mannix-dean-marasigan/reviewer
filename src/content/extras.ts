@@ -12,6 +12,13 @@ export const SUBJECTS: { id: Subject; label: string }[] = [
 // tier: none = core (do these even on a 5-hour day), 'stretch' = add these to reach 8 hours, 'bonus' = only if you still have time.
 // tier: none = core (do these even on a 5-hour day), 'stretch' = add these to reach 8 hours, 'bonus' = only if you still have time.
 // Lessons inside each day (and across days) follow the learning order in content/index.ts: each lesson builds on the ones before it.
+/** Lessons that test-takers report most often (Reddit, 2024-2026): basic algebra, geometry, percentages, fractions, mean/mode. */
+export const PRIORITY_IDS = [
+  'm-fractions', 'm-exponents', 'm-ratio', 'm-percent', 'm-equations', 'm-word-problems', 'm-factoring',
+  'm-angles', 'm-similar', 'm-shapes', 'g-quads', 'g-circles', 'm-counting',
+]
+export const isPriority = (id: string) => PRIORITY_IDS.includes(id)
+
 export const PLAN: PlanDay[] = [
   { day: 1, minHours: 5, hours: 8, theme: 'Foundations and algebra I (lessons 1–13)', items: [
     { label: 'Number sense & order of operations (skim if rusty)', minutes: 40, lesson: 'm-number-sense', tier: 'bonus' },
@@ -29,34 +36,48 @@ export const PLAN: PlanDay[] = [
     { label: 'Polynomials: operations, division & remainder theorem', minutes: 45, lesson: 'm-polynomials', tier: 'stretch' },
     { label: 'Mistakes notebook', minutes: 20, route: '/mistakes' },
   ] },
-  { day: 2, minHours: 6, hours: 6, theme: 'Algebra II & General Math (6 hours). Watch videos at 1.5×, skip the reading for topics you already know.', items: [
-    { label: 'Rational expressions & equations', minutes: 45, lesson: 'm-rational' },
-    { label: 'Quadratic equations: factoring, formula & discriminant', minutes: 45, lesson: 'm-quadratics' },
-    { label: 'Quadratic functions: vertex, max/min & inequalities', minutes: 45, lesson: 'm-quad-fn' },
-    { label: 'Functions: evaluate, piecewise, operations, composite, inverse', minutes: 50, lesson: 'm-functions' },
-    { label: 'Rational functions: asymptotes, holes, domain (videos + checkpoint + quiz only)', minutes: 25, lesson: 'm-rational-fn' },
-    { label: 'Exponents & logs: same-base equations and log rules', minutes: 45, lesson: 'm-exp-log' },
-    { label: 'Interest: simple & compound (skip annuities if short on time)', minutes: 30, lesson: 'm-finance' },
-    { label: 'Logic: converse, inverse, contrapositive (first video + quiz only)', minutes: 20, lesson: 'm-logic' },
-    { label: 'Mistakes notebook + formula sheet skim', minutes: 25, route: '/mistakes' },
-    { label: 'Extra: truth tables (second logic video) and annuities', minutes: 30, route: '/drills', tier: 'bonus' },
-  ] },
-  { day: 3, minHours: 6, hours: 6, theme: 'Geometry, trigonometry, counting & probability + mock exam (6 hours). Watch videos at 1.5×.', items: [
-    { label: 'Points, lines, segments & if-then statements', minutes: 30, lesson: 'g-basics', tier: 'bonus' },
-    { label: 'Angles, parallel lines & triangles', minutes: 40, lesson: 'm-angles' },
+  { day: 2, minHours: 6, hours: 6, theme: '⭐ EXAM PRIORITY DAY (6 h). What test-takers report: basic algebra, geometry, percentages, fractions, mean/mode. Items marked re-drill = Practice + Quiz tabs only.', items: [
+    { label: '⭐ Fractions & decimals: re-drill', minutes: 15, lesson: 'm-fractions' },
+    { label: '⭐ Exponents & radicals: quick re-drill', minutes: 15, lesson: 'm-exponents', tier: 'bonus' },
+    { label: '⭐ Ratio & proportion: re-drill', minutes: 10, lesson: 'm-ratio' },
+    { label: '⭐ Percent (discount, change, mixture): re-drill', minutes: 20, lesson: 'm-percent' },
+    { label: '⭐ Equations & inequalities: re-drill', minutes: 10, lesson: 'm-equations' },
+    { label: '⭐ Word problems (number, age, work): re-drill', minutes: 20, lesson: 'm-word-problems' },
+    { label: '⭐ Factoring & special products: re-drill', minutes: 15, lesson: 'm-factoring' },
+    { label: '⭐ Angles, parallel lines & triangles', minutes: 35, lesson: 'm-angles' },
     { label: 'Triangle congruence & CPCTC', minutes: 30, lesson: 'g-congruence', tier: 'bonus' },
-    { label: 'Pythagorean theorem, special & similar triangles', minutes: 40, lesson: 'm-similar' },
-    { label: 'Area, perimeter, circles & volume', minutes: 45, lesson: 'm-shapes' },
-    { label: 'Quadrilaterals', minutes: 30, lesson: 'g-quads', tier: 'bonus' },
-    { label: 'Skew lines, planes & right-triangle tests', minutes: 30, lesson: 'g-lines-planes', tier: 'bonus' },
-    { label: 'Circles: arcs, chords, tangents & secants', minutes: 30, lesson: 'g-circles' },
-    { label: 'Basic trigonometry (SOH-CAH-TOA, special angles, elevation)', minutes: 40, lesson: 'm-trig' },
-    { label: 'Law of sines & cosines', minutes: 30, lesson: 'm-trig2' },
-    { label: 'Sets & Venn diagrams', minutes: 30, lesson: 'm-sets', tier: 'bonus' },
-    { label: 'Counting (permutations, combinations) & mean/median/mode', minutes: 40, lesson: 'm-counting' },
+    { label: '⭐ Pythagorean theorem, special & similar triangles', minutes: 35, lesson: 'm-similar' },
+    { label: '⭐ Area, perimeter, circles & volume', minutes: 40, lesson: 'm-shapes' },
+    { label: '⭐ Quadrilaterals', minutes: 25, lesson: 'g-quads' },
+    { label: '⭐ Circles: arcs, chords, tangents', minutes: 25, lesson: 'g-circles' },
+    { label: '⭐ Counting (factorial), mean, median & mode', minutes: 35, lesson: 'm-counting' },
+    { label: '⭐ PRIORITY MOCK (42 questions) + review every miss', minutes: 50, route: '/mock' },
+    { label: 'Mistakes notebook: retry what you missed', minutes: 25, route: '/mistakes' },
+  ] },
+  { day: 3, minHours: 6, hours: 6, theme: 'Everything else (6 h): the lesser-reported topics, then a final mixed mock.', items: [
+    { label: 'Number sense (LCM, GCF, order of operations)', minutes: 20, lesson: 'm-number-sense', tier: 'bonus' },
+    { label: 'Variation: direct, inverse, joint', minutes: 20, lesson: 'm-variation' },
+    { label: 'Lines, slope & linear functions', minutes: 30, lesson: 'm-lines' },
+    { label: 'Systems of linear equations', minutes: 30, lesson: 'm-systems' },
+    { label: 'Sequences & series', minutes: 30, lesson: 'm-sequences', tier: 'bonus' },
+    { label: 'Polynomials: terms, FOIL & remainder theorem', minutes: 20, lesson: 'm-polynomials' },
+    { label: 'Rational expressions & equations', minutes: 25, lesson: 'm-rational' },
+    { label: 'Quadratic equations & the discriminant', minutes: 35, lesson: 'm-quadratics' },
+    { label: 'Quadratic functions: vertex & inequalities', minutes: 25, lesson: 'm-quad-fn' },
+    { label: 'Functions: evaluate, piecewise, composite, inverse', minutes: 25, lesson: 'm-functions' },
+    { label: 'Rational functions: asymptotes & domain', minutes: 20, lesson: 'm-rational-fn', tier: 'bonus' },
+    { label: 'Rational functions, exponentials & logs', minutes: 40, lesson: 'm-exp-log', tier: 'bonus' },
+    { label: 'Interest: simple & compound', minutes: 25, lesson: 'm-finance', tier: 'bonus' },
+    { label: 'Logic: converse, inverse & truth tables', minutes: 20, lesson: 'm-logic', tier: 'bonus' },
+    { label: 'Points, lines & if-then statements', minutes: 20, lesson: 'g-basics', tier: 'bonus' },
+    { label: 'Skew lines & planes', minutes: 20, lesson: 'g-lines-planes', tier: 'bonus' },
+    { label: 'Basic trigonometry (SOH-CAH-TOA, special angles)', minutes: 30, lesson: 'm-trig' },
+    { label: 'Law of sines & cosines', minutes: 25, lesson: 'm-trig2', tier: 'bonus' },
+    { label: 'Sets & Venn diagrams', minutes: 20, lesson: 'm-sets' },
     { label: 'Probability of compound events', minutes: 30, lesson: 'm-probability' },
-    { label: 'Statistics: quartiles, percentiles & outliers', minutes: 25, lesson: 'm-stats', tier: 'bonus' },
-    { label: 'Math mock exam (30 questions, 40 min) + review every miss', minutes: 65, route: '/mock' },
+    { label: 'Statistics: quartiles & outliers', minutes: 20, lesson: 'm-stats', tier: 'bonus' },
+    { label: 'Final mixed math mock (30 questions) + review every miss', minutes: 60, route: '/mock' },
+    { label: 'Mistakes notebook: retry everything', minutes: 10, route: '/mistakes' },
     { label: 'Test-day playbook', minutes: 10, route: '/cheatsheet', tier: 'bonus' },
   ] },
 ]

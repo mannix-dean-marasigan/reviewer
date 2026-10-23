@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { LESSONS, PLAN, SUBJECTS, lessonById } from '../content'
+import { LESSONS, PLAN, SUBJECTS, isPriority, lessonById } from '../content'
 import { resetAll, today, update, useStore } from '../lib/store'
 
 function dayNumber(start: string | null) {
@@ -25,6 +25,7 @@ export default function Dashboard() {
   return (
     <>
       <h1>You can pass this. Here's the plan. 💪</h1>
+      <p className="muted">⭐ = reported most often by people who took the UA&P exam (Reddit, 2024–2026). It is not an official list. </p>
       <p className="muted">{PLAN.length} days · {PLAN[0].minHours}–{PLAN[0].hours} hours a day · math only, as you asked. Do the checklist for the day, in order, and don't skip the quizzes: they are where the learning sticks.</p>
 
       <div className="card">
@@ -60,7 +61,7 @@ export default function Dashboard() {
               return (
                 <div className="item" key={k}>
                   <input type="checkbox" checked={!!st.checks[k]} onChange={e => update(s => { const c = { ...s.checks }; if (e.target.checked) c[k] = true; else delete c[k]; return { ...s, checks: c } })} aria-label={`Done: ${item.label}`} />
-                  {l ? <Link to={`/lesson/${l.id}`}>{item.label}</Link> : item.route ? <Link to={item.route}>{item.label}</Link> : <span>{item.label}</span>}
+                  {l ? <Link to={`/lesson/${l.id}`} className={isPriority(l.id) ? 'prio-link' : ''}>{isPriority(l.id) && !item.label.startsWith('⭐') ? '⭐ ' : ''}{item.label}</Link> : item.route ? <Link to={item.route}>{item.label}</Link> : <span>{item.label}</span>}
                   {l && st.done[l.id] !== undefined && <span className="pill">{st.done[l.id]}%</span>}
                   <span className="min">{item.tier === 'stretch' ? 'stretch · ' : item.tier === 'bonus' ? 'bonus · ' : ''}{item.minutes} min</span>
                 </div>

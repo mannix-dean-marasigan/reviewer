@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { LESSONS, MATH_ORDER, PLAN, lessonById } from './content'
+import { LESSONS, MATH_ORDER, PLAN, PRIORITY_IDS, lessonById } from './content'
 import { VID } from './content/helpers'
 import { lessonPool } from './lib/pool'
 import { stepEntries } from './content/explain'
@@ -109,15 +109,22 @@ describe('math learning order', () => {
     expect([...MATH_ORDER].sort()).toEqual([...ids].sort())
     expect(ids).toEqual(MATH_ORDER)
   })
-  it('the study plan follows that order, within each day and from day to day', () => {
-    let last = -1
+  it('inside each plan day the lessons follow the learning order', () => {
     for (const d of PLAN) {
+      let last = -1
       for (const it of d.items) {
         if (!it.lesson) continue
         const r = MATH_ORDER.indexOf(it.lesson)
         expect(r, `${it.lesson} is out of order on day ${d.day}`).toBeGreaterThan(last)
         last = r
       }
+    }
+  })
+  it('every priority lesson exists and day 2 covers all of them', () => {
+    const day2 = new Set(PLAN[1].items.map(i => i.lesson))
+    for (const id of PRIORITY_IDS) {
+      expect(lessonById(id), id).toBeDefined()
+      expect(day2.has(id), `${id} should be on day 2`).toBe(true)
     }
   })
 })
