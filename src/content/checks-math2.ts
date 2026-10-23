@@ -1,6 +1,8 @@
 import type { Checks } from '../types'
 import { q } from './helpers'
 
+const S = (...lines: string[]) => lines.join('\n')
+
 export const CHECKS_MATH2: Record<string, Checks> = {
   'm-lines': {
     drill: ['slope'],
@@ -20,7 +22,7 @@ export const CHECKS_MATH2: Record<string, Checks> = {
     more: [
       q('The slope of $3x+4y=12$ is:', ['$-\\frac34$', '$\\frac34$', '$-\\frac43$', '3'], 0, 'Solve for y: $4y=-3x+12$ → $y=-\\frac34x+3$.'),
       q('The distance between $(-3,1)$ and $(2,13)$ is:', ['13', '17', '12', '5'], 0, '$\\sqrt{5^2+12^2}=\\sqrt{169}=13$.'),
-      q('A fare is ₱50 for 2 km and ₱86 for 8 km (linear). The fare for 5 km is:', ['₱68', '₱65', '₱70', '₱72'], 0, 'Rate $=\\frac{86-50}{6}=6$ per km. Flag-down $=50-12=38$. For 5 km: $38+30=68$.'),
+      q('What is the slope of a line parallel to $y=5x-2$?', ['5', '−5', '$\\frac15$', '$-\\frac15$'], 0, S('**Words:** **parallel** lines have the SAME slope.', '**Step 1 (slope of the given line, the number in front of x):** 5.', '**Step 2 (same slope):** 5.', '**Answer: 5**')),
       q('On the line $y=-2x+5$, when $x=3$, $y=$', ['−1', '11', '1', '−11'], 0, '$-2(3)+5=-1$.'),
     ],
   },

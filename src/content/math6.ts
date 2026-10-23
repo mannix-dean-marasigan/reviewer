@@ -8,7 +8,7 @@ export const MATH6: Lesson[] = [
   {
     id: 'm-systems', subject: 'math', title: 'Systems of Linear Equations', minutes: 45,
     blurb: 'Solve two equations at once by graphing, substitution or elimination, and turn word problems into systems.',
-    videos: [VID.systems, VID.ocSysWord],
+    videos: [VID.systems, VID.ocSysCount, VID.ocSysWord],
     interactive: { k: 'system' },
     blocks: [
       { t: 'h', text: 'What is a system, and what is its solution?' },
@@ -43,7 +43,7 @@ export const MATH6: Lesson[] = [
   {
     id: 'm-polynomials', subject: 'math', title: 'Polynomials: Operations, Division & the Remainder Theorem', minutes: 50,
     blurb: 'Add, multiply and divide polynomials, use synthetic division, and test factors with the Remainder and Factor Theorems.',
-    videos: [VID.polyRem, VID.ocSynDiv, VID.ocLongDiv],
+    videos: [VID.ocPolyClass, VID.ocPolyOps, VID.polyRem, VID.ocSynDiv, VID.ocLongDiv],
     interactive: { k: 'steps', data: { prompt: 'Divide $x^3+2x^2-5x-6$ by $x-2$ using synthetic division.', steps: ['Write the root $c=2$ (from $x-2$) and the coefficients $1,\\ 2,\\ -5,\\ -6$', 'Bring down the first coefficient: $1$', 'Multiply by 2 and add: $2\\times1=2$, then $2+2=4$', 'Multiply and add again: $2\\times4=8$, then $-5+8=3$; then $2\\times3=6$, $-6+6=0$', 'Read the answer: quotient $x^2+4x+3$ and remainder $0$, so $x-2$ is a factor'], why: 'Synthetic division is bring down, multiply, add, repeat. A remainder of 0 means the divisor is a factor.' } },
     blocks: [
       { t: 'h', text: 'Polynomial words and basic operations' },
@@ -101,18 +101,18 @@ export const MATH6: Lesson[] = [
     ],
     quiz: [
       q('Simplify $\\dfrac{x^2-9}{x^2+x-6}$.', ['$\\dfrac{x-3}{x-2}$', '$\\dfrac{x+3}{x+2}$', '$\\dfrac{x-3}{x+2}$', '$\\dfrac{x^2-9}{x-6}$'], 0, S('**Idea:** factor the top and the bottom, then cancel common brackets.', '**Step 1 (top, difference of squares):** $x^2-9=(x-3)(x+3)$.', '**Step 2 (bottom, product −6 and sum 1 → 3 and −2):** $x^2+x-6=(x+3)(x-2)$.', '**Step 3 (cancel $(x+3)$):** $\\frac{x-3}{x-2}$.', '**Answer: $\\frac{x-3}{x-2}$**')),
-      q('Multiply: $\\dfrac{x}{3}\\cdot\\dfrac{6}{x^2}=$', ['$\\dfrac2x$', '$\\dfrac{2}{x^2}$', '$\\dfrac{x}{2}$', '$2x$'], 0, S('**Step 1 (multiply tops and bottoms):** $\\frac{x\\cdot6}{3\\cdot x^2}=\\frac{6x}{3x^2}$.', '**Step 2 (divide 6 by 3):** $\\frac{2x}{x^2}$.', '**Step 3 (cancel one x):** $\\frac2x$.', '**Answer: $\\frac2x$**')),
-      q('Divide: $\\dfrac{x^2-4}{x+1}\\div\\dfrac{x-2}{x+1}=$', ['$x+2$', '$x-2$', '$\\dfrac{x+2}{x+1}$', '$(x+2)(x+1)$'], 0, S('**Step 1 (keep, change, flip):** $\\frac{x^2-4}{x+1}\\times\\frac{x+1}{x-2}$.', '**Step 2 (factor $x^2-4$):** $\\frac{(x-2)(x+2)}{x+1}\\times\\frac{x+1}{x-2}$.', '**Step 3 (cancel $(x+1)$ and $(x-2)$):** $x+2$.', '**Answer: $x+2$**')),
+      q('Simplify $\\dfrac{5x^2-15x}{8x-24}$.', ['$\\dfrac{5x}{8}$', '$\\dfrac58$', '$\\dfrac{5x-15}{8}$', '$\\dfrac{x}{8}$'], 0, S('**Words:** factor the top and the bottom (GCF first), then cancel the shared factor.', '**Step 1 (top, GCF 5x):** $5x(x-3)$.', '**Step 2 (bottom, GCF 8):** $8(x-3)$.', '**Step 3 (cancel $(x-3)$):** $\\frac{5x}{8}$.', '**Answer: $\\frac{5x}{8}$**')),
+      q('Simplify $\\dfrac{42-6x}{3x-21}$.', ['$-2$', '$2$', '$-6$', '$\\dfrac{6}{3x}$'], 0, S('**Words:** $(7-x)$ and $(x-7)$ are opposites: $7-x=-(x-7)$.', '**Step 1 (top, GCF 6):** $6(7-x)=-6(x-7)$.', '**Step 2 (bottom, GCF 3):** $3(x-7)$.', '**Step 3 (cancel $(x-7)$):** $\\frac{-6}{3}=-2$.', '**Answer: $-2$**')),
       q('Add: $\\dfrac1x+\\dfrac1{x+1}=$', ['$\\dfrac{2x+1}{x(x+1)}$', '$\\dfrac{2}{2x+1}$', '$\\dfrac{2}{x(x+1)}$', '$\\dfrac{1}{x(x+1)}$'], 0, S('**Words:** the **LCD** is the smallest expression both bottoms divide into.', '**Step 1 (LCD):** $x(x+1)$.', '**Step 2 (rewrite each fraction):** $\\frac1x=\\frac{x+1}{x(x+1)}$ and $\\frac1{x+1}=\\frac{x}{x(x+1)}$.', '**Step 3 (add the tops):** $(x+1)+x=2x+1$.', '**Answer: $\\frac{2x+1}{x(x+1)}$**')),
       q('Subtract: $\\dfrac{3}{x-2}-\\dfrac{2}{x+2}=$', ['$\\dfrac{x+10}{x^2-4}$', '$\\dfrac{x+2}{x^2-4}$', '$\\dfrac{1}{x^2-4}$', '$\\dfrac{5x+2}{x^2-4}$'], 0, S('**Step 1 (LCD):** $(x-2)(x+2)=x^2-4$.', '**Step 2 (rewrite):** $\\frac{3(x+2)}{(x-2)(x+2)}-\\frac{2(x-2)}{(x-2)(x+2)}$.', '**Step 3 (top, be careful with the minus):** $3x+6-2x+4=x+10$.', '**Answer: $\\frac{x+10}{x^2-4}$**')),
       q('Solve $\\dfrac6x+1=3$.', ['$x=3$', '$x=2$', '$x=6$', '$x=\\dfrac13$'], 0, S('**Step 1 (note $x\\ne0$).**', '**Step 2 (subtract 1 from both sides):** $\\frac6x=2$.', '**Step 3 (cross-multiply):** $6=2x$.', '**Step 4:** $x=3$.', '**Check:** $\\frac63+1=3$ ✓', '**Answer: $x=3$**')),
-      q('Solve $\\dfrac{x}{x-3}=\\dfrac{3}{x-3}+2$.', ['No solution', '$x=3$', '$x=0$', '$x=6$'], 0, S('**Words:** an **extraneous solution** is one that comes out of the algebra but makes a denominator zero, so it is not allowed.', '**Step 1 (excluded value):** $x\\ne3$.', '**Step 2 (multiply every term by $x-3$):** $x=3+2(x-3)$.', '**Step 3 (simplify):** $x=2x-3$, so $x=3$.', '**Step 4 (check):** $x=3$ is the excluded value, so it is extraneous.', '**Answer: no solution**')),
+      q('Solve $\\dfrac{x+3}{x-3}=\\dfrac{12}{3}$.', ['$x=5$', '$x=3$', '$x=-5$', '$x=4$'], 0, S('**Words:** fraction = fraction → **cross multiply**.', '**Step 1 (cross multiply):** $3(x+3)=12(x-3)$.', '**Step 2 (distribute):** $3x+9=12x-36$.', '**Step 3 (solve):** $45=9x$, so $x=5$.', '**Check:** the bottom $5-3=2\\ne0$ ✓', '**Answer: $x=5$**')),
     ],
   },
   {
     id: 'm-quad-fn', subject: 'math', title: 'Quadratic Functions & Inequalities', minutes: 50,
     blurb: 'Vertex, axis of symmetry, maximum/minimum, parabola problems, and solving quadratic inequalities.',
-    videos: [VID.ocVertex, VID.quadIneq],
+    videos: [VID.ocVertex, VID.ocMaxMin, VID.quadIneq],
     interactive: { k: 'graph', data: { kind: 'quadratic' } },
     blocks: [
       { t: 'h', text: 'The parabola and its vertex' },

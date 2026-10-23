@@ -20,6 +20,18 @@ const lin = (a: number, b: number) => `${coef(a, 'x')}${b === 0 ? '' : sgn(b)}`
 const fx = (n: number) => (n === 0 ? 'x' : `(x${sgn(-n)})`)
 const quad = (a: number, b: number, c: number) => `${coef(a, 'x^2')}${b === 0 ? '' : b > 0 ? '+' + coef(b, 'x') : '-' + coef(-b, 'x')}${c === 0 ? '' : sgn(c)}`
 
+/** Polynomial from coefficients, highest power first: [2, -3, 0, 5] → 2x^3-3x^2+5. */
+const pstr = (cs: number[]) => {
+  const n = cs.length - 1
+  let out = ''
+  cs.forEach((c, i) => {
+    if (c === 0) return
+    const e = n - i
+    const v = e === 0 ? `${Math.abs(c)}` : coef(Math.abs(c), e === 1 ? 'x' : `x^${e}`)
+    out += out === '' ? (c < 0 ? '-' : '') + v : (c < 0 ? '-' : '+') + v
+  })
+  return out || '0'
+}
 /** Build a Question from a correct answer string + wrong candidates (deduped, padded). */
 function mk(r: Rng, q: string, correct: string, wrongs: string[], e: string, trick?: string): Question {
   const w: string[] = []
@@ -1540,6 +1552,136 @@ const GEN: Record<string, (r: Rng) => Question> = {
       `**Words:** **slope** = rise ÷ run. Count how far you go up or down (rise) and how far right (run) from one marked point to the other.\n**Step 1 (the points):** (${x1}, ${y1}) and (${x2}, ${y2}).\n**Step 2 (rise, moving left to right):** ${rise > 0 ? 'up' : 'down'} ${Math.abs(rise)}, so rise = ${rise}.\n**Step 3 (run):** right ${run}.\n**Step 4 (slope):** ${rise} ÷ ${run} = ${frac(rise, run).replace(/\\frac\{(-?\d+)\}\{(\d+)\}/, '$1/$2')}.\n**Check (formula):** (${y2} − (${y1})) ÷ (${x2} − (${x1})) = ${rise}/${run} ✓\n**Answer: ${plain(ans)}**`,
       'Line goes DOWN from left to right → negative slope.')
     return { ...q, fig: `line:${x1},${y1},${x2},${y2}` }
+  },
+  parPerp(r) {
+    const [n, d] = r.pick([[2, 3], [3, 4], [-2, 5], [4, 3], [-3, 2], [5, 2], [2, 1], [-3, 1], [1, 4], [-1, 3]] as [number, number][])
+    const kind = r.pick(['par', 'perp', 'neither'] as const)
+    const sl = (a: number, b: number) => { const g = gcd(a, b); a /= g; b /= g; if (b < 0) { a = -a; b = -b } return b === 1 ? coef(a, 'x') : `${a < 0 ? '-' : ''}\\frac{${Math.abs(a)}}{${b}}x` }
+    const b1 = r.int(-5, 5), b2 = r.pick([-6, -4, -1, 2, 3, 7].filter(v => v !== b1))
+    const [n2, d2] = kind === 'par' ? [n, d] : kind === 'perp' ? [-d, n] : [d, n]
+    const eq = (a: number, b: number, c: number) => `y=${sl(a, b)}${c === 0 ? '' : sgn(c)}`
+    const ans = kind === 'par' ? 'Parallel' : kind === 'perp' ? 'Perpendicular' : 'Neither'
+    const txt = (a: number, b: number) => { const g = gcd(a, b); a /= g; b /= g; if (b < 0) { a = -a; b = -b } return b === 1 ? `${a}` : `${a}/${b}` }
+    return mk(r, `Are the lines $${eq(n, d, b1)}$ and $${eq(n2, d2, b2)}$ parallel, perpendicular, or neither?`, ans, ['Parallel', 'Perpendicular', 'Neither', 'They are the same line'],
+      `**Words:** **parallel** lines have the SAME slope. **Perpendicular** lines (they meet at a 90° angle) have slopes that are **negative reciprocals**: flip the fraction AND change the sign.\n**Step 1 (slopes, the number in front of x):** ${txt(n, d)} and ${txt(n2, d2)}.\n**Step 2 (same?):** ${kind === 'par' ? 'yes, so they are parallel' : 'no'}.\n${kind === 'par' ? '' : `**Step 3 (negative reciprocal of ${txt(n, d)}):** ${txt(-d, n)}, ${kind === 'perp' ? 'which matches, so they are perpendicular' : `which does not match ${txt(n2, d2)}, so neither`}.\n`}**Answer: ${ans}**`,
+      'Same slope → parallel. Flip and change sign → perpendicular.')
+  },
+  perpSlope(r) {
+    const [n, d] = r.pick([[2, 3], [3, 4], [-2, 5], [4, 3], [-3, 2], [5, 2], [2, 1], [-3, 1], [-4, 1], [1, 4], [-1, 3]] as [number, number][])
+    const kind = r.pick(['parallel', 'perpendicular'] as const), b = r.int(-6, 6)
+    const m = `$${frac(n, d)}$`, perp = `$${frac(-d, n)}$`
+    const ans = kind === 'parallel' ? m : perp
+    const sl = d === 1 ? coef(n, 'x') : `${n < 0 ? '-' : ''}\\frac{${Math.abs(n)}}{${d}}x`
+    return mk(r, `What is the slope of a line ${kind} to $y=${sl}${b === 0 ? '' : sgn(b)}$?`, ans, [m, perp, `$${frac(-n, d)}$`, `$${frac(d, n)}$`],
+      `**Words:** **parallel** lines have the SAME slope. **Perpendicular** slopes are **negative reciprocals**: flip the fraction and change the sign.\n**Step 1 (slope of the given line, the number in front of x):** ${frac(n, d).replace(/\\frac\{(-?\d+)\}\{(\d+)\}/, '$1/$2')}.\n**Step 2:** ${kind === 'parallel' ? 'parallel → keep the same slope' : `perpendicular → flip it to ${frac(d, n).replace(/\\frac\{(-?\d+)\}\{(\d+)\}/, '$1/$2')}, then change the sign`}.\n**Answer: ${plain(ans).replace(/\\frac\{(-?\d+)\}\{(\d+)\}/, '$1/$2')}**`,
+      'Perpendicular: flip and change the sign. Parallel: same slope.')
+  },
+  sysCount(r) {
+    const a = r.int(1, 4), b = r.pick([-3, -2, -1, 1, 2, 3, 4]), c = r.int(-8, 12), k = r.pick([2, 3, -2])
+    const kind = r.pick(['one', 'none', 'many'] as const)
+    let a2 = k * a, b2 = k * b, c2 = k * c
+    if (kind === 'none') c2 = k * c + r.pick([-3, -1, 2, 5])
+    if (kind === 'one') b2 = k * b + r.pick([-2, 1, 3])
+    if (b2 === 0) return GEN.sysCount(r)
+    const eq = (x: number, y: number, z: number) => `${coef(x, 'x')}${y > 0 ? '+' : '-'}${coef(Math.abs(y), 'y')}=${z}`
+    const ans = kind === 'one' ? 'Exactly one solution' : kind === 'none' ? 'No solution' : 'Infinitely many solutions'
+    const L = -k
+    return mk(r, `How many solutions does the system $${eq(a, b, c)}$ and $${eq(a2, b2, c2)}$ have?`, ans, ['Exactly one solution', 'No solution', 'Infinitely many solutions', 'Exactly two solutions'],
+      `**Words:** solve by elimination. If you end with x = a number → **one solution**. If you end with a FALSE statement like 0 = 5 → **no solution** (inconsistent). If you end with a TRUE statement like 0 = 0 → **infinitely many solutions** (dependent).\n**Step 1 (multiply the first equation by ${L} so the x-terms cancel):** $${eq(L * a, L * b, L * c)}$.\n**Step 2 (add it to the second equation):** ${kind === 'one' ? `the y-terms leave ${b2 + L * b}y = ${c2 + L * c}, so y has one value` : `everything with x and y cancels, leaving 0 = ${c2 + L * c}`}.\n**Step 3:** ${kind === 'one' ? 'one value of y (and then of x)' : kind === 'none' ? `0 = ${c2 + L * c} is false` : '0 = 0 is always true'}.\n**Answer: ${ans}**`,
+      '0 = 0 → infinitely many. 0 = 5 → none. x = number → one.')
+  },
+  polyClass(r) {
+    const n = r.int(2, 4), exps = [4, 3, 2, 1, 0, 5]
+    const used = r.shuffle(exps).slice(0, n)
+    const terms = used.map(e => [r.pick([-9, -7, -5, -3, -2, 2, 3, 4, 6, 8]), e] as [number, number])
+    const show = terms.map(([c, e], i) => { const v = e === 0 ? `${Math.abs(c)}` : coef(Math.abs(c), e === 1 ? 'x' : `x^${e}`); return i === 0 ? (c < 0 ? '-' : '') + v : (c < 0 ? '-' : '+') + v }).join('')
+    const top = terms.reduce((x, y) => (y[1] > x[1] ? y : x))
+    const kind = r.pick(['degree', 'lead', 'name'] as const)
+    if (kind === 'name') {
+      const nm = ['', 'monomial', 'binomial', 'trinomial', 'polynomial (4 terms)'][n]
+      return mk(r, `How do you classify $${show}$ by its number of terms?`, nm, ['monomial', 'binomial', 'trinomial', 'polynomial (4 terms)'],
+        `**Words:** a **term** is a piece separated by + or −. 1 term = monomial, 2 = binomial, 3 = trinomial, more = polynomial.\n**Step 1 (count the terms):** ${n}.\n**Answer: ${nm}**`, 'Mono 1, bi 2, tri 3, poly = many.')
+    }
+    if (kind === 'degree') return mk(r, `What is the degree of $${show}$?`, `${top[1]}`, [`${n}`, `${terms[0][1] === top[1] ? top[1] + 1 : terms[0][1]}`, `${Math.abs(top[0])}`],
+      `**Words:** the **degree** of a polynomial is the HIGHEST exponent of x (not the first one written).\n**Step 1 (exponents):** ${terms.map(t => t[1]).join(', ')}.\n**Step 2 (highest):** ${top[1]}.\n**Answer: ${top[1]}**`, 'Degree = biggest exponent, wherever it is written.')
+    return mk(r, `What is the leading coefficient of $${show}$?`, `${top[0]}`, [`${terms[0][0] === top[0] ? -top[0] : terms[0][0]}`, `${top[1]}`, `${-top[0]}`],
+      `**Words:** the **leading term** is the term with the highest exponent; its number is the **leading coefficient**.\n**Step 1 (highest exponent):** ${top[1]}.\n**Step 2 (that term):** ${top[0]}x^${top[1]}, so the leading coefficient is ${top[0]}.\n**Answer: ${top[0]}**`, 'Leading term = highest power, even if it is written last.')
+  },
+  polyAddSub(r) {
+    const a1 = r.int(2, 9), b1 = r.int(-8, 8), c1 = r.int(-9, 9), a2 = r.int(1, 7), b2 = r.int(-8, 8), c2 = r.int(-9, 9)
+    const sub = r.pick([true, false])
+    if ((sub && a1 === a2) || b2 === 0 || c2 === 0) return GEN.polyAddSub(r)
+    const A = sub ? a1 - a2 : a1 + a2, B = sub ? b1 - b2 : b1 + b2, C = sub ? c1 - c2 : c1 + c2
+    const ans = `$${pstr([A, B, C])}$`
+    const w = sub ? [`$${pstr([A, b1 + b2, c1 + c2])}$`, `$${pstr([a1 + a2, B, C])}$`, `$${pstr([A, B, -C])}$`, `$${pstr([A, B + 1, C])}$`, `$${pstr([A, B, C + 2])}$`] : [`$${pstr([A, b1 - b2, C])}$`, `$${pstr([A, B, c1 - c2])}$`, `$${pstr([A, B + 1, C])}$`, `$${pstr([A, B, C + 2])}$`]
+    return mk(r, `${sub ? 'Subtract' : 'Add'}: $(${pstr([a1, b1, c1])})${sub ? '-' : '+'}(${pstr([a2, b2, c2])})$`, ans, w,
+      `**Words:** **like terms** have the same power of x. You can only combine like terms.\n${sub ? `**Step 1 (distribute the minus sign: change the sign of EVERY term in the second bracket):** $${pstr([a1, b1, c1])}${pstr([-a2, -b2, -c2]).startsWith('-') ? '' : '+'}${pstr([-a2, -b2, -c2])}$.\n` : '**Step 1 (remove the brackets):** nothing changes sign when adding.\n'}**Step 2 (x² terms):** ${a1} ${sub ? '−' : '+'} ${a2} = ${A}.\n**Step 3 (x terms):** ${b1} ${sub ? '−' : '+'} (${b2}) = ${B}.\n**Step 4 (numbers):** ${c1} ${sub ? '−' : '+'} (${c2}) = ${C}.\n**Answer: ${plain(ans)}**`,
+      'Subtracting a bracket flips EVERY sign inside it.')
+  },
+  polyMul(r) {
+    const sq = r.pick([true, false])
+    const p = r.int(1, 4), q = r.pick([-6, -5, -3, -2, -1, 1, 2, 3, 4, 5])
+    const [rr, s] = sq ? [p, q] : [r.int(1, 3), r.pick([-5, -4, -2, -1, 1, 3, 4, 6])]
+    const A = p * rr, B = p * s + q * rr, C = q * s
+    if (B === 0) return GEN.polyMul(r)
+    const ans = `$${pstr([A, B, C])}$`
+    return mk(r, sq ? `Expand: $(${lin(p, q)})^2$` : `Multiply: $(${lin(p, q)})(${lin(rr, s)})$`, ans, [`$${pstr([A, 0, C])}$`, `$${pstr([A, -B, C])}$`, `$${pstr([A, B, -C])}$`],
+      `**Words:** use **FOIL**: First, Outer, Inner, Last. ${sq ? `A square means the bracket times itself: $(${lin(p, q)})(${lin(p, q)})$.` : ''}\n**Step 1 (First):** ${coef(p, 'x')} × ${coef(rr, 'x')} = ${coef(A, 'x²')}.\n**Step 2 (Outer):** ${coef(p, 'x')} × (${s}) = ${coef(p * s, 'x')}.\n**Step 3 (Inner):** (${q}) × ${coef(rr, 'x')} = ${coef(q * rr, 'x')}.\n**Step 4 (Last):** (${q}) × (${s}) = ${C}.\n**Step 5 (combine the middle terms):** ${p * s} + (${q * rr}) = ${B}.\n**Answer: ${plain(ans)}**`,
+      '(a + b)² is NOT a² + b²: there is always a middle term 2ab.')
+  },
+  quadFactorSolve(r) {
+    const key = (a: number, b: number) => [a, b].sort((x, y) => x - y).map(z => z.toFixed(5)).join()
+    if (r.pick([true, false])) {
+      const a = r.pick([1, 1, 2, 3]), k = r.int(2, 9)
+      if (gcd(a, k) !== 1) return GEN.quadFactorSolve(r)
+      const v = frac(k, a), ans = `$x=-${v}$ or $x=${v}$`
+      return mk(r, `Solve by factoring: $${a * a === 1 ? '' : a * a}x^2-${k * k}=0$`, ans, [`$x=${v}$ only`, `$x=-${frac(k * k, a * a)}$ or $x=${frac(k * k, a * a)}$`, `$x=-${frac(a, k)}$ or $x=${frac(a, k)}$`],
+        `**Words:** this is a **difference of squares**, $A^2-B^2=(A-B)(A+B)$. Then set each bracket equal to 0 (if a product is 0, one of the factors must be 0).\n**Step 1 (factor):** (${coef(a, 'x')} − ${k})(${coef(a, 'x')} + ${k}) = 0.\n**Step 2 (each bracket = 0):** ${coef(a, 'x')} = ${k} or ${coef(a, 'x')} = −${k}.\n**Step 3:** x = ${v.replace(/\\frac\{(\d+)\}\{(\d+)\}/, '$1/$2')} or x = −${v.replace(/\\frac\{(\d+)\}\{(\d+)\}/, '$1/$2')}.\n**Answer: ${plain(ans).replace(/\\frac\{(\d+)\}\{(\d+)\}/g, '$1/$2')}**`,
+        'x² − k² = 0 → x = ±k.')
+    }
+    const vals = [-7, -6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7]
+    const p = r.pick(vals), q = r.pick(vals)
+    if (p === q || p === -q) return GEN.quadFactorSolve(r)
+    const [lo, hi] = p < q ? [p, q] : [q, p]
+    const pair = (x: number, y: number) => `$x=${Math.min(x, y)}$ or $x=${Math.max(x, y)}$`
+    const w: string[] = []
+    for (const [x, y] of [[-lo, -hi], [lo, -hi], [-lo, hi], [lo + 1, hi]]) if (x !== y && key(x, y) !== key(lo, hi) && !w.includes(pair(x, y))) w.push(pair(x, y))
+    return mk(r, `Solve by factoring: $${quad(1, -(p + q), p * q)}=0$`, pair(lo, hi), w,
+      `**Words:** factor, then use the **zero product rule**: if two brackets multiply to 0, one of them is 0.\n**Step 1 (two numbers, product ${p * q}, sum ${-(p + q)}):** ${-p} and ${-q}.\n**Step 2 (factor):** (x${sgn(-p)})(x${sgn(-q)}) = 0.\n**Step 3 (each bracket = 0):** x = ${p} or x = ${q}.\n**Answer: x = ${lo} or x = ${hi}**`,
+      'The answers have the OPPOSITE signs of the numbers in the brackets.')
+  },
+  maxMinWord(r) {
+    if (r.pick([true, false])) {
+      const a = r.pick([1, 2, 5]), X = r.pick([10, 15, 20, 25, 30, 40]), c = r.pick([100, 200, 300, 500])
+      const b = 2 * a * X, top = c + a * X * X
+      const ask = r.pick(['units', 'profit'] as const)
+      const ans = ask === 'units' ? `${X}` : `${top}`
+      return mk(r, `A company's profit is $P=-${a === 1 ? '' : a}x^2+${b}x+${c}$, where x is the number of units sold. ${ask === 'units' ? 'How many units give the MAXIMUM profit?' : 'What is the MAXIMUM profit?'}`, ans, ask === 'units' ? [`${b}`, `${2 * X}`, `${top}`] : [`${X}`, `${top - c}`, `${c + b * X}`],
+        `**Words:** the graph is a parabola that opens DOWN (the x² number is negative), so its highest point, the **vertex**, gives the maximum. x of the vertex $=-\\dfrac{b}{2a}$.\n**Step 1 (a and b):** a = −${a}, b = ${b}.\n**Step 2 (x of the vertex):** −${b} ÷ (2 × −${a}) = ${X} units.\n${ask === 'profit' ? `**Step 3 (put x = ${X} back in):** −${a}(${X})² + ${b}(${X}) + ${c} = ${-a * X * X} + ${b * X} + ${c} = ${top}.\n` : ''}**Answer: ${ans}**`,
+        'Max/min word problem → find the vertex. x = −b/(2a) answers “how many”; plug it in for “how much”.')
+    }
+    const v = r.pick([10, 20, 30, 40]), h0 = r.pick([0, 5, 20, 45, 100]), t = v / 10, H = h0 + (v * v) / 20
+    const ask = r.pick(['time', 'height'] as const)
+    const ans = ask === 'time' ? `${t} s` : `${H} m`
+    return mk(r, `A ball's height is $h=-5t^2+${v}t${h0 ? '+' + h0 : ''}$ (meters, t in seconds). ${ask === 'time' ? 'When does it reach its maximum height?' : 'What is its maximum height?'}`, ans, ask === 'time' ? [`${2 * t} s`, `${v / 5 + 1} s`, `${t + 1} s`] : [`${H + 5} m`, `${h0 + v} m`, `${(v * v) / 10 + h0} m`],
+      `**Words:** height vs time is a downward parabola; the top is the **vertex**. Time of the top: $t=-\\dfrac{b}{2a}$.\n**Step 1 (a and b):** a = −5, b = ${v}.\n**Step 2 (time):** −${v} ÷ (2 × −5) = ${t} s.\n${ask === 'height' ? `**Step 3 (height at t = ${t}):** −5(${t})² + ${v}(${t})${h0 ? ' + ' + h0 : ''} = ${-5 * t * t} + ${v * t}${h0 ? ' + ' + h0 : ''} = ${H} m.\n` : ''}**Answer: ${ans}**`,
+      'Time of the max = −b/(2a). Max height = plug that time back in.')
+  },
+  funcOps(r) {
+    const a = r.int(2, 5), b = r.pick([-5, -3, -1, 1, 2, 4, 5]), c = r.pick([-6, -4, -1, 3, 7])
+    const kind = r.pick(['sum', 'diff', 'prod', 'eval'] as const)
+    const f = lin(a, b), g = quad(1, 0, c)
+    if (kind === 'eval') {
+      const m = r.int(-2, 3), n = r.int(-2, 3), v = a * m + b + n * n + c
+      return mk(r, `Let $f(x)=${f}$ and $g(x)=${g}$. Find $f(${m})+g(${n})$.`, `${v}`, [`${a * m + b}`, `${v - 2 * c}`, `${a * n + b + m * m + c}`],
+        `**Step 1 (f(${m})):** ${a}(${m}) + (${b}) = ${a * m + b}.\n**Step 2 (g(${n})):** (${n})² + (${c}) = ${n * n + c}.\n**Step 3 (add):** ${a * m + b} + (${n * n + c}) = ${v}.\n**Answer: ${v}**`, 'Find each value first, then do the operation.')
+    }
+    const sum = pstr([1, a, b + c]), diff = pstr([-1, a, b - c]), prod = pstr([a, b, a * c, b * c])
+    const ans = `$${kind === 'sum' ? sum : kind === 'diff' ? diff : prod}$`
+    const w = kind === 'sum' ? [`$${pstr([1, a, b - c])}$`, `$${pstr([a, 1, b + c])}$`, `$${prod}$`] : kind === 'diff' ? [`$${pstr([-1, a, b + c])}$`, `$${pstr([1, a, b - c])}$`, `$${pstr([-1, -a, b - c])}$`] : [`$${pstr([a, b, 0, b * c])}$`, `$${sum}$`, `$${pstr([a, b, -a * c, b * c])}$`]
+    return mk(r, `Let $f(x)=${f}$ and $g(x)=${g}$. Find $${kind === 'sum' ? '(f+g)(x)' : kind === 'diff' ? '(f-g)(x)' : '(f\\cdot g)(x)'}$.`, ans, w,
+      `**Words:** $(f${kind === 'sum' ? '+' : kind === 'diff' ? '-' : '\\cdot '}g)(x)$ means ${kind === 'sum' ? 'add' : kind === 'diff' ? 'subtract' : 'multiply'} the two formulas.\n**Step 1:** (${f}) ${kind === 'sum' ? '+' : kind === 'diff' ? '−' : '×'} (${g}).\n${kind === 'diff' ? `**Step 2 (the minus changes EVERY sign in g):** ${f} − x² ${c > 0 ? '−' : '+'} ${Math.abs(c)}.\n` : kind === 'prod' ? `**Step 2 (distribute each term of f):** ${coef(a, 'x')}·x² + ${coef(a, 'x')}·(${c}) + (${b})·x² + (${b})(${c}).\n` : ''}**Step 3 (combine like terms, highest power first):** ${plain(ans)}.\n**Answer: ${plain(ans)}**`,
+      'f − g: subtract the WHOLE of g, so every sign in g flips.')
   },
 }
 

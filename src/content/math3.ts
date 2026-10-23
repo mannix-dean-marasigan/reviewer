@@ -1,11 +1,13 @@
 import type { Lesson } from '../types'
 import { q, VID } from './helpers'
 
+const S = (...lines: string[]) => lines.join('\n')
+
 export const MATH3: Lesson[] = [
   {
     id: 'm-lines', subject: 'math', title: 'Lines, Slope & Linear Functions', minutes: 40,
     blurb: 'Slope, equations of lines, parallel/perpendicular, and building a linear rule from two data points.',
-    videos: [VID.ocSlope, VID.ocLineEq, VID.ocDistance],
+    videos: [VID.ocSlope, VID.ocLineEq, VID.ocParPerp, VID.ocDistance],
     interactive: { k: 'line' },
     blocks: [
       { t: 'h', text: 'Slope = rise over run' },
@@ -26,9 +28,9 @@ export const MATH3: Lesson[] = [
       q('What is the equation of the line with slope 3 passing through (1, 5)?', ['$y=3x+2$', '$y=3x+5$', '$y=3x-2$', '$y=x+3$'], 0, '$5=3(1)+b$ → $b=2$, so $y=3x+2$.'),
       q('Which line is perpendicular to $y=\\frac23x+1$?', ['$y=-\\frac32x+4$', '$y=\\frac32x+4$', '$y=-\\frac23x$', '$y=\\frac23x-1$'], 0, 'The negative reciprocal of 2/3 is −3/2.'),
       q('What is the distance between (1, 2) and (7, 10)?', ['10', '14', '8', '12'], 0, '$\\sqrt{6^2+8^2}=\\sqrt{100}=10$ (a 6-8-10 triangle).'),
-      q('A taxi charges ₱40 flag-down plus ₱13 per km. What is the fare for 12 km?', ['₱196', '₱156', '₱169', '₱205'], 0, '$40+13(12)=40+156=196$.'),
+      q('Are the lines $y=2x-3$ and $y=-\\frac12x+4$ parallel, perpendicular, or neither?', ['Perpendicular', 'Parallel', 'Neither', 'They are the same line'], 0, S('**Words:** **parallel** lines have the SAME slope. **Perpendicular** lines have slopes that are **negative reciprocals** (flip the fraction AND change the sign).', '**Step 1 (slopes):** the first slope is $2$, the second is $-\\frac12$.', '**Step 2 (flip 2 and change the sign):** $2=\\frac21$ → $-\\frac12$. That matches the second slope.', '**Answer: Perpendicular**')),
       q('The line $2x-3y=12$ crosses the y-axis at:', ['(0, −4)', '(0, 4)', '(6, 0)', '(0, −6)'], 0, 'Set $x=0$: $-3y=12$ → $y=-4$.'),
-      q('The midpoint of the segment from (−2, 5) to (8, −1) is:', ['(3, 2)', '(6, 4)', '(5, 3)', '(3, 3)'], 0, '$\\left(\\frac{-2+8}{2},\\frac{5+(-1)}{2}\\right)=(3,2)$.'),
+      q('What is the slope of a line perpendicular to $y=-\\frac43x+2$?', ['$\\frac34$', '$-\\frac34$', '$\\frac43$', '$-\\frac43$'], 0, S('**Words:** perpendicular slopes are **negative reciprocals**: flip the fraction and change the sign.', '**Step 1 (the slope):** $-\\frac43$.', '**Step 2 (flip):** $-\\frac34$.', '**Step 3 (change the sign):** $\\frac34$.', '**Answer: $\\frac34$**')),
     ],
   },
   {

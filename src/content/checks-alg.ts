@@ -63,7 +63,7 @@ export const CHECKS_ALG: Record<string, Checks> = {
     more: [
       q('Simplify $\\dfrac{x^2-1}{x-1}$.', ['$x+1$', '$x-1$', '$x^2$', '$\\dfrac{x+1}{x-1}$'], 0, S('**Step 1 (factor the top, difference of squares):** $(x-1)(x+1)$.', '**Step 2 (cancel $(x-1)$):** $x+1$.', '**Answer: $x+1$**')),
       q('Solve $\\dfrac4x=2$.', ['$x=2$', '$x=8$', '$x=0.5$', '$x=4$'], 0, S('**Step 1 (cross-multiply):** $4=2x$.', '**Step 2:** $x=2$.', '**Check:** $\\frac42=2$ ✓', '**Answer: $x=2$**')),
-      q('Divide: $\\dfrac23\\div\\dfrac{x}{6}=$', ['$\\dfrac4x$', '$\\dfrac{x}{4}$', '$\\dfrac{2x}{18}$', '$4x$'], 0, S('**Step 1 (keep, change, flip):** $\\frac23\\times\\frac6x$.', '**Step 2 (multiply and cancel 3 into 6):** $\\frac{2\\times2}{x}$.', '**Step 3:** $\\frac4x$.', '**Answer: $\\frac4x$**')),
+      q('Add: $\\dfrac{5}{x}+\\dfrac{3}{x^2}$', ['$\\dfrac{5x+3}{x^2}$', '$\\dfrac{8}{x^2}$', '$\\dfrac{8}{x^3}$', '$\\dfrac{3x+5}{x^2}$'], 0, S('**Words:** to add fractions you need a **common denominator**.', '**Step 1 (common denominator):** $x^2$.', '**Step 2 (rewrite the first fraction, multiply by $\\frac xx$):** $\\frac{5x}{x^2}$.', '**Step 3 (add the tops):** $\\frac{5x+3}{x^2}$.', '**Answer: $\\frac{5x+3}{x^2}$**')),
       q('Add: $\\dfrac12+\\dfrac1x=$', ['$\\dfrac{x+2}{2x}$', '$\\dfrac{2}{x+2}$', '$\\dfrac{1}{2x}$', '$\\dfrac{x+1}{2x}$'], 0, S('**Step 1 (LCD):** $2x$.', '**Step 2 (rewrite):** $\\frac{x}{2x}+\\frac{2}{2x}$.', '**Step 3 (add the tops):** $\\frac{x+2}{2x}$.', '**Answer: $\\frac{x+2}{2x}$**')),
     ],
   },

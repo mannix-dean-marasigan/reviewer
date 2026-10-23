@@ -1,6 +1,8 @@
 import type { Checks } from '../types'
 import { q } from './helpers'
 
+const S = (...lines: string[]) => lines.join('\n')
+
 // Checkpoints: video (after the videos), learn (one after each section of the written lesson),
 // lab (after the interactive), more (extra practice bank). The correct answer is always choice A here;
 // the app shuffles the choices every time.
@@ -154,7 +156,7 @@ export const CHECKS_MATH1: Record<string, Checks> = {
       q('Factor completely: $2x^2-8$', ['$2(x-2)(x+2)$', '$(2x-4)(x+2)$', '$2(x-4)(x+4)$', '$2(x^2-4)$'], 0, 'GCF first: $2(x^2-4)$, then difference of squares: $2(x-2)(x+2)$. The last choice is not completely factored.'),
       q('Factor: $6x^2+5x-6$', ['$(3x-2)(2x+3)$', '$(6x-1)(x+6)$', '$(3x+2)(2x-3)$', '$(2x-3)(3x-2)$'], 0, 'Check by FOIL: $(3x-2)(2x+3)=6x^2+9x-4x-6=6x^2+5x-6$ ✓.'),
       q('If $x^2-y^2=45$ and $x+y=9$, then $x-y=$', ['5', '36', '9', '4.5'], 0, '$(x-y)(x+y)=45$ → $x-y=45\\div9=5$.'),
-      q('Simplify: $\\dfrac{x^2+5x+6}{x^2+x-6}$', ['$\\frac{x+2}{x-2}$', '$\\frac{x+3}{x-3}$', '$\\frac{5x+6}{x-6}$', '$1$'], 0, 'Top: $(x+2)(x+3)$. Bottom: $(x+3)(x-2)$. Cancel $(x+3)$.'),
+      q('Factor: $2x^2+7x+3$', ['$(2x+1)(x+3)$', '$(2x+3)(x+1)$', '$(2x-1)(x-3)$', '$(x+1)(x+3)$'], 0, S('**Words:** when the number in front of $x^2$ is not 1, use the **AC method**.', '**Step 1 (a × c):** $2\\times3=6$.', '**Step 2 (two numbers, product 6, sum 7):** 6 and 1.', '**Step 3 (split the middle):** $2x^2+6x+x+3$.', '**Step 4 (group):** $2x(x+3)+1(x+3)=(2x+1)(x+3)$.', '**Answer: $(2x+1)(x+3)$**')),
     ],
   },
   'm-quadratics': {

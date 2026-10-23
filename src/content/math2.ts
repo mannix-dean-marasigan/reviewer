@@ -1,6 +1,8 @@
 import type { Lesson } from '../types'
 import { q, VID } from './helpers'
 
+const S = (...lines: string[]) => lines.join('\n')
+
 export const MATH2: Lesson[] = [
   {
     id: 'm-percent', subject: 'math', title: 'Percent Applications', minutes: 40,
@@ -100,16 +102,16 @@ export const MATH2: Lesson[] = [
       q('Factor completely: $x^2-5x-14$', ['$(x-7)(x+2)$', '$(x+7)(x-2)$', '$(x-14)(x+1)$', '$(x-7)(x-2)$'], 0, 'Need product −14, sum −5 → −7 and +2. So $(x-7)(x+2)$.'),
       q('Factor: $4x^2-81$', ['$(2x-9)(2x+9)$', '$(4x-9)(x+9)$', '$(2x-9)^2$', '$4(x^2-81)$'], 0, 'Difference of squares: $(2x)^2-9^2=(2x-9)(2x+9)$.'),
       q('Factor: $3x^2+10x+8$', ['$(3x+4)(x+2)$', '$(3x+2)(x+4)$', '$(3x+8)(x+1)$', '$(x+4)(x+2)$'], 0, '$a\\cdot c=24$, need sum 10 → 6 and 4. $3x^2+6x+4x+8=3x(x+2)+4(x+2)=(3x+4)(x+2)$.'),
-      q('Expand: $(2x-3)^2$', ['$4x^2-12x+9$', '$4x^2+9$', '$4x^2-6x+9$', '$2x^2-12x+9$'], 0, '$(a-b)^2=a^2-2ab+b^2=4x^2-2(2x)(3)+9=4x^2-12x+9$.'),
-      q('Simplify: $\\dfrac{x^2-16}{x^2-x-12}$', ['$\\frac{x-4}{x-3}$', '$\\frac{x+4}{x-3}$', '$\\frac{x-4}{x+4}$', '$\\frac{x+4}{x+3}$'], 3, 'Top: $(x-4)(x+4)$. Bottom: $x^2-x-12=(x-4)(x+3)$. Cancel $(x-4)$: $\\frac{x+4}{x+3}$.'),
-      q('If $x+\\dfrac1x=5$, what is $x^2+\\dfrac1{x^2}$?', ['23', '25', '27', '10'], 0, 'Square both sides: $x^2+2+\\frac1{x^2}=25$ → $x^2+\\frac1{x^2}=23$.', 'Squaring “x + 1/x” always produces a “+2” in the middle.'),
+      q('Factor: $x^2-10x+25$', ['$(x-5)^2$', '$(x+5)^2$', '$(x-5)(x+5)$', '$(x-25)(x+1)$'], 0, S('**Words:** to **factor** $x^2+bx+c$, find two numbers that MULTIPLY to c and ADD to b.', '**Step 1 (what we need):** product 25, sum −10.', '**Step 2 (both negative, because the product is + and the sum is −):** −5 and −5.', '**Step 3:** $(x-5)(x-5)=(x-5)^2$.', '**Check (FOIL):** $x^2-5x-5x+25=x^2-10x+25$ ✓', '**Answer: $(x-5)^2$**')),
+      q('Factor completely: $3x^2-75$', ['$3(x-5)(x+5)$', '$3(x-5)^2$', '$(x-5)(x+5)$', '$3(x-25)(x+1)$'], 0, S('**Words:** **factor completely** means take out the GCF first, then keep factoring.', '**Step 1 (GCF of 3 and 75 is 3):** $3(x^2-25)$.', '**Step 2 (difference of squares, $x^2-25=(x-5)(x+5)$):** $3(x-5)(x+5)$.', '**Answer: $3(x-5)(x+5)$**')),
+      q('Factor by grouping: $x^3+2x^2+3x+6$', ['$(x^2+3)(x+2)$', '$(x^2+2)(x+3)$', '$(x^2-3)(x+2)$', '$(x+2)(x+3)$'], 0, S('**Words:** **factoring by grouping** splits 4 terms into two pairs and takes the GCF out of each pair.', '**Step 1 (first pair):** $x^3+2x^2=x^2(x+2)$.', '**Step 2 (second pair):** $3x+6=3(x+2)$.', '**Step 3 (take out the shared bracket $(x+2)$):** $(x^2+3)(x+2)$.', '**Answer: $(x^2+3)(x+2)$**')),
       q('If $a-b=4$ and $a^2-b^2=28$, what is $a+b$?', ['7', '24', '14', '32'], 0, '$a^2-b^2=(a-b)(a+b)$ → $28=4(a+b)$ → $a+b=7$.'),
     ],
   },
   {
     id: 'm-quadratics', subject: 'math', title: 'Quadratic Equations & the Discriminant', minutes: 45,
     blurb: 'Solve by factoring or formula, and read the number of roots from the discriminant.',
-    videos: [VID.quadFormula, VID.ocDisc],
+    videos: [VID.ocQuadFactor, VID.quadFormula, VID.ocDisc],
     interactive: { k: 'quad' },
     blocks: [
       { t: 'h', text: 'Three ways to solve $ax^2+bx+c=0$' },
