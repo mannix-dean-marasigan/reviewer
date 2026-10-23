@@ -13,22 +13,23 @@ export const SUBJECTS: { id: Subject; label: string }[] = [
 // tier: none = core (do these even on a 5-hour day), 'stretch' = add these to reach 8 hours, 'bonus' = only if you still have time.
 // Lessons inside each day (and across days) follow the learning order in content/index.ts: each lesson builds on the ones before it.
 export const PLAN: PlanDay[] = [
-  { day: 1, minHours: 5, hours: 8, theme: 'Foundations and algebra I (lessons 1–12)', items: [
+  { day: 1, minHours: 5, hours: 8, theme: 'Foundations and algebra I (lessons 1–13)', items: [
     { label: 'Number sense & order of operations (skim if rusty)', minutes: 40, lesson: 'm-number-sense', tier: 'bonus' },
     { label: 'Fractions, decimals & percent', minutes: 45, lesson: 'm-fractions' },
     { label: 'Exponents, radicals & scientific notation', minutes: 45, lesson: 'm-exponents' },
-    { label: 'Ratio, proportion & variation', minutes: 40, lesson: 'm-ratio', tier: 'stretch' },
+    { label: 'Ratio, proportion & variation', minutes: 35, lesson: 'm-ratio', tier: 'stretch' },
     { label: 'Percent applications', minutes: 40, lesson: 'm-percent', tier: 'stretch' },
     { label: 'Equations, inequalities & word problems', minutes: 50, lesson: 'm-equations' },
-    { label: 'Variation: direct, inverse, joint & combined', minutes: 35, lesson: 'm-variation', tier: 'stretch' },
+    { label: 'Word problems: number, consecutive, age & work', minutes: 40, lesson: 'm-word-problems', tier: 'stretch' },
+    { label: 'Variation: direct, inverse, joint & combined', minutes: 30, lesson: 'm-variation', tier: 'stretch' },
     { label: 'Lines, slope & linear functions', minutes: 40, lesson: 'm-lines' },
     { label: 'Systems of linear equations', minutes: 45, lesson: 'm-systems' },
     { label: 'Sequences & series', minutes: 40, lesson: 'm-sequences', tier: 'bonus' },
     { label: 'Algebraic expressions & factoring', minutes: 45, lesson: 'm-factoring' },
-    { label: 'Polynomials: operations, division & remainder theorem', minutes: 50, lesson: 'm-polynomials', tier: 'stretch' },
+    { label: 'Polynomials: operations, division & remainder theorem', minutes: 45, lesson: 'm-polynomials', tier: 'stretch' },
     { label: 'Mistakes notebook', minutes: 20, route: '/mistakes' },
   ] },
-  { day: 2, minHours: 5, hours: 8, theme: 'Algebra II and General Mathematics (lessons 13–20)', items: [
+  { day: 2, minHours: 5, hours: 8, theme: 'Algebra II and General Mathematics (lessons 14–21)', items: [
     { label: 'Rational expressions & equations', minutes: 50, lesson: 'm-rational' },
     { label: 'Quadratic equations & the discriminant', minutes: 45, lesson: 'm-quadratics' },
     { label: 'Quadratic functions & inequalities', minutes: 50, lesson: 'm-quad-fn' },
@@ -41,7 +42,7 @@ export const PLAN: PlanDay[] = [
     { label: 'Mistakes notebook', minutes: 15, route: '/mistakes' },
     { label: 'Mistakes notebook (round 2)', minutes: 15, route: '/mistakes', tier: 'stretch' },
   ] },
-  { day: 3, minHours: 5, hours: 8, theme: 'Geometry, trig, counting & probability + math mock exam (lessons 21–34)', items: [
+  { day: 3, minHours: 5, hours: 8, theme: 'Geometry, trig, counting & probability + math mock exam (lessons 22–35)', items: [
     { label: 'Points, lines, segments & if-then statements', minutes: 45, lesson: 'g-basics', tier: 'bonus' },
     { label: 'Lines, angles & triangles', minutes: 40, lesson: 'm-angles' },
     { label: 'Triangles: types, congruence & CPCTC', minutes: 45, lesson: 'g-congruence', tier: 'stretch' },

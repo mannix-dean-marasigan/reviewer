@@ -944,6 +944,52 @@ const GEN: Record<string, (r: Rng) => Question> = {
       `**Words:** the **diagonal** of a rectangle cuts it into two right triangles, and the diagonal is the longest side (the hypotenuse).\n**Step 1 (Pythagorean theorem, a² + b² = c²):** ${t[0]}² + ${t[1]}² = c².\n**Step 2:** ${t[0] ** 2} + ${t[1] ** 2} = ${t[0] ** 2 + t[1] ** 2}.\n**Step 3 (square root):** c = √${t[2] ** 2} = ${t[2]}.\n**Answer: ${t[2]} cm**`,
       'Diagonal = √(length² + width²).')
   },
+  numWord(r) {
+    const a = r.int(2, 6), c = r.int(3, 20), x = r.int(1, 12)
+    const T = a * x + c
+    return mk(r, `The sum of ${a} times a number and ${c} is ${T}. What is the number?`, `${x}`, [`${T - c}`, `${x + 1}`, `${T + c}`, `${a * x}`],
+      `**Words:** a **variable** is a letter standing for the unknown number. “Sum” means add and “is” means equals.\n**Step 1 (let x be the number):** ${a} times the number is ${a}x.\n**Step 2 (write the equation):** ${a}x + ${c} = ${T}.\n**Step 3 (subtract ${c} from both sides):** ${a}x = ${T - c}.\n**Step 4 (divide both sides by ${a}):** x = ${x}.\n**Check:** ${a}×${x} + ${c} = ${T} ✓\n**Answer: ${x}**`,
+      '“Is” = “=”. Undo the +c first, then the ×a.')
+  },
+  lessThan(r) {
+    const k = r.int(2, 9), twice = r.pick([true, false])
+    const base = twice ? '2x' : 'x'
+    const ans = `$${base}-${k}$`
+    return mk(r, `Which expression means “${k} less than ${twice ? 'twice a number' : 'a number'}”?`, ans, [`$${k}-${base}$`, `$${base}+${k}$`, `$${twice ? '2(x-' + k + ')' : k + 'x'}$`],
+      `**Words:** “less than” means subtract, but the thing you START from comes first, even though it is written second in the sentence.\n**Step 1 (what are we starting from?):** ${twice ? 'twice a number, which is 2x' : 'a number, which is x'}.\n**Step 2 (take away ${k}):** ${base} − ${k}.\n**Step 3 (do not flip it):** ${k} − ${base} would mean “${base} less than ${k}”, which is a different thing.\n**Answer: ${base} − ${k}**`,
+      '“k less than A” is A − k (the A comes first).')
+  },
+  consecutive(r) {
+    const kind = r.pick(['integers', 'even', 'odd'] as const)
+    const step = kind === 'integers' ? 1 : 2
+    let m = r.int(8, 40)
+    if (kind === 'even' && m % 2) m++
+    if (kind === 'odd' && m % 2 === 0) m++
+    const S3 = 3 * m, lo = m - step
+    const name = kind === 'integers' ? 'consecutive integers' : kind === 'even' ? 'consecutive even integers' : 'consecutive odd integers'
+    return mk(r, `The sum of three ${name} is ${S3}. What is the smallest of the three?`, `${lo}`, [`${m}`, `${m + step}`, `${lo - step}`],
+      `**Words:** **${name}** are ${kind === 'integers' ? 'whole numbers that come right after each other (1 apart)' : `${kind} numbers that come right after each other (2 apart)`}.\n**Step 1 (sum ÷ how many numbers gives the MIDDLE one):** ${S3} ÷ 3 = ${m}.\n**Step 2 (the others are ${step} below and ${step} above the middle):** ${lo}, ${m}, ${m + step}.\n**Step 3 (check):** ${lo} + ${m} + ${m + step} = ${S3} ✓\n**Step 4 (the smallest is the first one):** ${lo}.\n**Answer: ${lo}**`,
+      'Sum ÷ 3 = the middle number. Then step down.')
+  },
+  ageWord(r) {
+    let j = 8, k = 3, n = 8, m = 2
+    for (let t = 0; t < 80; t++) {
+      const jj = r.int(3, 16), kk = r.int(3, 5), nn = r.int(2, 12)
+      if ((kk * jj + nn) % (jj + nn) === 0) {
+        const mm = (kk * jj + nn) / (jj + nn)
+        if (mm >= 2 && mm < kk) { j = jj; k = kk; n = nn; m = mm; break }
+      }
+    }
+    return mk(r, `Sally is ${k} times as old as John. In ${n} years Sally will be ${m} times as old as John. How old is John now?`, `${j}`, [`${k * j}`, `${j + n}`, `${j - 1}`],
+      `**Step 1 (name the ages NOW):** Sally = s, John = j.\n**Step 2 (the present equation):** s = ${k}j.\n**Step 3 (in ${n} years EVERYONE is ${n} older):** s + ${n} = ${m}(j + ${n}).\n**Step 4 (substitute s = ${k}j):** ${k}j + ${n} = ${m}j + ${m * n}.\n**Step 5 (subtract ${m}j and ${n} from both sides):** ${k - m}j = ${m * n - n}.\n**Step 6 (divide by ${k - m}):** j = ${j}.\n**Check:** Sally is ${k * j} now; in ${n} years she is ${k * j + n} and John is ${j + n}, and ${k * j + n} = ${m}×${j + n} ✓\n**Answer: John is ${j}**`,
+      'Everybody ages the same amount. Two people means two equations: substitute.')
+  },
+  workFind(r) {
+    const [a, b, T] = r.pick([[6, 12, 4], [12, 6, 4], [10, 15, 6], [15, 10, 6], [3, 6, 2], [6, 3, 2], [12, 24, 8], [20, 5, 4], [30, 15, 10], [12, 4, 3], [4, 12, 3], [20, 30, 12], [30, 20, 12], [15, 30, 10]])
+    return mk(r, `Ana and Ben together finish a job in ${T} hours. Ana alone takes ${a} hours. How long would Ben take alone?`, `${b} hours`, [`${a} hours`, `${a + T} hours`, `${b + T} hours`],
+      `**Words:** a **rate** is the part of the job done in ONE hour. If a worker takes h hours for the whole job, the rate is 1/h.\n**Step 1 (together rate):** 1/${T} of the job per hour.\n**Step 2 (Ana's rate):** 1/${a} per hour.\n**Step 3 (Ben's rate = together − Ana):** 1/${T} − 1/${a} = ${a}/${a * T} − ${T}/${a * T} = ${a - T}/${a * T}, which simplifies to 1/${b}.\n**Step 4 (flip the rate to get the time):** ${b} hours.\n**Check:** 1/${a} + 1/${b} = ${b}/${a * b} + ${a}/${a * b} = ${a + b}/${a * b} = 1/${T} ✓\n**Answer: ${b} hours**`,
+      'Subtract the known rate from the together rate, then flip.')
+  },
 }
 
 export const DRILL_KINDS = Object.keys(GEN)

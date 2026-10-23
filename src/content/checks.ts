@@ -7,6 +7,7 @@ import { CHECKS_LANG } from './checks-lang'
 import { CHECKS_MATH1 } from './checks-math1'
 import { CHECKS_MATH2 } from './checks-math2'
 import { CHECKS_OTHER } from './checks-other'
+import { CHECKS_WP } from './checks-wp'
 import { EXTRA } from './checks-extra'
 
 // generated-problem kinds (see lib/drills.ts) that match each math lesson; they fill the checkpoint after every video
@@ -32,6 +33,7 @@ const DRILLS: Record<string, string[]> = {
   'm-rational': ['ratEq', 'fracDiv'],
   'm-quad-fn': ['vertex', 'quadIneq'],
   'm-variation': ['joint', 'ratioShare'],
+  'm-word-problems': ['numWord', 'consecutive', 'ageWord', 'work', 'workFind'],
   'm-functions': ['funcEval', 'composite', 'inverseFn'],
   'm-rational-fn': ['asymptote', 'ratEq'],
   'm-exp-log': ['expEq', 'logVal'],
@@ -47,7 +49,7 @@ const DRILLS: Record<string, string[]> = {
   'g-lines-planes': ['pythCheck', 'triIneq', 'angles'],
 }
 
-const BASE: Record<string, Checks> = { ...CHECKS_MATH1, ...CHECKS_MATH2, ...CHECKS_ALG, ...CHECKS_GM, ...CHECKS_JHS, ...CHECKS_GEO, ...CHECKS_LANG, ...CHECKS_OTHER }
+const BASE: Record<string, Checks> = { ...CHECKS_MATH1, ...CHECKS_MATH2, ...CHECKS_ALG, ...CHECKS_GM, ...CHECKS_JHS, ...CHECKS_GEO, ...CHECKS_LANG, ...CHECKS_OTHER, ...CHECKS_WP }
 export const CHECKS: Record<string, Checks> = Object.fromEntries(
   Object.entries(BASE).map(([id, c]) => [id, { ...c, drill: DRILLS[id] ?? c.drill, extra: EXTRA[id], gen: id === 'a-series' ? 'series' : undefined }]),
 )

@@ -10,6 +10,7 @@ export const VIDEO_MAP: Record<string, VideoMapEntry> = {
   'm-ratio': { kinds: [['ratioShare'], ['ratioShare']], q: [[0], [1]] },
   'm-percent': { kinds: [['pctChange', 'percentOf'], ['discount', 'percentOf'], ['mixture']], q: [[0], [1], []] },
   'm-equations': { kinds: [['linear'], ['work']], q: [[], []] },
+  'm-word-problems': { kinds: [['numWord', 'lessThan'], ['ageWord'], ['consecutive'], ['work', 'workFind']], q: [[0], [1], [2], [3]] },
   'm-variation': { kinds: [['varDI', 'joint']], q: [[0, 1]] },
   'm-lines': { kinds: [['slope'], ['lineEq'], ['distance']], q: [[0], [1], []] },
   'm-systems': { kinds: [['sys2'], ['sysWord']], q: [[0, 1], []] },
