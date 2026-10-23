@@ -926,6 +926,24 @@ const GEN: Record<string, (r: Rng) => Question> = {
       `**Words:** to simplify a **rational expression**, factor the top and the bottom, then cancel any factor they share.\n**Step 1 (factor the top, find two numbers with product ${pr} and sum ${s}):** ${p} and ${q}, so $x^2+${s}x+${pr}=(x+${p})(x+${q})$.\n**Step 2 (write the fraction):** $\\frac{(x+${p})(x+${q})}{x+${p}}$.\n**Step 3 (cancel the shared factor $x+${p}$):** $x+${q}$.\n**Answer: $x+${q}$**`,
       'Factor the top, then cancel the bracket that also sits on the bottom.')
   },
+  rectDiag(r) {
+    const x = r.int(2, 9), a = r.int(2, 5), b = r.int(1, 6), k = r.int(1, 4)
+    const half = a * x + b
+    const c = half + 0
+    const left = `${a}x+${b}`, right = `${a + k}x+${b - k * x}`
+    if (b - k * x === 0) return GEN.rectDiag(r)
+    const rightTxt = `${a + k}x${b - k * x > 0 ? '+' : '-'}${Math.abs(b - k * x)}`
+    void left; void right; void c
+    return mk(r, `In rectangle $ABCD$ the diagonals meet at $E$. $AE=${a}x+${b}$ and $EC=${rightTxt}$. What is $AC$?`, `${2 * half}`, [`${half}`, `${2 * half + 2}`, `${half + x}`, `${2 * half - 2}`].map(String),
+      `**Words:** a **diagonal** joins opposite corners. In a rectangle the diagonals **bisect** each other, meaning they cut each other into two equal halves at E.\n**Step 1 (bisect, so the two halves are equal):** AE = EC, so ${a}x + ${b} = ${rightTxt}.\n**Step 2 (solve for x):** x = ${x}.\n**Step 3 (find one half):** AE = ${a}(${x}) + ${b} = ${half}.\n**Step 4 (AC is both halves together):** AC = 2 × ${half} = ${2 * half}.\n**Answer: ${2 * half}**`,
+      'Rectangle diagonals are equal and bisect each other: AE = EC = BE = ED.')
+  },
+  rectDiagLen(r) {
+    const t = r.pick([[3, 4, 5], [5, 12, 13], [6, 8, 10], [8, 15, 17], [9, 12, 15]])
+    return mk(r, `A rectangle is ${t[0]} cm long and ${t[1]} cm wide. How long is its diagonal?`, `${t[2]} cm`, [`${t[0] + t[1]} cm`, `${t[2] + 1} cm`, `${t[0] * t[1]} cm`, `${t[2] - 1} cm`],
+      `**Words:** the **diagonal** of a rectangle cuts it into two right triangles, and the diagonal is the longest side (the hypotenuse).\n**Step 1 (Pythagorean theorem, a² + b² = c²):** ${t[0]}² + ${t[1]}² = c².\n**Step 2:** ${t[0] ** 2} + ${t[1] ** 2} = ${t[0] ** 2 + t[1] ** 2}.\n**Step 3 (square root):** c = √${t[2] ** 2} = ${t[2]}.\n**Answer: ${t[2]} cm**`,
+      'Diagonal = √(length² + width²).')
+  },
 }
 
 export const DRILL_KINDS = Object.keys(GEN)
