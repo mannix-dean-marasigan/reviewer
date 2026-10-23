@@ -1257,7 +1257,7 @@ const GEN: Record<string, (r: Rng) => Question> = {
   ratShift(r) {
     const p = r.pick([-5, -4, -3, -2, 2, 3, 4, 6]), k = r.pick([-6, -3, -1, 1, 2, 5, 7])
     if (p === k) return GEN.ratShift(r)
-    const ask = r.pick(['domain', 'range'] as const)
+    const ask = 'domain' as 'domain' | 'range'
     const iv = (n: number) => `$(-\\infty,${n})\\cup(${n},\\infty)$`
     const ans = ask === 'domain' ? iv(p) : iv(k)
     return mk(r, `What is the ${ask} of $y=\\dfrac{1}{${lin(1, -p)}}${sgn(k)}$?`, ans, [ask === 'domain' ? iv(k) : iv(p), iv(-p === k ? 0 : -p), '$(-\\infty,\\infty)$'],

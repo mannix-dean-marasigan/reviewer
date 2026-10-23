@@ -43,7 +43,7 @@ export const MATH6: Lesson[] = [
   {
     id: 'm-polynomials', subject: 'math', title: 'Polynomials: Operations, Division & the Remainder Theorem', minutes: 50,
     blurb: 'Add, multiply and divide polynomials, use synthetic division, and test factors with the Remainder and Factor Theorems.',
-    videos: [VID.ocPolyClass, VID.ocPolyOps, VID.polyRem, VID.ocSynDiv, VID.ocLongDiv],
+    videos: [VID.ocPolyClass, VID.ocPolyOps, VID.polyRem, VID.ocSynDiv],
     interactive: { k: 'steps', data: { prompt: 'Divide $x^3+2x^2-5x-6$ by $x-2$ using synthetic division.', steps: ['Write the root $c=2$ (from $x-2$) and the coefficients $1,\\ 2,\\ -5,\\ -6$', 'Bring down the first coefficient: $1$', 'Multiply by 2 and add: $2\\times1=2$, then $2+2=4$', 'Multiply and add again: $2\\times4=8$, then $-5+8=3$; then $2\\times3=6$, $-6+6=0$', 'Read the answer: quotient $x^2+4x+3$ and remainder $0$, so $x-2$ is a factor'], why: 'Synthetic division is bring down, multiply, add, repeat. A remainder of 0 means the divisor is a factor.' } },
     blocks: [
       { t: 'h', text: 'Polynomial words and basic operations' },

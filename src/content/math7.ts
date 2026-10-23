@@ -44,7 +44,7 @@ export const MATH7: Lesson[] = [
     ],
   },
   {
-    id: 'm-rational-fn', subject: 'math', title: 'Rational Functions: Asymptotes, Intercepts, Domain & Range', minutes: 45,
+    id: 'm-rational-fn', subject: 'math', title: 'Rational Functions: Asymptotes, Holes, Intercepts & Domain', minutes: 45,
     blurb: 'Read a rational function: where it is undefined, its asymptotes, holes and intercepts.',
     videos: [VID.ocAsymptotes],
     interactive: { k: 'graph', data: { kind: 'rational' } },
@@ -73,7 +73,7 @@ export const MATH7: Lesson[] = [
       q('Find the x-intercept of $f(x)=\\dfrac{2x-6}{x+1}$.', ['$x=3$', '$x=-1$', '$x=-6$', '$x=2$'], 0, S('**Words:** the **x-intercept** is where the graph crosses the x-axis, so $f(x)=0$.', '**Step 1 (a fraction is 0 when its top is 0):** $2x-6=0$.', '**Step 2:** $2x=6$, so $x=3$.', '**Step 3 (check the bottom is not 0 there):** $3+1=4\\ne0$ ✓.', '**Answer: $x=3$**')),
       q('Find the y-intercept of $f(x)=\\dfrac{x+2}{x-4}$.', ['$-\\dfrac12$', '$\\dfrac12$', '$-2$', '$2$'], 0, S('**Words:** the **y-intercept** is where the graph crosses the y-axis, so $x=0$.', '**Step 1:** $f(0)=\\frac{0+2}{0-4}$.', '**Step 2:** $=\\frac{2}{-4}=-\\frac12$.', '**Answer: $-\\frac12$**')),
       q('What does the graph of $f(x)=\\dfrac{x^2-4}{x-2}$ look like at $x=2$?', ['A hole at (2, 4)', 'A vertical asymptote', 'A y-intercept', 'A horizontal asymptote'], 0, S('**Step 1 (factor the top):** $x^2-4=(x-2)(x+2)$.', '**Step 2 (cancel the common factor $(x-2)$):** $f(x)=x+2$.', '**Step 3:** because the factor cancelled, there is only a **hole** at $x=2$, not an asymptote. The hole’s height is $2+2=4$.', '**Answer: a hole at (2, 4)**')),
-      q('What is the range of $f(x)=\\dfrac1x$?', ['all real numbers except 0', 'all real numbers', '$y>0$', '$y\\ge1$'], 0, S('**Step 1:** a fraction $\\frac1x$ can never equal 0 (the top is always 1).', '**Step 2:** it can equal any other number (for example $\\frac1x=5$ at $x=\\frac15$).', '**Step 3:** the horizontal asymptote $y=0$ is never reached.', '**Answer: all real numbers except 0**')),
+      q('What is the domain of $f(x)=\\dfrac{3}{x+5}$?', ['all real numbers except −5', 'all real numbers except 5', 'all real numbers except 3', 'all real numbers'], 0, S('**Words:** the **domain** is every x you may use. Remove the x that makes the bottom 0 (the vertical asymptote).', '**Step 1 (bottom = 0):** $x+5=0$, so $x=-5$.', '**Answer: all real numbers except −5**')),
     ],
   },
   {
@@ -112,8 +112,8 @@ export const MATH7: Lesson[] = [
     ],
   },
   {
-    id: 'm-finance', subject: 'math', title: 'Business Math: Interest, Annuities, Loans, Stocks & Bonds', minutes: 55,
-    blurb: 'Simple and compound interest, annuities, loan payments, and basic stock/bond vocabulary (General Mathematics).',
+    id: 'm-finance', subject: 'math', title: 'Business Math: Interest, Annuities & Loans', minutes: 55,
+    blurb: 'Simple and compound interest, annuities and loan payments (General Mathematics).',
     videos: [VID.ocSimple, VID.ocCompound, VID.ocAnnuity],
     interactive: { k: 'interest' },
     blocks: [
@@ -127,9 +127,6 @@ export const MATH7: Lesson[] = [
       { t: 'p', text: 'An **annuity** is a series of equal payments at equal time intervals. An **ordinary annuity** pays at the END of each period. Let $R$ be the payment, $i$ the interest rate per period and $n$ the number of payments.' },
       { t: 'formula', items: ['**Future value:** $F=R\\cdot\\dfrac{(1+i)^n-1}{i}$', '**Present value:** $PV=R\\cdot\\dfrac{1-(1+i)^{-n}}{i}$', '**Loan payment (amortization):** $R=\\dfrac{PV\\cdot i}{1-(1+i)^{-n}}$ where PV is the amount borrowed'] },
       { t: 'ex', title: '₱1,000 is deposited at the end of each year for 3 years at 10% compounded annually. Find the total.', steps: ['$R=1000$, $i=0.10$, $n=3$.', '$(1.1)^3=1.331$.', '$\\dfrac{1.331-1}{0.1}=3.31$.', '$F=1000\\times3.31=3{,}310$.'], ans: '₱3,310' },
-      { t: 'h', text: 'Stocks and bonds (basics)' },
-      { t: 'table', head: ['Term', 'Meaning'], rows: [['Stock (share)', 'a part ownership of a company'], ['Dividend', 'a payment per share the company gives its owners'], ['Dividend yield', '$\\dfrac{\\text{annual dividend per share}}{\\text{market price per share}}\\times100\\%$'], ['Bond', 'a loan you give to a company or government'], ['Face (par) value', 'the amount the bond pays back at maturity'], ['Coupon', 'the yearly interest a bond pays: face value × coupon rate']] },
-      { t: 'tip', text: 'Match the formula to the picture: ONE lump sum → simple or compound interest; EQUAL payments again and again → annuity; borrowed money paid back with equal payments → amortization.' },
     ],
     tricks: [
       'Write what you have: P, r, t (and m). Then pick the formula; do not guess.',

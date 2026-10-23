@@ -77,8 +77,7 @@ export const CHECKS_GM: Record<string, Checks> = {
     learn: [
       q('What is the interest on ₱8,000 at 5% simple interest for 6 months?', ['₱200', '₱400', '₱2,400', '₱20'], 0, S('**Step 1 (time in years):** 6 months = 0.5 years.', '**Step 2:** $I=8000\\times0.05\\times0.5$.', '**Step 3:** $8000\\times0.05=400$, and $400\\times0.5=200$.', '**Answer: ₱200**')),
       q('₱1,000 at 12% compounded monthly: what is the interest rate per month?', ['1%', '12%', '0.1%', '0.12%'], 0, S('**Step 1:** monthly means $m=12$.', '**Step 2:** rate per period $=\\frac{12\\%}{12}=1\\%$.', '**Answer: 1%**')),
-      q('A series of equal payments made at the end of each period is called an:', ['ordinary annuity', 'bond', 'stock dividend', 'simple loan'], 0, S('**Step 1:** equal payments at regular times = annuity.', '**Step 2:** paid at the END of each period = ordinary annuity.', '**Answer: ordinary annuity**')),
-      q('A bond’s face value is ₱5,000 and its coupon rate is 6%. What is the yearly coupon?', ['₱300', '₱30', '₱3,000', '₱5,300'], 0, S('**Step 1:** coupon = face value × coupon rate.', '**Step 2:** $5000\\times0.06=300$.', '**Answer: ₱300**')),
+      q('A series of equal payments made at the end of each period is called an:', ['ordinary annuity', 'annuity due', 'compound interest', 'simple loan'], 0, S('**Step 1:** equal payments at regular times = annuity.', '**Step 2:** paid at the END of each period = ordinary annuity.', '**Answer: ordinary annuity**')),
     ],
     lab: [
       q('In the lab, with ₱10,000, 6% and 5 years, simple interest gives a total of:', ['₱13,000', '₱13,382', '₱10,300', '₱16,000'], 0, S('**Step 1:** $F=P(1+rt)=10{,}000(1+0.06\\times5)$.', '**Step 2:** $0.06\\times5=0.3$, so $10{,}000\\times1.3=13{,}000$.', '**Answer: ₱13,000** (compound annually would give about ₱13,382).')),

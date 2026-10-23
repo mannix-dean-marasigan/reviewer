@@ -33,7 +33,6 @@ export const CHECKS_JHS: Record<string, Checks> = {
     learn: [
       q('A frequency table shows the value 4 occurring 3 times and the value 6 occurring 2 times. What is the mean?', ['4.8', '5', '4', '10'], 0, S('**Step 1 (value × frequency):** $4\\times3=12$ and $6\\times2=12$.', '**Step 2 (add):** $12+12=24$.', '**Step 3 (total frequency):** $3+2=5$.', '**Step 4:** $24\\div5=4.8$.', '**Answer: 4.8**')),
       q('For the sorted data 2, 4, 6, 8, 10, 12 (six values) what is $Q_1$?', ['4', '3', '6', '5'], 0, S('**Step 1 (split into two halves of three):** lower half 2, 4, 6; upper half 8, 10, 12.', '**Step 2 ($Q_1$ = median of the lower half):** 4.', '**Answer: 4**')),
-      q('The standard deviation is:', ['the square root of the variance', 'the square of the variance', 'the mean of the data', 'the range of the data'], 0, S('**Step 1:** variance is the average squared distance from the mean.', '**Step 2:** square-rooting brings the units back, giving the standard deviation.', '**Answer: the square root of the variance**')),
     ],
     lab: [
       q('In the stats tool, if you add one very large number to a data set, which value changes the MOST?', ['the mean', 'the median', 'the mode', 'Q1'], 0, S('**Step 1:** the mean uses every value, so one extreme value pulls it a lot.', '**Step 2:** the median and quartiles depend on positions, so they barely move.', '**Answer: the mean**')),
@@ -42,7 +41,7 @@ export const CHECKS_JHS: Record<string, Checks> = {
     more: [
       q('Find the range of 4, 9, 2, 15, 7.', ['13', '15', '2', '8'], 0, S('**Words:** the **range** = largest value − smallest value.', '**Step 1:** largest 15, smallest 2.', '**Step 2:** $15-2=13$.', '**Answer: 13**')),
       q('A score at the 50th percentile equals the:', ['median', 'mean', 'mode', 'range'], 0, S('**Step 1:** 50% of the scores are below the median.', '**Answer: the median**')),
-      q('Find the population variance of 2, 4, 6, 8.', ['5', '20', '2.5', '4'], 0, S('**Step 1 (mean):** $\\frac{2+4+6+8}{4}=5$.', '**Step 2 (squared distances):** $(2-5)^2=9$, $(4-5)^2=1$, $(6-5)^2=1$, $(8-5)^2=9$.', '**Step 3 (add):** $9+1+1+9=20$.', '**Step 4 (divide by 4):** $\\frac{20}{4}=5$.', '**Answer: 5**')),
+      q('Find the median of 4, 9, 2, 15, 7.', ['7', '9', '2', '8'], 0, S('**Words:** the **median** is the middle value after sorting.', '**Step 1 (sort):** 2, 4, 7, 9, 15.', '**Step 2 (middle of 5 values is the 3rd):** 7.', '**Answer: 7**')),
       q('In a class, the 25th percentile of test scores is 60. What does it mean?', ['25% of the scores are below 60', '25% of students scored 60', 'the class average is 60', 'the lowest score is 60'], 0, S('**Step 1:** the 25th percentile has 25% of the scores below it.', '**Answer: 25% of the scores are below 60**')),
     ],
   },

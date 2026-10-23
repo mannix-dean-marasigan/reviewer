@@ -43,9 +43,9 @@ export const MATH8: Lesson[] = [
     ],
   },
   {
-    id: 'm-stats', subject: 'math', title: 'Statistics: Measures of Position & Variability', minutes: 45,
-    blurb: 'Frequency tables, quartiles, percentiles, interquartile range, variance and standard deviation.',
-    videos: [VID.ocIqr, VID.ocSd, VID.ocVar],
+    id: 'm-stats', subject: 'math', title: 'Statistics: Quartiles, Percentiles & Outliers', minutes: 45,
+    blurb: 'Frequency tables, quartiles, percentiles, the interquartile range and outliers.',
+    videos: [VID.ocIqr],
     interactive: { k: 'stats' },
     blocks: [
       { t: 'h', text: 'Mean, median, mode and frequency tables' },
@@ -55,17 +55,13 @@ export const MATH8: Lesson[] = [
       { t: 'p', text: 'These **measures of position** tell where a value sits in sorted data. **Quartiles** split the data into 4 equal parts: $Q_1$ (25% below), $Q_2$ = median (50%), $Q_3$ (75%). **Deciles** split into 10 parts and **percentiles** into 100 parts: the 75th percentile is $Q_3$. The **interquartile range** is $IQR=Q_3-Q_1$ (the spread of the middle half).' },
       { t: 'ex', title: 'Find $Q_1$, $Q_3$ and the IQR of 3, 5, 7, 8, 10, 12, 15.', steps: ['Data is sorted. There are 7 values; the median is the 4th: 8.', 'Lower half (left of the median): 3, 5, 7 → its median is $Q_1=5$.', 'Upper half: 10, 12, 15 → its median is $Q_3=12$.', '$IQR=12-5=7$.'], ans: '$Q_1=5$, $Q_3=12$, $IQR=7$' },
       { t: 'tip', text: 'For an even number of values, split exactly in half (no middle value to leave out), then take the median of each half. A score at the 80th percentile means 80% of the scores are BELOW it.' },
-      { t: 'h', text: 'Variance and standard deviation' },
-      { t: 'p', text: '**Variance** measures how spread out the data is: the average squared distance from the mean. The **standard deviation** is its square root, which brings it back to the original units. A small standard deviation means the data are close to the mean; a large one means they are scattered.' },
-      { t: 'formula', items: ['Population variance: $\\sigma^2=\\dfrac{\\sum(x-\\mu)^2}{N}$', 'Sample variance: $s^2=\\dfrac{\\sum(x-\\bar x)^2}{n-1}$', 'Standard deviation $=\\sqrt{\\text{variance}}$'] },
-      { t: 'ex', title: 'Find the population standard deviation of 4 and 8.', steps: ['Mean $=\\frac{4+8}{2}=6$.', 'Distances squared: $(4-6)^2=4$ and $(8-6)^2=4$.', 'Variance $=\\frac{4+4}{2}=4$.', 'Standard deviation $=\\sqrt4=2$.'], ans: '2' },
     ],
     tricks: [
       'Sort the data first. Always.',
       'Median of the lower half = Q1, median of the upper half = Q3 (leave out the middle value if n is odd).',
       'Frequency table mean: multiply value × frequency, add, divide by total frequency.',
-      'Variance steps: mean → distances → squares → average → (square root for SD).',
-      'Same mean does NOT mean the same spread: compare standard deviations.',
+      'IQR = Q3 − Q1: the spread of the middle half of the data.',
+      'Outlier: below Q1 − 1.5 × IQR or above Q3 + 1.5 × IQR.',
     ],
     quiz: [
       q('Find $Q_3$ of 3, 5, 7, 8, 10, 12, 15.', ['12', '10', '8', '15'], 0, S('**Words:** the **third quartile** $Q_3$ is the value with 75% of the data below it: the median of the UPPER half.', '**Step 1 (sorted, 7 values; the median is the 4th value, 8):** leave it out.', '**Step 2 (upper half):** 10, 12, 15.', '**Step 3 (its median):** 12.', '**Answer: 12**')),
@@ -73,8 +69,8 @@ export const MATH8: Lesson[] = [
       q('What is the mode of 2, 3, 3, 5, 7, 3, 8?', ['3', '5', '7', '4.4'], 0, S('**Words:** the **mode** is the value that appears most often.', '**Step 1 (count):** 2 once, 3 three times, 5 once, 7 once, 8 once.', '**Step 2:** the biggest count is 3 times, for the value 3.', '**Answer: 3**')),
       q('A student’s score is at the 75th percentile. This means:', ['75% of the scores are below it', '75% of the questions were correct', 'it is the 75th highest score', '25% of the scores are below it'], 0, S('**Words:** a **percentile** tells how many scores are below a value.', '**Step 1:** the 75th percentile means 75 out of every 100 scores fall below it.', '**Answer: 75% of the scores are below it**')),
       q('The values 1, 2, 3 occur 2, 5 and 3 times. What is the mean?', ['2.1', '2', '2.5', '6'], 0, S('**Words:** the **mean** is the total divided by the count. With frequencies, multiply each value by its frequency first.', '**Step 1:** $1\\times2=2$, $2\\times5=10$, $3\\times3=9$.', '**Step 2 (add):** $2+10+9=21$.', '**Step 3 (total frequency):** $2+5+3=10$.', '**Step 4:** $21\\div10=2.1$.', '**Answer: 2.1**')),
-      q('Find the population standard deviation of 4 and 8.', ['2', '4', '6', '8'], 0, S('**Words:** the **standard deviation** is the square root of the **variance**; the variance is the average squared distance from the mean.', '**Step 1 (mean):** $\\frac{4+8}{2}=6$.', '**Step 2 (squared distances):** $(4-6)^2=4$ and $(8-6)^2=4$.', '**Step 3 (variance):** $\\frac{4+4}{2}=4$.', '**Step 4 (square root):** $\\sqrt4=2$.', '**Answer: 2**')),
-      q('Data A: 10, 10, 10, 10. Data B: 6, 8, 12, 14. Both have mean 10. Which has the larger standard deviation?', ['Data B', 'Data A', 'They are equal', 'Cannot be compared'], 0, S('**Words:** standard deviation measures how far the data are from the mean on average.', '**Step 1:** every value in A equals the mean, so the distances are all 0 and the standard deviation is 0.', '**Step 2:** B’s values are 4, 2, 2 and 4 away from 10, so its spread is above 0.', '**Answer: Data B**')),
+      q('Find $Q_1$ of 2, 4, 6, 8, 10, 12, 14, 16.', ['5', '4', '6', '9'], 0, S('**Words:** the **first quartile** $Q_1$ is the median of the LOWER half of the sorted data.', '**Step 1 (8 values, so split in half):** lower half 2, 4, 6, 8.', '**Step 2 (median of the lower half, average the two middle values):** $\\frac{4+6}{2}=5$.', '**Answer: 5**')),
+      q('A data set has $Q_1=10$ and $Q_3=18$. Which value is an outlier?', ['32', '25', '6', '20'], 0, S('**Words:** an **outlier** is a value far from the rest: below $Q_1-1.5\\times IQR$ or above $Q_3+1.5\\times IQR$.', '**Step 1 (IQR):** $18-10=8$.', '**Step 2 (1.5 × IQR):** $1.5\\times8=12$.', '**Step 3 (fences):** lower $10-12=-2$, upper $18+12=30$.', '**Step 4:** only 32 is outside −2 to 30.', '**Answer: 32**')),
     ],
   },
   {
