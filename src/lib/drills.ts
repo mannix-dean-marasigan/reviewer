@@ -533,6 +533,271 @@ const GEN: Record<string, (r: Rng) => Question> = {
       `**Words:** the **Law of Cosines** works for ANY triangle: $c^2=a^2+b^2-2ab\\cos C$, where C is the angle between sides a and b. (For a right angle, cos 90° = 0 and it becomes the Pythagorean theorem.)\n**Step 1 (cos ${C}°):** ${C === 60 ? 'cos 60° = ½' : 'cos 120° = −½'}.\n**Step 2 (the middle term $2ab\\cos C$):** 2 × ${a} × ${b} × (${C === 60 ? '½' : '−½'}) = ${C === 60 ? prod : -prod}.\n**Step 3 (substitute):** $c^2=${a}^2+${b}^2${sign}${prod}=${a * a}+${b * b}${sign}${prod}=${c * c}$.\n**Step 4 (square root):** $c=${c}$.\n**Answer: ${c}**`,
       'Law of Cosines: c² = a² + b² − 2ab cos C.')
   },
+  gcf(r) {
+    const g = r.pick([4, 6, 8, 9, 12, 15]), a = r.int(2, 6), b = r.int(2, 6)
+    const [x, y] = [g * a, g * b]
+    if (gcd(a, b) !== 1 || a === b) return GEN.gcf(r)
+    const fl = (n: number) => Array.from({ length: n }, (_, i) => i + 1).filter(d => n % d === 0)
+    return mk(r, `What is the greatest common factor (GCF) of ${x} and ${y}?`, `${g}`, [`${g * 2}`, `${Math.max(1, g / 2)}`, `${x + y}`, `${a * b}`].map(String),
+      `**Words:** a **factor** divides a number evenly. The **GCF** is the biggest factor that BOTH numbers share.\n**Step 1 (factors of ${x}):** ${fl(x).join(', ')}.\n**Step 2 (factors of ${y}):** ${fl(y).join(', ')}.\n**Step 3 (the biggest one in both lists):** ${g}.\n**Answer: ${g}**`,
+      'List the factors of both, then pick the biggest shared one.')
+  },
+  fracConv(r) {
+    const bank: [string, string, string][] = [['1', '4', '25%'], ['3', '4', '75%'], ['1', '5', '20%'], ['2', '5', '40%'], ['3', '8', '37.5%'], ['1', '8', '12.5%'], ['7', '10', '70%'], ['9', '20', '45%'], ['3', '5', '60%'], ['1', '2', '50%']]
+    const [n, d, p] = r.pick(bank)
+    const dec = (Number(n) / Number(d))
+    return mk(r, `Convert $\\frac{${n}}{${d}}$ to a percent.`, p, ['12.5%', '25%', '40%', '75%', '60%', '20%', '45%', '70%', '37.5%'].filter(x => x !== p).slice(0, 4),
+      `**Words:** **percent** means “out of 100”. To turn a fraction into a percent, divide the top by the bottom to get a decimal, then multiply by 100.\n**Step 1 (divide):** ${n} ÷ ${d} = ${dec}.\n**Step 2 (multiply by 100, move the decimal point 2 places right):** ${dec} × 100 = ${p.replace('%', '')}.\n**Answer: ${p}**`,
+      'Fraction → decimal (top ÷ bottom) → percent (× 100).')
+  },
+  repDec(r) {
+    const d = r.pick([3, 6, 7, 9, 11]), n = r.int(1, d - 1)
+    const g0 = gcd(n, d)
+    if (g0 !== 1 || ![3, 9, 11].includes(d)) return GEN.repDec(r)
+    const digits = d === 3 || d === 9 ? 1 : 2
+    const top = d === 3 ? n * 3 : d === 9 ? n : n * 9
+    const bottom = digits === 1 ? 9 : 99
+    const rep = d === 3 ? `${n * 3}` : d === 9 ? `${n}` : String(n * 9).padStart(2, '0')
+    return mk(r, `Write $0.\\overline{${rep}}$ as a fraction in simplest form.`, `$${frac(n, d)}$`, [`$${frac(Number(rep), 100)}$`, `$${frac(Number(rep), bottom === 9 ? 10 : 100)}$`, `$${frac(Number(rep) + 1, bottom)}$`, `$${frac(n + 1, d)}$`],
+      `**Words:** a **repeating decimal** has digits that repeat forever; the bar shows which ones.\n**Step 1 (put the repeating digits over as many 9s as there are digits):** $\\frac{${top}}{${bottom}}$.\n**Step 2 (simplify by dividing top and bottom by their GCF):** $\\frac{${top}}{${bottom}}=${frac(n, d)}$.\n**Answer: $${frac(n, d)}$**`,
+      'One repeating digit → over 9; two → over 99.')
+  },
+  mixture(r) {
+    const p1 = r.pick([10, 20, 30]), p2 = r.pick([40, 50, 60]), v1 = r.pick([10, 20]), v2 = r.pick([20, 30, 40].filter(x => x !== v1))
+    const salt = (p1 * v1 + p2 * v2) / 100, tot = v1 + v2
+    const ans = Math.round((salt / tot) * 1000) / 10
+    return mk(r, `${v1} L of ${p1}% salt solution is mixed with ${v2} L of ${p2}% solution. What is the percent of salt in the mixture?`, `${ans}%`, [`${(p1 + p2) / 2}%`, `${Math.round((ans + 5) * 10) / 10}%`, `${Math.round((ans - 5) * 10) / 10}%`, `${p1 + p2}%`],
+      `**Idea:** the amount of pure salt before mixing equals the amount after mixing. Add up the salt, then divide by the total liters.\n**Step 1 (salt in the first solution):** ${p1}% of ${v1} L = ${p1 / 100} × ${v1} = ${(p1 * v1) / 100} L.\n**Step 2 (salt in the second):** ${p2}% of ${v2} L = ${p2 / 100} × ${v2} = ${(p2 * v2) / 100} L.\n**Step 3 (total salt and total volume):** ${salt} L of salt in ${v1}+${v2} = ${tot} L.\n**Step 4 (divide, then × 100):** ${salt} ÷ ${tot} = ${Math.round((salt / tot) * 1000) / 1000} → ${ans}%.\n**Answer: ${ans}%**`,
+      'Mixtures: add the pure amounts, then divide by the total amount.')
+  },
+  varDI(r) {
+    const kind = r.pick(['direct', 'inverse'] as const)
+    const k = r.int(2, 6), x1 = r.int(2, 6), x2 = r.int(2, 9)
+    if (kind === 'direct') {
+      const y1 = k * x1
+      return mk(r, `y varies directly as x. If y = ${y1} when x = ${x1}, find y when x = ${x2}.`, `${k * x2}`, [`${y1 + x2}`, `${y1 * x2}`, `${Math.round((y1 / x2) * 10) / 10}`, `${k * x2 + k}`],
+        `**Words:** **direct variation** means $y=kx$, where $k$ is a fixed number (the **constant of variation**).\n**Step 1 (find k):** ${y1} = k × ${x1}, so k = ${y1} ÷ ${x1} = ${k}.\n**Step 2 (use it):** y = ${k} × ${x2} = ${k * x2}.\n**Answer: ${k * x2}**`,
+        'Direct: y ÷ x stays the same.')
+    }
+    const prod = k * x1 * x2
+    return mk(r, `y varies inversely as x. If y = ${prod / x1} when x = ${x1}, find y when x = ${x2}.`, `${prod / x2}`, [`${prod / x1 + x2}`, `${prod * x2}`, `${prod / x1}`, `${prod / x2 + k}`].map(String),
+      `**Words:** **inverse variation** means $xy=k$: when x gets bigger, y gets smaller.\n**Step 1 (find k = x × y):** ${x1} × ${prod / x1} = ${prod}.\n**Step 2 (new x):** y = ${prod} ÷ ${x2} = ${prod / x2}.\n**Answer: ${prod / x2}**`,
+      'Inverse: x × y stays the same.')
+  },
+  lineEq(r) {
+    const m = r.pick([-3, -2, -1, 1, 2, 3, 4]), b = r.int(-6, 6), x1 = r.int(-2, 2), dx = r.int(1, 3)
+    const x2 = x1 + dx, y1 = m * x1 + b, y2 = m * x2 + b
+    const eq = (mm: number, bb: number) => `$y=${mm === 1 ? '' : mm === -1 ? '-' : mm}x${bb === 0 ? '' : bb > 0 ? `+${bb}` : bb}$`
+    return mk(r, `Find the equation of the line through $(${x1},${y1})$ and $(${x2},${y2})$.`, eq(m, b), [eq(-m, b), eq(m, -b), eq(m + 1, b), eq(m, b + 2)],
+      `**Words:** a line has the form $y=mx+b$: $m$ is the **slope** and $b$ is the **y-intercept** (where the line crosses the y-axis).\n**Step 1 (slope):** ${y2} − (${y1}) = ${y2 - y1} and ${x2} − (${x1}) = ${dx}, so m = ${y2 - y1} ÷ ${dx} = ${m}.\n**Step 2 (find b, plug in the point (${x1}, ${y1})):** ${y1} = ${m}(${x1}) + b, so b = ${y1} − (${m * x1}) = ${b}.\n**Step 3 (write it):** ${eq(m, b).replace(/\$/g, '')}.\n**Answer: ${eq(m, b).replace(/\$/g, '')}**`,
+      'Slope first, then solve for b with one of the points.')
+  },
+  sysWord(r) {
+    const a = r.int(2, 6), b = r.int(2, 6)
+    if (a === b) return GEN.sysWord(r)
+    const n1 = r.int(2, 5), n2 = r.int(2, 5)
+    const t1 = a * n1 + b * n2, m1 = n1 + 1, m2 = n2 + 2
+    const t2 = a * m1 + b * m2
+    const det = n1 * m2 - n2 * m1
+    if (det === 0) return GEN.sysWord(r)
+    return mk(r, `${n1} apples and ${n2} bananas cost ₱${t1}. ${m1} apples and ${m2} bananas cost ₱${t2}. How much is one apple?`, `₱${a}`, [`₱${b}`, `₱${a + 1}`, `₱${a + b}`, `₱${Math.max(1, a - 1)}`],
+      `**Idea:** write one equation for each purchase, with x = price of an apple and y = price of a banana.\n**Step 1 (equations):** ${n1}x + ${n2}y = ${t1} and ${m1}x + ${m2}y = ${t2}.\n**Step 2 (check the answer by substitution, since the numbers are friendly):** try x = ${a}, y = ${b}: ${n1}(${a}) + ${n2}(${b}) = ${t1} ✓ and ${m1}(${a}) + ${m2}(${b}) = ${t2} ✓.\n**Step 3 (to solve by elimination instead):** multiply the first equation by ${m1} and the second by ${n1}, then subtract; y cancels to leave x = ${a}.\n**Answer: ₱${a}**`,
+      'Two purchases → two equations → eliminate one variable.')
+  },
+  gcfPoly(r) {
+    const g = r.pick([2, 3, 4, 5, 6]), a = r.int(1, 4), b = r.int(1, 5)
+    const t = (c: number, v: string) => (c === 1 ? v : `${c}${v}`)
+    return mk(r, `Factor out the GCF: $${g * a}x^2+${g * b}x$`, `$${t(g, 'x')}(${t(a, 'x')}+${b})$`, [`$${g}(${t(a, 'x^2')}+${b}x)$`, `$x(${g * a}x+${g * b})$`, `$${t(g, 'x')}(${t(a, 'x')}+${g * b})$`, `$${t(g * a, 'x')}(x+${g * b})$`],
+      `**Words:** the **GCF** of an expression is the biggest term that divides every part.\n**Step 1 (numbers):** the GCF of ${g * a} and ${g * b} is ${g}.\n**Step 2 (letters):** both terms contain x; the smallest power is $x^1$. So the GCF is ${t(g, 'x')}.\n**Step 3 (divide each term by the GCF):** ${g * a}x² ÷ ${t(g, 'x')} = ${t(a, 'x')} and ${g * b}x ÷ ${t(g, 'x')} = ${b}.\n**Answer: $${t(g, 'x')}(${t(a, 'x')}+${b})$**`,
+      'Take out the biggest number and the lowest power of x.')
+  },
+  polyDiv(r) {
+    const c = r.int(1, 6), k = r.int(-5, 6)
+    if (k === 0) return GEN.polyDiv(r)
+    const b = k - c, cc = -c * k
+    const poly = `x^2${b === 0 ? '' : b > 0 ? `+${b}x` : `${b}x`}${cc > 0 ? `+${cc}` : cc}`
+    const lin = (n: number) => `x${n < 0 ? '' : '+'}${n}`
+    return mk(r, `Divide $${poly}$ by $x-${c}$. What is the quotient?`, `$${lin(k)}$`, [`$${lin(-k)}$`, `$${lin(k + 1)}$`, `$${lin(c)}$`, `$${lin(cc)}$`],
+      `**Words:** the **quotient** is the answer to a division. We can use **synthetic division** with $c=${c}$ (from $x-${c}$).\n**Step 1 (write c and the coefficients):** ${c} | 1, ${b}, ${cc}.\n**Step 2 (bring down 1, multiply by ${c}, add):** ${c}×1 = ${c}, and ${b} + ${c} = ${b + c}.\n**Step 3 (repeat):** ${c}×${b + c} = ${c * (b + c)}, and ${cc} + ${c * (b + c)} = ${cc + c * (b + c)} (the remainder).\n**Step 4 (read the answer):** quotient 1x + ${b + c}, remainder ${cc + c * (b + c)}.\n**Answer: $${lin(k)}$**`,
+      'Bring down, multiply, add, repeat. The last number is the remainder.')
+  },
+  ratSimp(r) {
+    const a = r.int(2, 9), k = r.int(1, 3)
+    return mk(r, `Simplify $\\dfrac{x^2-${a * a}}{x-${a}}$ (for $x\\ne${a}$).`, `$x+${a}$`, [`$x-${a}$`, `$x^2-${a}$`, `$\\dfrac{x+${a}}{${a}}$`, `$x+${a * a}$`],
+      `**Words:** a **rational expression** is a fraction with polynomials. To simplify, FACTOR the top and bottom, then cancel common factors.\n**Step 1 (factor the top, difference of squares):** $x^2-${a * a}=(x-${a})(x+${a})$.\n**Step 2 (cancel the common factor $x-${a}$):** $\\frac{(x-${a})(x+${a})}{x-${a}}=x+${a}$.\n**Answer: $x+${a}$**`,
+      'Factor, then cancel factors (never terms).')
+  },
+  ratAdd(r) {
+    const k = r.int(1, 5)
+    return mk(r, `Add: $\\dfrac1x+\\dfrac1{x+${k}}$`, `$\\dfrac{2x+${k}}{x(x+${k})}$`, [`$\\dfrac{2}{2x+${k}}$`, `$\\dfrac{2}{x(x+${k})}$`, `$\\dfrac{1}{x(x+${k})}$`, `$\\dfrac{x+${k}}{x(x+${k})}$`],
+      `**Words:** to add fractions you need a **common denominator** (the LCD).\n**Step 1 (LCD):** $x(x+${k})$.\n**Step 2 (rewrite each fraction):** $\\frac1x=\\frac{x+${k}}{x(x+${k})}$ and $\\frac1{x+${k}}=\\frac{x}{x(x+${k})}$.\n**Step 3 (add the tops):** $(x+${k})+x=2x+${k}$.\n**Answer: $\\frac{2x+${k}}{x(x+${k})}$**`,
+      'LCD first, then add the tops.')
+  },
+  piecewise(r) {
+    const c = r.int(1, 4), a = r.int(1, 3), b = r.int(0, 3)
+    const x = r.int(-3, 6)
+    const v = x < c ? a * x + b : x * x
+    return mk(r, `$f(x)=\\begin{cases}${a === 1 ? '' : a}x+${b} & \\text{if } x<${c}\\\\ x^2 & \\text{if } x\\ge${c}\\end{cases}$. Find $f(${x})$.`, `${v}`, [`${x < c ? x * x : a * x + b}`, `${v + 1}`, `${v - 1}`, `${-v}`].map(String),
+      `**Words:** a **piecewise function** uses a different rule for different x-values.\n**Step 1 (which rule?):** ${x} is ${x < c ? `less than ${c}` : `${c} or more`}, so use the rule ${x < c ? `${a === 1 ? '' : a}x+${b}` : 'x²'}.\n**Step 2 (substitute x = ${x}):** ${x < c ? `${a}(${x}) + ${b}` : `(${x})²`} = ${v}.\n**Answer: ${v}**`,
+      'Decide which condition the input meets first, then use only that rule.')
+  },
+  logEq(r) {
+    const base = r.pick([2, 3, 5]), n = r.int(2, 3), k = r.int(1, 5)
+    const x = base ** n - k
+    return mk(r, `Solve: $\\log_{${base}}(x+${k})=${n}$`, `${x}`, [`${base ** n}`, `${base * n - k}`, `${x + k + 1}`, `${n - k}`].map(String),
+      `**Words:** a **logarithm** is an exponent: $\\log_b N=n$ means $b^n=N$.\n**Step 1 (rewrite in exponent form):** $x+${k}=${base}^${n}$.\n**Step 2 (compute the power):** ${base}^${n} = ${base ** n}.\n**Step 3 (subtract ${k}):** $x=${base ** n}-${k}=${x}$.\n**Check:** $\\log_{${base}}(${x}+${k})=\\log_{${base}}${base ** n}=${n}$ ✓\n**Answer: ${x}**`,
+      'Turn the log equation into an exponent equation.')
+  },
+  midpointXY(r) {
+    const x1 = r.int(-6, 4), y1 = r.int(-6, 4), x2 = x1 + 2 * r.int(1, 4), y2 = y1 + 2 * r.int(1, 4)
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2
+    return mk(r, `Find the midpoint of $(${x1},${y1})$ and $(${x2},${y2})$.`, `$(${mx},${my})$`, [`$(${x2 - x1},${y2 - y1})$`, `$(${mx + 1},${my})$`, `$(${mx},${my + 1})$`, `$(${x1 + x2},${y1 + y2})$`],
+      `**Words:** the **midpoint** is the point exactly halfway between two points. Average the x-values and average the y-values.\n**Step 1 (x):** (${x1} + ${x2}) ÷ 2 = ${mx}.\n**Step 2 (y):** (${y1} + ${y2}) ÷ 2 = ${my}.\n**Answer: (${mx}, ${my})**`,
+      'Midpoint = average of the x’s and average of the y’s.')
+  },
+  cpctc(r) {
+    const n1 = ['ABC', 'DEF'], n2 = ['PQR', 'XYZ'], n3 = ['LMN', 'RST']
+    const [t1, t2] = r.pick([n1, n2, n3])
+    const side = r.pick([[0, 1], [1, 2], [0, 2]])
+    const s1 = t1[side[0]] + t1[side[1]], s2 = t2[side[0]] + t2[side[1]]
+    const wrongs = [[1, 2], [0, 2], [0, 1]].map(([i, j]) => t2[i] + t2[j]).filter(x => x !== s2)
+    return mk(r, `$\\triangle ${t1}\\cong\\triangle ${t2}$. Which side of $\\triangle ${t2}$ corresponds to $${s1}$?`, s2, [...wrongs, 'No matching side'],
+      `**Words:** **congruent** triangles (≅) are exact copies. **CPCTC** = Corresponding Parts of Congruent Triangles are Congruent. The letters in the statement match IN ORDER.\n**Step 1 (match the letters):** ${t1[0]}↔${t2[0]}, ${t1[1]}↔${t2[1]}, ${t1[2]}↔${t2[2]}.\n**Step 2:** side ${s1} uses ${t1[side[0]]} and ${t1[side[1]]}, so its partner uses ${t2[side[0]]} and ${t2[side[1]]}.\n**Answer: ${s2}**`,
+      'Congruence letters match in order: first with first, second with second.')
+  },
+  triClass(r) {
+    const type = r.pick(['acute', 'right', 'obtuse'] as const)
+    const angs = type === 'right' ? [90, r.int(20, 60)] : type === 'obtuse' ? [r.int(95, 130), r.int(20, 40)] : [r.int(50, 75), r.int(50, 70)]
+    const third = 180 - angs[0] - angs[1]
+    const name = (t: string) => t[0].toUpperCase() + t.slice(1)
+    return mk(r, `A triangle has angles ${angs[0]}°, ${angs[1]}° and ${third}°. Classify it by its angles.`, name(type), ['Acute', 'Right', 'Obtuse', 'Equilateral'].filter(x => x !== name(type)),
+      `**Words:** **acute** = all angles less than 90°. **right** = one angle is exactly 90°. **obtuse** = one angle is more than 90°.\n**Step 1 (check the angles add to 180°):** ${angs[0]} + ${angs[1]} + ${third} = 180 ✓.\n**Step 2 (look at the biggest angle):** ${Math.max(angs[0], angs[1], third)}°.\n**Step 3:** ${type === 'right' ? 'exactly 90°, so it is right' : type === 'obtuse' ? 'more than 90°, so it is obtuse' : 'less than 90°, so every angle is acute'}.\n**Answer: ${name(type)}**`,
+      'Look only at the biggest angle.')
+  },
+  compSupp(r) {
+    const a = r.int(15, 80)
+    const comp = r.pick([true, false])
+    const ans = comp ? 90 - a : 180 - a
+    return mk(r, `What is the ${comp ? 'complement' : 'supplement'} of ${comp ? a : a + 30}°?`, `${comp ? 90 - a : 180 - (a + 30)}°`, [`${comp ? 180 - a : 90 - (a + 30 > 89 ? 10 : a + 30)}°`, `${(comp ? a : a + 30)}°`, `${comp ? 90 - a + 10 : 180 - (a + 30) + 10}°`, `${comp ? 360 - a : 360 - (a + 30)}°`],
+      `**Words:** **complementary** angles add up to 90°. **Supplementary** angles add up to 180° (a straight line).\n**Step 1:** the target is ${comp ? 90 : 180}°.\n**Step 2 (subtract the angle you have):** ${comp ? 90 : 180} − ${comp ? a : a + 30} = ${comp ? 90 - a : 180 - (a + 30)}.\n**Answer: ${comp ? 90 - a : 180 - (a + 30)}°**`,
+      'Complement → 90. Supplement → 180.')
+  },
+  transversal(r) {
+    const a = r.int(40, 120)
+    const kind = r.pick(['corresponding', 'alternate interior', 'co-interior'] as const)
+    const ans = kind === 'co-interior' ? 180 - a : a
+    return mk(r, `Two parallel lines are cut by a transversal. One angle measures ${a}°. What is its ${kind} angle?`, `${ans}°`, [`${180 - ans}°`, `${a + 10}°`, `${360 - a}°`, `${90 - (a % 90)}°`],
+      `**Words:** a **transversal** is a line that crosses two other lines. ${kind === 'corresponding' ? 'Corresponding angles are in the same position at each crossing (an “F” shape).' : kind === 'alternate interior' ? 'Alternate interior angles are on opposite sides of the transversal between the lines (a “Z” shape).' : 'Co-interior angles are on the same side between the lines (a “C” shape).'}\n**Step 1 (rule for parallel lines):** ${kind === 'co-interior' ? 'co-interior angles add to 180°' : `${kind} angles are EQUAL`}.\n**Step 2:** ${kind === 'co-interior' ? `180 − ${a} = ${180 - a}` : `the other angle is also ${a}`}.\n**Answer: ${ans}°**`,
+      'Z and F angles equal; C angles add to 180°.')
+  },
+  special(r) {
+    const s = r.int(2, 9)
+    const kind = r.pick(['45', '30'] as const)
+    if (kind === '45') {
+      return mk(r, `A 45-45-90 triangle has legs of ${s}. What is its hypotenuse?`, `$${s}\\sqrt2$`, [`$${s}\\sqrt3$`, `$${2 * s}$`, `$${s}$`, `$${s * s}$`],
+        `**Words:** a **45-45-90 triangle** has two equal legs. Its sides are in the ratio $1:1:\\sqrt2$.\n**Step 1:** hypotenuse = leg × $\\sqrt2$.\n**Step 2:** ${s} × $\\sqrt2$ = $${s}\\sqrt2$.\n**Check:** ${s}² + ${s}² = ${2 * s * s} and $(${s}\\sqrt2)^2=${2 * s * s}$ ✓\n**Answer: $${s}\\sqrt2$**`,
+        '45-45-90: hypotenuse = leg × √2.')
+    }
+    return mk(r, `In a 30-60-90 triangle the short leg is ${s}. What is the hypotenuse?`, `${2 * s}`, [`${s}`, `${3 * s}`, `${s * s}`, `${s + 2}`].map(String),
+      `**Words:** a **30-60-90 triangle** has sides in the ratio short leg : long leg : hypotenuse = $1:\\sqrt3:2$.\n**Step 1:** the hypotenuse is twice the short leg.\n**Step 2:** 2 × ${s} = ${2 * s}.\n**Answer: ${2 * s}** (the long leg would be $${s}\\sqrt3$).`,
+      '30-60-90: hypotenuse = 2 × short leg.')
+  },
+  similarSide(r) {
+    const k = r.pick([2, 3, 4]), a = r.int(2, 6), b = r.int(3, 8)
+    return mk(r, `Two triangles are similar. A side of the small triangle is ${a} and the matching side of the big one is ${a * k}. Another side of the small triangle is ${b}. How long is the matching side of the big triangle?`, `${b * k}`, [`${b + k}`, `${b + (a * k - a)}`, `${Math.round((b / k) * 10) / 10}`, `${a * k}`].map(String),
+      `**Words:** **similar** triangles have the same shape; matching sides are in the same ratio (the **scale factor**).\n**Step 1 (scale factor):** ${a * k} ÷ ${a} = ${k}.\n**Step 2 (multiply the other side):** ${b} × ${k} = ${b * k}.\n**Answer: ${b * k}**`,
+      'Find the scale factor from one matching pair, then use it on the other.')
+  },
+  areaShapes(r) {
+    const kind = r.pick(['triangle', 'trapezoid', 'parallelogram'] as const)
+    if (kind === 'triangle') {
+      const b = r.int(4, 14), h = r.int(3, 10) * 2
+      return mk(r, `Find the area of a triangle with base ${b} and height ${h}.`, `${(b * h) / 2}`, [`${b * h}`, `${b + h}`, `${(b * h) / 4}`, `${(b * h) / 2 + b}`].map(String),
+        `**Words:** the **height** is the straight-up distance from the base to the opposite corner.\n**Step 1 (formula):** area = ½ × base × height.\n**Step 2:** ½ × ${b} × ${h} = ${(b * h) / 2}.\n**Answer: ${(b * h) / 2}**`,
+        'Triangle = half of base × height.')
+    }
+    if (kind === 'trapezoid') {
+      const b1 = r.int(4, 10), b2 = b1 + 2 * r.int(1, 4), h = r.int(2, 8)
+      return mk(r, `A trapezoid has parallel sides ${b1} and ${b2} and height ${h}. What is its area?`, `${((b1 + b2) * h) / 2}`, [`${(b1 + b2) * h}`, `${b1 * b2 * h}`, `${(b1 + b2 + h) / 2}`, `${((b1 + b2) * h) / 2 + h}`].map(String),
+        `**Words:** a **trapezoid** has one pair of parallel sides (the **bases**).\n**Step 1 (formula):** area = ½ × (base₁ + base₂) × height.\n**Step 2 (add the bases):** ${b1} + ${b2} = ${b1 + b2}.\n**Step 3:** ½ × ${b1 + b2} × ${h} = ${((b1 + b2) * h) / 2}.\n**Answer: ${((b1 + b2) * h) / 2}**`,
+        'Trapezoid = average of the bases × height.')
+    }
+    const b = r.int(4, 12), h = r.int(3, 9)
+    return mk(r, `A parallelogram has base ${b} and height ${h}. What is its area?`, `${b * h}`, [`${(b * h) / 2}`, `${2 * (b + h)}`, `${b + h}`, `${b * h + b}`].map(String),
+      `**Words:** the **height** is the straight perpendicular distance between the base and the opposite side (not the slanted side).\n**Step 1 (formula):** area = base × height.\n**Step 2:** ${b} × ${h} = ${b * h}.\n**Answer: ${b * h}**`,
+      'Parallelogram = base × height.')
+  },
+  volume(r) {
+    const kind = r.pick(['box', 'cylinder', 'cone'] as const)
+    if (kind === 'box') {
+      const l = r.int(3, 9), w = r.int(2, 6), h = r.int(2, 8)
+      return mk(r, `Find the volume of a box that is ${l} by ${w} by ${h}.`, `${l * w * h}`, [`${2 * (l * w + l * h + w * h)}`, `${l + w + h}`, `${l * w}`, `${l * w * h + l}`].map(String),
+        `**Words:** **volume** is the space inside a solid (measured in cubic units).\n**Step 1 (formula):** length × width × height.\n**Step 2:** ${l} × ${w} = ${l * w}, then × ${h} = ${l * w * h}.\n**Answer: ${l * w * h}**`,
+        'Box volume = l × w × h.')
+    }
+    if (kind === 'cylinder') {
+      const rr = r.int(2, 6), h = r.int(3, 10)
+      return mk(r, `Find the volume of a cylinder with radius ${rr} and height ${h} (leave $\\pi$ in your answer).`, `$${rr * rr * h}\\pi$`, [`$${2 * rr * h}\\pi$`, `$${rr * h}\\pi$`, `$${rr * rr * h * 2}\\pi$`, `$${(rr * rr * h) / 3}\\pi$`].map(String),
+        `**Words:** a **cylinder** is a can shape. Volume = base area × height.\n**Step 1 (base is a circle):** area = πr² = π × ${rr}² = ${rr * rr}π.\n**Step 2 (times height):** ${rr * rr}π × ${h} = ${rr * rr * h}π.\n**Answer: $${rr * rr * h}\\pi$**`,
+        'Cylinder = πr²h.')
+    }
+    const rr = r.pick([3, 6]), h = r.pick([3, 6, 9]), v = (rr * rr * h) / 3
+    return mk(r, `Find the volume of a cone with radius ${rr} and height ${h} (leave $\\pi$ in your answer).`, `$${v}\\pi$`, [`$${rr * rr * h}\\pi$`, `$${v * 2}\\pi$`, `$${v + rr}\\pi$`, `$${(rr * h) / 3}\\pi$`],
+      `**Words:** a **cone** is like a pointed party hat. Its volume is ONE THIRD of the cylinder with the same base and height.\n**Step 1 (formula):** ⅓ × πr² × h.\n**Step 2:** ⅓ × π × ${rr * rr} × ${h} = ${v}π.\n**Answer: $${v}\\pi$**`,
+      'Cone = ⅓ × πr²h.')
+  },
+  chordPower(r) {
+    const a = r.int(2, 6), b = r.int(3, 8), c = r.pick([2, 3, 4])
+    const x = (a * b) / c
+    if (!Number.isInteger(x)) return GEN.chordPower(r)
+    return mk(r, `Two chords cross inside a circle. One is cut into pieces ${a} and ${b}. The other is cut into pieces ${c} and $x$. Find $x$.`, `${x}`, [`${a + b - c}`, `${x + 1}`, `${a * b}`, `${Math.round((a + b) / c)}`].map(String),
+      `**Rule:** when two chords cross inside a circle, (piece × piece) of one chord = (piece × piece) of the other.\n**Step 1:** ${a} × ${b} = ${c} × x.\n**Step 2:** ${a * b} = ${c}x.\n**Step 3 (divide by ${c}):** x = ${x}.\n**Answer: ${x}**`,
+      'Chords inside a circle: piece × piece = piece × piece.')
+  },
+  elevation(r) {
+    const kind = r.pick(['45', '30', '60'] as const)
+    const d = r.pick([10, 20, 30, 40, 50])
+    if (kind === '45') {
+      return mk(r, `From ${d} m away from a tower, the angle of elevation to its top is 45°. How tall is the tower?`, `${d} m`, [`${2 * d} m`, `${Math.round(d * 1.41)} m`, `${d / 2} m`, `${d + 5} m`],
+        `**Words:** the **angle of elevation** is the angle you look UP from the horizontal.\n**Step 1 (draw the right triangle):** the ground distance ${d} is next to (adjacent to) the 45° angle; the tower is opposite.\n**Step 2 (TOA: tan = opposite ÷ adjacent):** tan 45° = h ÷ ${d}, and tan 45° = 1.\n**Step 3:** h = ${d}.\n**Answer: ${d} m**`,
+        'At 45° the height equals the ground distance.')
+    }
+    if (kind === '30') {
+      return mk(r, `From ${d * 3} m away from a tower, the angle of elevation to its top is 30°. How tall is the tower? (use $\\tan30^\\circ=\\frac{1}{\\sqrt3}$)`, `$${d}\\sqrt3$ m`, [`$${d * 3}\\sqrt3$ m`, `$${d}$ m`, `$${2 * d}$ m`, `$${d * 3}$ m`],
+        `**Words:** the **angle of elevation** is the angle you look UP from the horizontal.\n**Step 1 (TOA):** tan 30° = height ÷ ${d * 3}.\n**Step 2:** height = ${d * 3} × $\\frac{1}{\\sqrt3}$ = $\\frac{${d * 3}}{\\sqrt3}$.\n**Step 3 (rationalize: multiply top and bottom by $\\sqrt3$):** $\\frac{${d * 3}\\sqrt3}{3}=${d}\\sqrt3$.\n**Answer: $${d}\\sqrt3$ m**`,
+        'tan 30° = 1/√3.')
+    }
+    return mk(r, `From ${d} m away from a tower, the angle of elevation to its top is 60°. How tall is the tower? (use $\\tan60^\\circ=\\sqrt3$)`, `$${d}\\sqrt3$ m`, [`$${d}$ m`, `$\\frac{${d}}{\\sqrt3}$ m`, `$${2 * d}$ m`, `$${d}\\sqrt2$ m`],
+      `**Words:** the **angle of elevation** is the angle you look UP from the horizontal.\n**Step 1 (TOA):** tan 60° = height ÷ ${d}.\n**Step 2:** height = ${d} × $\\sqrt3$.\n**Answer: $${d}\\sqrt3$ m**`,
+      'tan 60° = √3.')
+  },
+  lawSin(r) {
+    const a = r.int(3, 12)
+    return mk(r, `In a triangle, $A=30^\\circ$, $a=${a}$ and $B=90^\\circ$. Find $b$.`, `${2 * a}`, [`${a}`, `${a * 3}`, `${a / 2}`, `${a + 30}`].map(String),
+      `**Words:** the **Law of Sines**: each side divided by the sine of its opposite angle gives the same number: $\\frac{a}{\\sin A}=\\frac{b}{\\sin B}$.\n**Step 1 (substitute):** $\\frac{${a}}{\\sin30^\\circ}=\\frac{b}{\\sin90^\\circ}$.\n**Step 2 (sin 30° = 0.5, sin 90° = 1):** $\\frac{${a}}{0.5}=b$.\n**Step 3:** b = ${a} ÷ 0.5 = ${2 * a}.\n**Answer: ${2 * a}**`,
+      'Side ÷ sin(opposite angle) is the same for all three sides.')
+  },
+  setOps(r) {
+    const a = r.int(8, 25), b = r.int(6, 20), both = r.int(2, Math.min(a, b) - 2)
+    return mk(r, `$n(A)=${a}$, $n(B)=${b}$ and $n(A\\cap B)=${both}$. Find $n(A\\cup B)$.`, `${a + b - both}`, [`${a + b}`, `${a + b + both}`, `${a - both}`, `${b - both}`],
+      `**Words:** $A\\cup B$ (“A union B”) is everything in A, or B, or both. $A\\cap B$ (“A intersection B”) is what is in BOTH.\n**Step 1 (add the sets):** ${a} + ${b} = ${a + b}. This counts the overlap twice.\n**Step 2 (subtract the overlap once):** ${a + b} − ${both} = ${a + b - both}.\n**Answer: ${a + b - both}**`,
+      'n(A ∪ B) = n(A) + n(B) − n(A ∩ B).')
+  },
+  perm(r) {
+    const n = r.int(5, 9), k = r.int(2, 3)
+    let ans = 1
+    for (let i = 0; i < k; i++) ans *= n - i
+    return mk(r, `In how many ways can ${k} different prizes (1st, 2nd${k === 3 ? ', 3rd' : ''}) be given to ${n} people?`, `${ans}`, [`${(ans / (k === 2 ? 2 : 6))}`, `${n * k}`, `${Math.pow(n, k)}`, `${ans + n}`].map(String),
+      `**Words:** a **permutation** counts arrangements where ORDER matters (first prize is different from second prize).\n**Step 1 (choices for each prize):** ${Array.from({ length: k }, (_, i) => n - i).join(' × ')}.\n**Step 2 (multiply):** ${ans}.\n**Answer: ${ans}**`,
+      'Order matters → multiply the shrinking number of choices.')
+  },
+  sd(r) {
+    const mean = r.int(5, 15), d = r.int(1, 4)
+    const xs = [mean - d, mean + d]
+    return mk(r, `Find the population standard deviation of ${xs[0]} and ${xs[1]}.`, `${d}`, [`${2 * d}`, `${d * d}`, `${mean}`, `${d + 1}`].map(String),
+      `**Words:** the **standard deviation** tells how far the data are from the mean on average. It is the square root of the **variance**.\n**Step 1 (mean):** (${xs[0]} + ${xs[1]}) ÷ 2 = ${mean}.\n**Step 2 (distances squared):** (${xs[0]} − ${mean})² = ${d * d} and (${xs[1]} − ${mean})² = ${d * d}.\n**Step 3 (variance = average of those):** ${d * d}.\n**Step 4 (square root):** √${d * d} = ${d}.\n**Answer: ${d}**`,
+      'Mean → squared distances → average → square root.')
+  },
 }
 
 export const DRILL_KINDS = Object.keys(GEN)

@@ -1,0 +1,41 @@
+// What each video actually teaches, so the checkpoint after a video only asks about that video.
+// kinds[i]  = generated-problem kinds (lib/drills.ts) that match video i (same order as the lesson's videos)
+// q[i]      = indexes into the lesson's checks.video questions that belong to video i
+export interface VideoMapEntry { kinds: string[][]; q?: number[][] }
+
+export const VIDEO_MAP: Record<string, VideoMapEntry> = {
+  'm-number-sense': { kinds: [['order'], ['lcm', 'gcf'], ['gcf']], q: [[0], [1], []] },
+  'm-fractions': { kinds: [['fracAdd', 'fracDiv'], ['fracConv', 'percentOf'], ['repDec']], q: [[0], [1], []] },
+  'm-exponents': { kinds: [['exponent'], ['exponent'], ['radical']], q: [[0], [], [1]] },
+  'm-ratio': { kinds: [['ratioShare'], ['ratioShare']], q: [[0], [1]] },
+  'm-percent': { kinds: [['pctChange', 'percentOf'], ['discount', 'percentOf'], ['mixture']], q: [[0], [1], []] },
+  'm-equations': { kinds: [['linear'], ['work']], q: [[], []] },
+  'm-variation': { kinds: [['varDI', 'joint']], q: [[0, 1]] },
+  'm-lines': { kinds: [['slope'], ['lineEq'], ['distance']], q: [[0], [1], []] },
+  'm-systems': { kinds: [['sys2'], ['sysWord']], q: [[0, 1], []] },
+  'm-sequences': { kinds: [['arith'], ['geo']], q: [[0], [1]] },
+  'm-factoring': { kinds: [['factor'], ['gcfPoly']], q: [[0], [1]] },
+  'm-polynomials': { kinds: [['polyRem'], ['polyDiv'], ['polyDiv']], q: [[], [1], []] },
+  'm-rational': { kinds: [['ratSimp'], ['ratAdd'], ['ratEq']], q: [[0, 1], [], []] },
+  'm-quadratics': { kinds: [['quadRoot'], ['discriminant']], q: [[0, 1], []] },
+  'm-quad-fn': { kinds: [['vertex'], ['quadIneq']], q: [[0, 1], []] },
+  'm-functions': { kinds: [['funcEval'], ['piecewise'], ['composite', 'inverseFn']], q: [[0, 1], [], []] },
+  'm-rational-fn': { kinds: [['asymptote']], q: [[0, 1]] },
+  'm-exp-log': { kinds: [['expEq'], ['logVal'], ['logEq']], q: [[], [0, 1], []] },
+  'm-finance': { kinds: [['simpleInt'], ['compInt'], ['annuity']], q: [[0], [1], []] },
+  'g-basics': { kinds: [[], ['midpointXY', 'segAdd'], ['logicForm']], q: [[0, 1], [], []] },
+  'm-angles': { kinds: [['compSupp'], ['angles'], ['transversal']], q: [[1], [0], []] },
+  'g-congruence': { kinds: [['cpctc'], ['triClass']], q: [[1], [0]] },
+  'm-similar': { kinds: [['pythag'], ['special'], ['similarSide']], q: [[0], [], [1]] },
+  'm-shapes': { kinds: [['areaShapes', 'rect'], ['circle'], ['volume']], q: [[0], [1], []] },
+  'g-quads': { kinds: [['parAngle'], ['pythag']], q: [[0, 1], []] },
+  'g-circles': { kinds: [['arcAngle'], ['chordPower']], q: [[0, 1], []] },
+  'g-lines-planes': { kinds: [[], ['pythag']], q: [[0], []] },
+  'm-trig': { kinds: [['trig'], ['trig'], ['elevation']], q: [[0, 1], [], []] },
+  'm-trig2': { kinds: [['lawCos'], ['lawSin']], q: [[], []] },
+  'm-sets': { kinds: [['setOps'], ['venn'], ['venn']], q: [[0], [], []] },
+  'm-counting': { kinds: [['combos', 'perm'], ['mean']], q: [[0, 1], []] },
+  'm-probability': { kinds: [['probAnd', 'probOr'], ['probOr', 'dice']], q: [[0, 1], []] },
+  'm-stats': { kinds: [['quartile'], ['sd'], ['variance']], q: [[0], [1], []] },
+  'm-logic': { kinds: [['logicForm'], ['truthVal']], q: [[0, 1], []] },
+}

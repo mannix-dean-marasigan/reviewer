@@ -10,6 +10,7 @@ import { mathDrill } from '../lib/drills'
 import { makeLetterSeries, makeNumberSeries } from '../lib/patterns'
 import { rng } from '../lib/rand'
 import { lessonPool, poolOffsets } from '../lib/pool'
+import { VIDEO_MAP } from '../content/videoMap'
 import type { Block, Lesson, Question, Subject } from '../types'
 
 export function LessonList() {
@@ -81,16 +82,23 @@ function VideoFlow({ lesson, onDone }: { lesson: Lesson; onDone: () => void }) {
     const r = rng((Date.now() + 7919) % 2147483000)
     const extra = c?.extra ?? []
     const per = Math.ceil(extra.length / n)
+    const map = VIDEO_MAP[lesson.id]
     return lesson.videos.map((_, i) => {
       const qs: Question[] = []
       const idxs: (number | null)[] = []
+      if (map) {
+        // math lessons: only the questions that match what THIS video teaches
+        ;(map.q?.[i] ?? []).forEach(j => { const x = c?.video[j]; if (x) { qs.push(x); idxs.push(off.video + j) } })
+        const kinds = map.kinds[i] ?? []
+        if (kinds.length) for (let t = qs.length; t < 10; t++) { qs.push(mathDrill(r, r.pick(kinds))); idxs.push(null) }
+        return { qs, idxs }
+      }
       if (i === 0) (c?.video ?? []).forEach((x, j) => { qs.push(x); idxs.push(off.video + j) })
       extra.slice(i * per, (i + 1) * per).forEach((x, j) => { qs.push(x); idxs.push(off.extra + i * per + j) })
       const need = 10 - qs.length
-      if (need > 0 && c?.drill?.length) for (let t = 0; t < need; t++) { qs.push(mathDrill(r, r.pick(c.drill))); idxs.push(null) }
       if (need > 0 && c?.gen === 'series') for (let t = 0; t < need; t++) {
-        const s = t % 3 === 2 ? makeLetterSeries(r) : makeNumberSeries(r, t < 4 ? 1 : 2)
-        qs.push({ q: `What comes next?  **${s.prompt}**`, c: s.options.map(String) as Question['c'], a: s.correctIndex as 0, e: `Rule: ${s.rule}. The answer is **${s.answer}**.` }); idxs.push(null)
+        const s2 = t % 3 === 2 ? makeLetterSeries(r) : makeNumberSeries(r, t < 4 ? 1 : 2)
+        qs.push({ q: `What comes next?  **${s2.prompt}**`, c: s2.options.map(String) as Question['c'], a: s2.correctIndex as 0, e: `Rule: ${s2.rule}. The answer is **${s2.answer}**.` }); idxs.push(null)
       }
       return { qs, idxs }
     })
