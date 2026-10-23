@@ -12,7 +12,7 @@ export const VIDEO_MAP: Record<string, VideoMapEntry> = {
   'm-equations': { kinds: [['linear'], ['work']], q: [[], []] },
   'm-word-problems': { kinds: [['numWord', 'lessThan'], ['ageWord'], ['consecutive'], ['work', 'workFind']], q: [[0], [1], [2], [3]] },
   'm-variation': { kinds: [['varDI', 'joint']], q: [[0, 1]] },
-  'm-lines': { kinds: [['slope'], ['lineEq'], ['distance']], q: [[0], [1], []] },
+  'm-lines': { kinds: [['slope'], ['lineMB', 'lineEq', 'pointSlopeForm', 'stdForm'], ['distance']], q: [[0], [1], []] },
   'm-systems': { kinds: [['sys2'], ['sysWord']], q: [[0, 1], []] },
   'm-sequences': { kinds: [['arith', 'arithSum'], ['geo', 'geoSum']], q: [[0], [1]] },
   'm-factoring': { kinds: [['factor', 'diffSq'], ['gcfPoly']], q: [[0], [1]] },

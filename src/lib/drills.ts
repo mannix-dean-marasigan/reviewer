@@ -990,6 +990,41 @@ const GEN: Record<string, (r: Rng) => Question> = {
       `**Words:** a **rate** is the part of the job done in ONE hour. If a worker takes h hours for the whole job, the rate is 1/h.\n**Step 1 (together rate):** 1/${T} of the job per hour.\n**Step 2 (Ana's rate):** 1/${a} per hour.\n**Step 3 (Ben's rate = together − Ana):** 1/${T} − 1/${a} = ${a}/${a * T} − ${T}/${a * T} = ${a - T}/${a * T}, which simplifies to 1/${b}.\n**Step 4 (flip the rate to get the time):** ${b} hours.\n**Check:** 1/${a} + 1/${b} = ${b}/${a * b} + ${a}/${a * b} = ${a + b}/${a * b} = 1/${T} ✓\n**Answer: ${b} hours**`,
       'Subtract the known rate from the together rate, then flip.')
   },
+  lineMB(r) {
+    const p = r.pick([-5, -3, -2, 2, 3, 4, 5]), q0 = r.pick([1, 1, 2, 3]), b = r.pick([-7, -5, -3, -2, 2, 3, 4, 6, 8])
+    const g = (a: number, c: number): number => (c ? g(c, a % c) : Math.abs(a))
+    if (q0 > 1 && g(p, q0) !== 1) return GEN.lineMB(r)
+    const slope = (n: number) => (q0 === 1 ? `${n}` : n < 0 ? `-\\frac{${-n}}{${q0}}` : `\\frac{${n}}{${q0}}`)
+    const bt = (n: number) => (n > 0 ? `+${n}` : `${n}`)
+    const ans = `$y=${slope(p)}x${bt(b)}$`
+    const sw = q0 === 1 ? `$y=${b}x${bt(p)}$` : `$y=${slope(b)}x${bt(p)}$`
+    return mk(r, `Write the equation of the line in slope-intercept form if the slope is $${slope(p)}$ and the y-intercept is $${b}$.`, ans,
+      [sw, `$y=${slope(p)}x${bt(-b)}$`, `$y=${slope(-p)}x${bt(b)}$`],
+      `**Words:** the **slope-intercept form** is $y=mx+b$. $m$ is the **slope** (how steep the line is) and $b$ is the **y-intercept** (the height where the line crosses the y-axis).\n**Step 1 (what is m?):** m = ${q0 === 1 ? p : p + '/' + q0}.\n**Step 2 (what is b?):** b = ${b}.\n**Step 3 (just replace m and b in y = mx + b):** ${ans.replace(/\$/g, '')}.\n**Answer: ${ans.replace(/\$/g, '')}**`,
+      'Slope-intercept: just replace m and b. No solving needed.')
+  },
+  pointSlopeForm(r) {
+    const m = r.pick([-4, -3, -2, 2, 3, 4, 5]), x1 = r.pick([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]), y1 = r.pick([-6, -4, -3, -2, -1, 1, 2, 3, 5, 7])
+    const t = (v: number, letter: string) => (v < 0 ? `${letter}+${-v}` : `${letter}-${v}`)
+    const ans = `$${t(y1, 'y')}=${m}(${t(x1, 'x')})$`
+    return mk(r, `A line has slope $${m}$ and passes through $(${x1},${y1})$. Write its equation in point-slope form.`, ans,
+      [`$${t(-y1, 'y')}=${m}(${t(x1, 'x')})$`, `$${t(y1, 'y')}=${m}(${t(-x1, 'x')})$`, `$${t(x1, 'y')}=${m}(${t(y1, 'x')})$`],
+      `**Words:** the **point-slope form** is $y-y_1=m(x-x_1)$, where $m$ is the slope and $(x_1,y_1)$ is ANY point on the line.\n**Step 1 (m, x₁, y₁):** m = ${m}, x₁ = ${x1}, y₁ = ${y1}.\n**Step 2 (put them in y − y₁ = m(x − x₁)):** y − (${y1}) = ${m}(x − (${x1})).\n**Step 3 (subtracting a negative becomes plus):** ${ans.replace(/\$/g, '')}.\n**Answer: ${ans.replace(/\$/g, '')}**`,
+      'Point-slope: y − y₁ = m(x − x₁). Watch the signs: minus a negative is plus.')
+  },
+  stdForm(r) {
+    const p = r.pick([-7, -5, -4, -3, -2, 2, 3, 4, 5, 7]), q0 = r.pick([2, 3, 4, 5]), b = r.int(1, 5)
+    const g = (a: number, c: number): number => (c ? g(c, a % c) : Math.abs(a))
+    if (g(p, q0) !== 1) return GEN.stdForm(r)
+    const A = Math.abs(p), B = p > 0 ? -q0 : q0, C = p > 0 ? -q0 * b : q0 * b
+    const f = (a: number, bb: number, c: number) => `$${a}x${bb > 0 ? '+' : '-'}${Math.abs(bb)}y=${c}$`
+    const ans = f(A, B, C)
+    const slope = p < 0 ? `-\\frac{${-p}}{${q0}}` : `\\frac{${p}}{${q0}}`
+    return mk(r, `Write $y=${slope}x+${b}$ in standard form $Ax+By=C$ (with whole numbers and A positive).`, ans,
+      [f(A, -B, C), f(A, B, -C), f(q0, p > 0 ? -A : A, C)],
+      `**Words:** **standard form** is $Ax+By=C$: the x and y terms are on the SAME side, and there are no fractions.\n**Step 1 (get rid of the fraction, multiply EVERYTHING by ${q0}):** ${q0}y = ${p < 0 ? '−' : ''}${A}x + ${q0 * b}.\n**Step 2 (move the x term to the left side):** ${p < 0 ? `${A}x + ${q0}y = ${q0 * b}` : `−${A}x + ${q0}y = ${q0 * b}`}.\n**Step 3 (make the x term positive, multiply both sides by −1 if needed):** ${ans.replace(/\$/g, '')}.\n**Check:** pick x = 0: y = ${b} in the original, and ${A}(0) ${B > 0 ? '+' : '−'} ${Math.abs(B)}(${b}) = ${C} ✓\n**Answer: ${ans.replace(/\$/g, '')}**`,
+      'Standard form: clear fractions first, then x and y on the same side, x term positive.')
+  },
 }
 
 export const DRILL_KINDS = Object.keys(GEN)
