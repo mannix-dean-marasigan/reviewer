@@ -874,6 +874,58 @@ const GEN: Record<string, (r: Rng) => Question> = {
       `**Words:** a **difference of squares** is one perfect square minus another: $A^2-B^2=(A-B)(A+B)$.\n**Step 1 (square roots of each term):** $\\sqrt{${a * a}x^2}=${t(a)}$ and $\\sqrt{${b * b}}=${b}$.\n**Step 2 (write the two brackets, one with − and one with +):** $(${t(a)}-${b})(${t(a)}+${b})$.\n**Check (multiply back):** the middle terms cancel, leaving $${a * a}x^2-${b * b}$ ✓\n**Answer: $(${t(a)}-${b})(${t(a)}+${b})$**`,
       'A² − B² = (A − B)(A + B). No middle term.')
   },
+  expEqLinear(r) {
+    const base = r.pick([2, 3, 5]), a = r.int(2, 4), b = r.int(-3, 4), x = r.int(1, 4)
+    const e = a * x + b
+    if (e < 1 || e > 5) return GEN.expEqLinear(r)
+    const bTxt = b === 0 ? '' : b > 0 ? `+${b}` : `${b}`
+    return mk(r, `Solve for $x$: $${base}^{${a}x${bTxt}}=${base ** e}$`, `${x}`, [`${e}`, `${x + 1}`, `${Math.round((e / a) * 10) / 10}`, `${x - 1}`].map(String),
+      `**Words:** an **exponential equation** has the unknown in the exponent. If both sides are powers of the SAME base, the exponents must be equal.\n**Step 1 (write the right side as a power of ${base}):** ${base ** e} = ${base}^${e}.\n**Step 2 (same base, so set the exponents equal):** ${a}x${bTxt} = ${e}.\n**Step 3 (solve this ordinary equation):** ${a}x = ${e - b}, so x = ${x}.\n**Check:** ${base}^(${a}×${x}${bTxt}) = ${base}^${e} = ${base ** e} ✓\n**Answer: ${x}**`,
+      'Same base → set the exponents equal, then solve normally.')
+  },
+  quadIneqInterval(r) {
+    const p = r.int(-5, 1), q = r.int(p + 2, p + 7)
+    const gt = r.pick([true, false])
+    const inf = '\\infty'
+    const ans = gt ? `$(-${inf},${p})\\cup(${q},${inf})$` : `$(${p},${q})$`
+    return mk(r, `Solve $(x${p < 0 ? '+' : '-'}${Math.abs(p)})(x${q < 0 ? '+' : '-'}${Math.abs(q)})${gt ? '>' : '<'}0$ and write the answer in interval notation.`, ans,
+      [gt ? `$(${p},${q})$` : `$(-${inf},${p})\\cup(${q},${inf})$`, `$[${p},${q}]$`, `$(-${inf},${q})$`, `$(${p},${inf})$`],
+      `**Words:** **interval notation** writes a solution set with brackets: ( ) means the endpoint is NOT included, [ ] means it is. ∞ means it goes on forever.\n**Step 1 (critical values, where each bracket is 0):** $x=${p}$ and $x=${q}$. They cut the number line into 3 parts.\n**Step 2 (sign chart: test a number in each part):** left of ${p} the product is positive; between ${p} and ${q} it is negative; right of ${q} it is positive.\n**Step 3 (keep the parts that make “${gt ? '> 0' : '< 0'}” true):** ${gt ? 'the left and right parts' : 'the middle part'}.\n**Step 4 (strict inequality, so the endpoints are NOT included):** ${ans.replace(/\$/g, '')}.\n**Answer: ${ans.replace(/\$/g, '')}**`,
+      '> 0 outside the roots, < 0 between them (for an upward parabola).')
+  },
+  ratFnDomain(r) {
+    const a = r.int(1, 5), p = r.int(1, 7), q = r.int(1, 7)
+    if (p === q) return GEN.ratFnDomain(r)
+    const lo = Math.min(p, q), hi = Math.max(p, q)
+    const ans = `all real numbers except $${-hi}$ and $${-lo}$`
+    return mk(r, `What is the domain of $f(x)=\\dfrac{${a}x}{(x+${lo})(x+${hi})}$?`, ans, [`all real numbers except $${lo}$ and $${hi}$`, `all real numbers except $0$`, `all real numbers`, `all real numbers except $${-lo}$`],
+      `**Words:** the **domain** is the set of all x-values you are allowed to use. A fraction breaks (you cannot divide by 0) when its bottom is 0.\n**Step 1 (set the bottom equal to 0):** (x + ${lo})(x + ${hi}) = 0.\n**Step 2 (each bracket can be 0):** x = ${-lo} or x = ${-hi}.\n**Step 3 (these are the forbidden values):** the domain is every real number EXCEPT ${-hi} and ${-lo}.\n**Answer: ${ans.replace(/\$/g, '')}**`,
+      'Domain of a fraction: bottom ≠ 0.')
+  },
+  ratXInt(r) {
+    const a = r.int(1, 4), p = r.int(1, 8), d = r.int(1, 6)
+    const x0 = -p / a
+    if (!Number.isInteger(x0) || p === d * a) return GEN.ratXInt(r)
+    return mk(r, `Find the x-intercept of $f(x)=\\dfrac{${a === 1 ? '' : a}x+${p}}{x+${d}}$.`, `$x=${x0}$`, [`$x=${-d}$`, `$x=${-x0}$`, `$x=${p}$`, `$x=${p / d}$`].map(s => s),
+      `**Words:** the **x-intercept** is where the graph crosses the x-axis, which means $f(x)=0$.\n**Step 1 (a fraction is 0 only when its top is 0):** ${a === 1 ? '' : a}x + ${p} = 0.\n**Step 2 (solve):** ${a}x = ${-p}, so x = ${x0}.\n**Step 3 (check that the bottom is not 0 there):** ${x0} + ${d} = ${x0 + d}, which is not 0 ✓.\n**Answer: x = ${x0}**`,
+      'x-intercept: top = 0 (and bottom ≠ 0).')
+  },
+  longDiv(r) {
+    const c = r.int(1, 5), q0 = r.int(1, 6), rem = r.int(1, 7)
+    const b = q0 - c, cc = rem - c * q0
+    const poly = `x^2${b === 0 ? '' : b > 0 ? `+${b}x` : `${b}x`}${cc === 0 ? '' : cc > 0 ? `+${cc}` : cc}`
+    return mk(r, `Use long division: divide $${poly}$ by $x-${c}$. What is the quotient and the remainder?`, `quotient $x+${q0}$, remainder ${rem}`, [`quotient $x+${q0}$, remainder ${rem + 1}`, `quotient $x-${q0}$, remainder ${rem}`, `quotient $x+${q0 + 1}$, remainder 0`, `quotient $x+${c}$, remainder ${rem}`],
+      `**Words:** long division of polynomials works like long division of numbers: divide the leading terms, multiply back, subtract, bring down, repeat. The **quotient** is the answer; the **remainder** is what is left over.\n**Step 1 (divide the leading terms):** x² ÷ x = x. Write x on top.\n**Step 2 (multiply x by the divisor x − ${c}):** x² − ${c}x. Subtract it from ${poly}: leaves (${b} + ${c})x ${cc < 0 ? '−' : '+'} ${Math.abs(cc)} = ${q0}x ${cc < 0 ? '−' : '+'} ${Math.abs(cc)}.\n**Step 3 (divide again):** ${q0}x ÷ x = ${q0}. Write +${q0} on top.\n**Step 4 (multiply ${q0} by x − ${c}):** ${q0}x − ${q0 * c}. Subtract: ${cc} − (−${q0 * c}) = ${rem}.\n**Step 5 (nothing left to divide):** the remainder is ${rem}.\n**Answer: quotient x + ${q0}, remainder ${rem}**`,
+      'Divide, multiply, subtract, repeat. Same as number long division.')
+  },
+  ratSimp2(r) {
+    const p = r.int(1, 6), q = r.int(1, 6)
+    if (p === q) return GEN.ratSimp2(r)
+    const s = p + q, pr = p * q
+    return mk(r, `Simplify $\\dfrac{x^2+${s}x+${pr}}{x+${p}}$ (for $x\\ne-${p}$).`, `$x+${q}$`, [`$x+${p}$`, `$x+${pr}$`, `$x^2+${q}$`, `$\\dfrac{x+${q}}{${p}}$`],
+      `**Words:** to simplify a **rational expression**, factor the top and the bottom, then cancel any factor they share.\n**Step 1 (factor the top, find two numbers with product ${pr} and sum ${s}):** ${p} and ${q}, so $x^2+${s}x+${pr}=(x+${p})(x+${q})$.\n**Step 2 (write the fraction):** $\\frac{(x+${p})(x+${q})}{x+${p}}$.\n**Step 3 (cancel the shared factor $x+${p}$):** $x+${q}$.\n**Answer: $x+${q}$**`,
+      'Factor the top, then cancel the bracket that also sits on the bottom.')
+  },
 }
 
 export const DRILL_KINDS = Object.keys(GEN)
