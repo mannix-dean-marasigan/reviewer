@@ -10,12 +10,23 @@ const frac = (n: number, d: number) => {
   return d === 1 ? `${n}` : `\\frac{${n}}{${d}}`
 }
 
+const plain = (s: string) => s.replace(/\$/g, '')
+const coef = (a: number, v: string) => (a === 1 ? v : a === -1 ? `-${v}` : `${a}${v}`)
+const sgn = (n: number) => (n < 0 ? `-${-n}` : `+${n}`)
+/** a·x + b, written neatly (no 1x, no +0, no +-). */
+const lin = (a: number, b: number) => `${coef(a, 'x')}${b === 0 ? '' : sgn(b)}`
+/** a·x² + b·x + c, written neatly. */
+/** (x − n) as a factor, or just x when n = 0. */
+const fx = (n: number) => (n === 0 ? 'x' : `(x${sgn(-n)})`)
+const quad = (a: number, b: number, c: number) => `${coef(a, 'x^2')}${b === 0 ? '' : b > 0 ? '+' + coef(b, 'x') : '-' + coef(-b, 'x')}${c === 0 ? '' : sgn(c)}`
+
 /** Build a Question from a correct answer string + wrong candidates (deduped, padded). */
 function mk(r: Rng, q: string, correct: string, wrongs: string[], e: string, trick?: string): Question {
   const w: string[] = []
   for (const x of wrongs) if (x !== correct && !w.includes(x)) w.push(x)
   let pad = 1
-  while (w.length < 3) { const n = Number(correct); const cand = Number.isFinite(n) && correct.trim() !== '' ? String(n + pad * (pad % 2 ? 1 : -2)) : correct + '*'.repeat(pad); pad++; if (cand !== correct && !w.includes(cand)) w.push(cand) }
+  while (w.length < 3) { const n = Number(correct); const um = correct.match(/^(₱?)(-?\d+(?:\.\d+)?)([^\d,].*)?$/)
+    const cand = Number.isFinite(n) && correct.trim() !== '' ? String(n + pad * (pad % 2 ? 1 : -2)) : um ? `${um[1]}${Number(um[2]) + pad * (pad % 2 ? 1 : -2)}${um[3] ?? ''}` : correct + '*'.repeat(pad); pad++; if (cand !== correct && !w.includes(cand)) w.push(cand) }
   const a = r.int(0, 3)
   const c = w.slice(0, 3)
   c.splice(a, 0, correct)
@@ -58,18 +69,22 @@ const GEN: Record<string, (r: Rng) => Question> = {
   linear(r) {
     const x = r.int(-6, 9), a = r.pick([2, 3, 4, 5, 6, 7]), b = r.int(1, 15)
     const c = a * x + b
-    return mk(r, `Solve for $x$: $${a}x + ${b} = ${c}$`, `${x}`, [`${x + 1}`, `${x - 1}`, `${(c + b) / a}`, `${-x}`].map(String),
+    return mk(r, `Solve for $x$: $${a}x + ${b} = ${c}$`, `${x}`, [`${x + 1}`, `${x - 1}`, `${c - b}`, `${-x}`].map(String),
       `**Idea:** an equation is a balance. Whatever you do to one side you must do to the other. We want x alone.\n**Step 1 (subtract ${b} from both sides):** $${a}x=${c - b}$.\n**Step 2 (divide both sides by ${a}):** $x=${x}$.\n**Check:** ${a}(${x})+${b}=${c} ✓\n**Answer: ${x}**`,
       'Always plug your answer back in; it takes 5 seconds and catches sign errors.')
   },
   discriminant(r) {
-    const a = r.pick([1, 2, 3]), b = r.int(-7, 7), c = r.int(-6, 6)
+    const want = r.pick(['pos', 'zero', 'neg'] as const)
+    let a = 1, b = 0, c = 0
+    if (want === 'zero') { const k = r.pick([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]); a = r.pick([1, 1, 4]); const s = a === 4 ? 2 : 1; b = 2 * s * k; c = k * k }
+    else if (want === 'neg') { a = r.pick([1, 2, 3]); b = r.int(-6, 6); c = Math.floor((b * b) / (4 * a)) + r.int(1, 6) }
+    else { a = r.pick([1, 2, 3]); b = r.int(-7, 7); c = r.int(-8, 4); if (b * b - 4 * a * c <= 0) return GEN.discriminant(r) }
     const D = b * b - 4 * a * c
-    const ans = D > 0 ? 'Two different real roots' : D === 0 ? 'One repeated real root' : 'No real roots'
-    return mk(r, `How many real roots does $${a}x^2 ${b < 0 ? '-' : '+'} ${Math.abs(b)}x ${c < 0 ? '-' : '+'} ${Math.abs(c)} = 0$ have?`, ans,
-      ['Two different real roots', 'One repeated real root', 'No real roots', 'Cannot be determined'],
-      `**Words:** the **discriminant** $D=b^2-4ac$ tells how many real roots a quadratic has: $D>0$ → two, $D=0$ → one, $D<0$ → none.\n**Step 1 (read a, b, c):** $a=${a}$, $b=${b}$, $c=${c}$.\n**Step 2 (substitute):** $D=(${b})^2-4(${a})(${c})=${b * b}-(${4 * a * c})=${D}$.\n**Step 3:** ${D > 0 ? 'D is positive, so there are two different real roots.' : D === 0 ? 'D is zero, so there is exactly one (repeated) real root.' : 'D is negative, so there are no real roots.'}\n**Answer: ${ans}**`,
-      'D > 0: 2 roots, D = 0: 1 root, D < 0: none. No need to solve the equation.')
+    const ans = D > 0 ? 'Two real solutions' : D === 0 ? 'One real solution' : 'Two imaginary solutions (no real solutions)'
+    return mk(r, `Use the discriminant: how many real solutions does $${quad(a, b, c)}=0$ have?`, ans,
+      ['Two real solutions', 'One real solution', 'Two imaginary solutions (no real solutions)', 'Cannot be determined'],
+      `**Words:** the **discriminant** $D=b^2-4ac$ tells what kind of solutions a quadratic has: $D>0$ → two real, $D=0$ → one real, $D<0$ → two imaginary (no real ones).\n**Step 1 (read a, b, c):** $a=${a}$, $b=${b}$, $c=${c}$.\n**Step 2 (substitute):** $D=(${b})^2-4(${a})(${c})=${b * b}-(${4 * a * c})=${D}$.\n**Step 3:** ${D > 0 ? 'D is positive, so there are two real solutions.' : D === 0 ? 'D is zero, so there is only one real solution.' : 'D is negative, so there are two imaginary solutions and no real ones.'}\n**Answer: ${ans}**`,
+      'D > 0: two real. D = 0: one real. D < 0: two imaginary.')
   },
   pythag(r) {
     const t = r.pick([[3, 4, 5], [5, 12, 13], [8, 15, 17], [7, 24, 25], [20, 21, 29]]), k = r.int(1, 3)
@@ -261,7 +276,7 @@ const GEN: Record<string, (r: Rng) => Question> = {
   quadRoot(r) {
     const a = r.int(1, 8), b = r.int(-8, -1)
     const B = -(a + b), C = a * b
-    const eq = `x^2${B === 0 ? '' : B > 0 ? `+${B}x` : `${B}x`}${C > 0 ? `+${C}` : C}=0`
+    const eq = `${quad(1, B, C)}=0`
     return mk(r, `Solve $${eq}$. What is the larger root?`, `${a}`,
       [`${b}`, `${a + 1}`, `${-a}`, `${C}`].map(String),
       `**Words:** the **roots** of an equation are the x-values that make it true.\n**Step 1 (factor the left side):** find two numbers with product ${C} and sum ${B}. They are ${-a} and ${-b}.\n**Step 2 (write the brackets):** $(x${-a < 0 ? '-' : '+'}${Math.abs(a)})(x${-b < 0 ? '-' : '+'}${Math.abs(b)})=0$.\n**Step 3 (each bracket must be 0 for the product to be 0):** $x=${a}$ or $x=${b}$.\n**Step 4 (pick the larger):** ${a}.\n**Answer: ${a}**`,
@@ -271,7 +286,7 @@ const GEN: Record<string, (r: Rng) => Question> = {
     const x = r.int(2, 9), a = r.int(2, 6), c = r.int(1, a - 1), b = r.int(1, 8)
     const d = (a - c) * x + b
     const pm = a * x + b
-    return mk(r, `M is the midpoint of $\\overline{PQ}$. $PM=${a}x+${b}$ and $MQ=${c}x+${d}$. Find $PQ$.`, `${2 * pm}`,
+    return mk(r, `M is the midpoint of $\\overline{PQ}$. $PM=${a}x+${b}$ and $MQ=${lin(c, d)}$. Find $PQ$.`, `${2 * pm}`,
       [`${pm}`, `${x}`, `${2 * pm + 2}`, `${2 * pm - 2}`],
       `**Words:** a **midpoint** splits a segment into two EQUAL parts, so $PM=MQ$. The **Segment Addition Postulate** says $PQ=PM+MQ$.\n**Step 1 (set the halves equal):** ${a}x+${b}=${c}x+${d}.\n**Step 2 (subtract ${c}x from both sides):** ${a - c}x+${b}=${d}.\n**Step 3 (subtract ${b}):** ${a - c}x=${d - b}, so x=${x}.\n**Step 4 (find one half):** PM = ${a}(${x})+${b} = ${pm}.\n**Step 5 (whole segment = 2 halves):** PQ = 2 × ${pm} = ${2 * pm}.\n**Answer: ${2 * pm}**`,
       'Midpoint → the two halves are equal; solve for x first, then double.')
@@ -364,9 +379,9 @@ const GEN: Record<string, (r: Rng) => Question> = {
       'If one equation has +y and the other −y, adding them removes y.')
   },
   polyRem(r) {
-    const c = r.int(-3, 4), a = r.int(1, 3), b = r.int(-5, 5), d = r.int(-6, 6)
+    const c = r.pick([-3, -2, -1, 1, 2, 3, 4]), a = r.int(1, 3), b = r.int(-5, 5), d = r.int(-6, 6)
     const val = a * c ** 3 + b * c + d
-    const poly = `${a === 1 ? '' : a}x^3${b === 0 ? '' : b > 0 ? `+${b}x` : `${b}x`}${d === 0 ? '' : d > 0 ? `+${d}` : d}`
+    const poly = `${coef(a, 'x^3')}${b === 0 ? '' : b > 0 ? '+' + coef(b, 'x') : '-' + coef(-b, 'x')}${d === 0 ? '' : sgn(d)}`
     return mk(r, `Find the remainder when $${poly}$ is divided by $x${c < 0 ? '+' : '-'}${Math.abs(c)}$.`, `${val}`, [`${val + c}`, `${-val}`, `${a * c ** 3}`, `${val + d}`].map(String),
       `**Words:** the **Remainder Theorem** says the remainder when $p(x)$ is divided by $(x-c)$ is simply $p(c)$. No long division needed.\n**Step 1 (find c):** the divisor is $x${c < 0 ? '+' : '-'}${Math.abs(c)}$, so $c=${c}$.\n**Step 2 (substitute x = ${c}):** $${a}(${c})^3${b < 0 ? '' : '+'}${b}(${c})${d < 0 ? '' : '+'}${d}$.\n**Step 3 (cubes first, then multiply, then add):** $${a}\\times${c ** 3}=${a * c ** 3}$; $${b}\\times${c}=${b * c}$; total $${a * c ** 3}+(${b * c})+(${d})=${val}$.\n**Answer: ${val}**`,
       'Remainder when dividing by (x − c) is p(c).')
@@ -374,13 +389,14 @@ const GEN: Record<string, (r: Rng) => Question> = {
   ratEq(r) {
     const k = r.pick([2, 3, 4, 6, 8, 12]), m = r.int(1, 5), x = r.pick([1, 2, 3, 4, 6].filter(v => k % v === 0))
     const n = m + k / x
-    return mk(r, `Solve for $x$: $\\dfrac{${k}}{x}+${m}=${n}$`, `${x}`, [`${k / (n + m)}`, `${n - m}`, `${k * x}`, `${x + 1}`].map(String),
-      `**Words:** a **rational equation** has the unknown in a denominator. Clear the fraction by multiplying by $x$ (and remember $x\\ne0$).\n**Step 1 (get the fraction alone, subtract ${m}):** $\\frac{${k}}{x}=${n - m}$.\n**Step 2 (cross-multiply):** ${k} = ${n - m}x.\n**Step 3 (divide by ${n - m}):** $x=\\frac{${k}}{${n - m}}=${x}$.\n**Check:** ${k}/${x} + ${m} = ${k / x} + ${m} = ${n} ✓\n**Answer: ${x}**`,
-      'Isolate the fraction, then cross-multiply. Always check for extraneous solutions.')
+    return mk(r, `Solve for $x$: $\\dfrac{${k}}{x}+${m}=${n}$`, `${x}`, [`${n - m}`, `${k * x}`, `${x + 1}`, `${k}`],
+      `**Words:** a **rational equation** has the unknown in a denominator. Clear the fraction by multiplying by $x$ (and remember $x\\ne0$).\n**Step 1 (get the fraction alone, subtract ${m}):** $\\frac{${k}}{x}=${n - m}$.\n**Step 2 (multiply both sides by x):** ${k} = ${n - m}x.\n**Step 3 (divide by ${n - m}):** $x=\\frac{${k}}{${n - m}}=${x}$.\n**Check:** ${k}/${x} + ${m} = ${k / x} + ${m} = ${n} ✓\n**Answer: ${x}**`,
+      'Isolate the fraction, then multiply by x. Always check that the bottom is not 0.')
   },
   vertex(r) {
     const h = r.pick([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6]), k = r.pick([-8, -6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 7, 8])
     const b = -2 * h, c = h * h + k
+    if (Math.abs(h) === Math.abs(k)) return GEN.vertex(r)
     const eq = `x^2${b === 0 ? '' : b > 0 ? `+${b}x` : `${b}x`}${c === 0 ? '' : c > 0 ? `+${c}` : c}`
     return mk(r, `What is the vertex of $y=${eq}$?`, `$(${h},${k})$`, [`$(${-h},${k})$`, `$(${h},${-k})$`, `$(${k},${h})$`, `$(${h},${c})$`],
       `**Words:** the **vertex** is the turning point of a parabola (its lowest or highest point). For $y=ax^2+bx+c$ the vertex has $x=-\\frac{b}{2a}$.\n**Step 1 (read a, b, c):** $a=1$, $b=${b}$, $c=${c}$.\n**Step 2 (x of the vertex):** $x=-\\frac{${b}}{2(1)}=${h}$.\n**Step 3 (y of the vertex, substitute x back):** $y=(${h})^2${b < 0 ? '' : '+'}${b}(${h})${c < 0 ? '' : '+'}${c}=${h * h}+(${b * h})+(${c})=${k}$.\n**Answer: (${h}, ${k})**`,
@@ -390,7 +406,7 @@ const GEN: Record<string, (r: Rng) => Question> = {
     const p = r.int(-5, 1), q = r.int(p + 2, p + 7)
     const gt = r.pick([true, false])
     const ans = gt ? `$x<${p}$ or $x>${q}$` : `$${p}<x<${q}$`
-    return mk(r, `Solve: $(x${p < 0 ? '+' : '-'}${Math.abs(p)})(x${q < 0 ? '+' : '-'}${Math.abs(q)})${gt ? '>' : '<'}0$`, ans,
+    return mk(r, `Solve: $${fx(p)}${fx(q)}${gt ? '>' : '<'}0$`, ans,
       [gt ? `$${p}<x<${q}$` : `$x<${p}$ or $x>${q}$`, gt ? `$x>${q}$` : `$x<${q}$`, `$x=${p}$ or $x=${q}$`, `$x>${p}$`],
       `**Words:** a **quadratic inequality** asks for the x-values that make a quadratic positive (>0) or negative (<0).\n**Step 1 (find where it equals 0):** the **critical values** are $x=${p}$ and $x=${q}$. They split the number line into three parts.\n**Step 2 (test one number in each part):** left of ${p} the product of the two brackets is positive; between ${p} and ${q} it is negative; right of ${q} it is positive again.\n**Step 3 (pick the parts that match “${gt ? '>' : '<'} 0”):** ${gt ? 'positive parts: the outside pieces' : 'negative part: the middle piece'}.\n**Answer: ${ans.replace(/\$/g, '')}**`,
       'Parabola opens up: > 0 outside the roots, < 0 between the roots.')
@@ -405,14 +421,14 @@ const GEN: Record<string, (r: Rng) => Question> = {
   funcEval(r) {
     const a = r.int(1, 4), b = r.int(-6, 6), c = r.int(-8, 8), x = r.int(-3, 4)
     const v = a * x * x + b * x + c
-    return mk(r, `If $f(x)=${a === 1 ? '' : a}x^2${b === 0 ? '' : b > 0 ? `+${b}x` : `${b}x`}${c === 0 ? '' : c > 0 ? `+${c}` : c}$, find $f(${x})$.`, `${v}`, [`${v + 2 * Math.abs(b)}`, `${a * x + b * x + c}`, `${v - c}`, `${-v}`].map(String),
+    return mk(r, `If $f(x)=${quad(a, b, c)}$, find $f(${x})$.`, `${v}`, [`${v + 2 * Math.abs(b)}`, `${a * x + b * x + c}`, `${v - c}`, `${-v}`].map(String),
       `**Words:** $f(x)$ is read “f of x”. It is a rule: put a number in place of x and calculate.\n**Step 1 (replace every x by ${x}):** $f(${x})=${a}(${x})^2${b < 0 ? '' : '+'}${b}(${x})${c < 0 ? '' : '+'}${c}$.\n**Step 2 (square first):** $(${x})^2=${x * x}$, so $${a}\\times${x * x}=${a * x * x}$.\n**Step 3 (the middle term):** $${b}\\times(${x})=${b * x}$.\n**Step 4 (add everything):** ${a * x * x} + (${b * x}) + (${c}) = ${v}.\n**Answer: ${v}**`,
       'Put brackets around negative inputs: (−3)² = 9, not −9.')
   },
   composite(r) {
     const a = r.int(2, 5), b = r.int(-4, 5), c = r.int(2, 4), d = r.int(-3, 4), x = r.int(1, 4)
     const g = c * x + d, v = a * g + b
-    return mk(r, `Let $f(x)=${a}x${b < 0 ? '' : '+'}${b}$ and $g(x)=${c}x${d < 0 ? '' : '+'}${d}$. Find $(f\\circ g)(${x})$.`, `${v}`, [`${c * (a * x + b) + d}`, `${a * x + b + c * x + d}`, `${g}`, `${v + 1}`].map(String),
+    return mk(r, `Let $f(x)=${lin(a, b)}$ and $g(x)=${lin(c, d)}$. Find $(f\\circ g)(${x})$.`, `${v}`, [`${c * (a * x + b) + d}`, `${a * x + b + c * x + d}`, `${g}`, `${v + 1}`].map(String),
       `**Words:** $(f\\circ g)(x)$ means $f(g(x))$: do g first, then feed the answer into f.\n**Step 1 (inner function g):** $g(${x})=${c}(${x})${d < 0 ? '' : '+'}${d}=${g}$.\n**Step 2 (outer function f at ${g}):** $f(${g})=${a}(${g})${b < 0 ? '' : '+'}${b}$.\n**Step 3:** ${a}×${g} = ${a * g}, and ${a * g} + (${b}) = ${v}.\n**Answer: ${v}**`,
       'Work from the inside out.')
   },
@@ -428,8 +444,8 @@ const GEN: Record<string, (r: Rng) => Question> = {
   asymptote(r) {
     const a = r.int(1, 5), c = r.int(1, 4), dd = r.pick([-3, -2, -1, 1, 2, 3]) * c, b = r.int(-5, 5)
     const vx = -dd / c, hy = a / c
-    return mk(r, `Find the vertical asymptote of $f(x)=\\dfrac{${a}x${b < 0 ? '' : '+'}${b}}{${c === 1 ? '' : c}x${dd < 0 ? '' : '+'}${dd}}$.`, `$x=${vx}$`, [`$y=${frac(a, c)}$`, `$x=${-vx}$`, `$x=${dd}$`, `$y=${vx}$`],
-      `**Words:** a **rational function** is a fraction of two polynomials. A **vertical asymptote** is a vertical line the graph gets closer and closer to but never touches. It sits where the DENOMINATOR is 0 (and the top is not 0).\n**Step 1 (set the denominator equal to 0):** ${c === 1 ? '' : c}x${dd < 0 ? '' : '+'}${dd}=0.\n**Step 2 (solve):** ${c}x=${-dd}, so $x=${vx}$.\n**Answer: x = ${vx}** (the horizontal asymptote is $y=\\frac{${a}}{${c}}=${frac(a, c)}$, the ratio of the leading coefficients).`,
+    return mk(r, `Find the vertical asymptote of $f(x)=\\dfrac{${lin(a, b)}}{${lin(c, dd)}}$.`, `$x=${vx}$`, [`$y=${frac(a, c)}$`, `$x=${-vx}$`, `$x=${dd}$`, `$y=${vx}$`, `$x=${vx + 1}$`, '$x=0$'],
+      `**Words:** a **rational function** is a fraction of two polynomials. A **vertical asymptote** is a vertical line the graph gets closer and closer to but never touches. It sits where the DENOMINATOR is 0 (and the top is not 0).\n**Step 1 (set the denominator equal to 0):** ${lin(c, dd)}=0.\n**Step 2 (solve):** ${c}x=${-dd}, so $x=${vx}$.\n**Answer: x = ${vx}** (the horizontal asymptote is $y=\\frac{${a}}{${c}}=${frac(a, c)}$, the ratio of the leading coefficients).`,
       'Vertical asymptote: bottom = 0. Horizontal asymptote: ratio of the x-coefficients.')
   },
   expEq(r) {
@@ -587,7 +603,7 @@ const GEN: Record<string, (r: Rng) => Question> = {
   lineEq(r) {
     const m = r.pick([-3, -2, -1, 1, 2, 3, 4]), b = r.int(-6, 6), x1 = r.int(-2, 2), dx = r.int(1, 3)
     const x2 = x1 + dx, y1 = m * x1 + b, y2 = m * x2 + b
-    const eq = (mm: number, bb: number) => `$y=${mm === 1 ? '' : mm === -1 ? '-' : mm}x${bb === 0 ? '' : bb > 0 ? `+${bb}` : bb}$`
+    const eq = (mm: number, bb: number) => `$y=${mm === 0 ? `${bb}` : lin(mm, bb)}$`
     return mk(r, `Find the equation of the line through $(${x1},${y1})$ and $(${x2},${y2})$.`, eq(m, b), [eq(-m, b), eq(m, -b), eq(m + 1, b), eq(m, b + 2)],
       `**Words:** a line has the form $y=mx+b$: $m$ is the **slope** and $b$ is the **y-intercept** (where the line crosses the y-axis).\n**Step 1 (slope):** ${y2} − (${y1}) = ${y2 - y1} and ${x2} − (${x1}) = ${dx}, so m = ${y2 - y1} ÷ ${dx} = ${m}.\n**Step 2 (find b, plug in the point (${x1}, ${y1})):** ${y1} = ${m}(${x1}) + b, so b = ${y1} − (${m * x1}) = ${b}.\n**Step 3 (write it):** ${eq(m, b).replace(/\$/g, '')}.\n**Answer: ${eq(m, b).replace(/\$/g, '')}**`,
       'Slope first, then solve for b with one of the points.')
@@ -605,20 +621,28 @@ const GEN: Record<string, (r: Rng) => Question> = {
       'Two purchases → two equations → eliminate one variable.')
   },
   gcfPoly(r) {
-    const g = r.pick([2, 3, 4, 5, 6]), a = r.int(1, 4), b = r.int(1, 5)
-    const t = (c: number, v: string) => (c === 1 ? v : `${c}${v}`)
-    return mk(r, `Factor out the GCF: $${g * a}x^2+${g * b}x$`, `$${t(g, 'x')}(${t(a, 'x')}+${b})$`, [`$${g}(${t(a, 'x^2')}+${b}x)$`, `$x(${g * a}x+${g * b})$`, `$${t(g, 'x')}(${t(a, 'x')}+${g * b})$`, `$${t(g * a, 'x')}(x+${g * b})$`],
-      `**Words:** the **GCF** of an expression is the biggest term that divides every part.\n**Step 1 (numbers):** the GCF of ${g * a} and ${g * b} is ${g}.\n**Step 2 (letters):** both terms contain x; the smallest power is $x^1$. So the GCF is ${t(g, 'x')}.\n**Step 3 (divide each term by the GCF):** ${g * a}x² ÷ ${t(g, 'x')} = ${t(a, 'x')} and ${g * b}x ÷ ${t(g, 'x')} = ${b}.\n**Answer: $${t(g, 'x')}(${t(a, 'x')}+${b})$**`,
-      'Take out the biggest number and the lowest power of x.')
+    const g = r.int(2, 9), a = r.int(1, 6), b = r.int(1, 7), n = r.pick([0, 1, 1, 2, 3]), m = n + r.int(1, 3), s = r.pick(['+', '-'])
+    if (gcd(a, b) !== 1) return GEN.gcfPoly(r)
+    const pw = (c: number, e: number) => (e === 0 ? `${c}` : `${c === 1 ? '' : c}x${e === 1 ? '' : `^{${e}}`}`)
+    const flip = s === '+' ? '-' : '+'
+    const txt = (c: number, e: number) => (e === 0 ? `${c}` : `${c === 1 ? '' : c}x${e === 1 ? '' : '^' + e}`)
+    const ans = `$${pw(g, n)}(${pw(a, m - n)}${s}${b})$`
+    const w = [`$${pw(g, n)}(${pw(a, m - n)}${s}${g * b})$`, `$${pw(g, n)}(${pw(a, m - n)}${flip}${b})$`, `$${pw(g, n)}(${pw(a, m - n)}${s}${b + 1})$`]
+    if (a !== 1) w.push(`$${pw(g * a, n)}(${pw(1, m - n)}${s}${b})$`)
+    if (n >= 1) w.push(`$${pw(g, 0)}(${pw(a, m)}${s}${pw(b, n)})$`, `$${pw(1, n)}(${pw(g * a, m - n)}${s}${g * b})$`)
+    else w.push(`$${g}x(${pw(a, m - 1)}${s}${b})$`)
+    return mk(r, `Factor out the GCF: $${pw(g * a, m)}${s}${pw(g * b, n)}$`, ans, w,
+      `**Words:** the **GCF** (greatest common factor) is the biggest number AND the lowest power of x that divides every term.\n**Step 1 (numbers):** the biggest number that divides both ${g * a} and ${g * b} is ${g}.\n**Step 2 (letters):** ${n === 0 ? 'the second term has no x, so no x goes in the GCF' : `the lowest power of x is x${n === 1 ? '' : '^' + n}`}. GCF = ${txt(g, n)}.\n**Step 3 (divide each term by the GCF):** ${txt(g * a, m)} ÷ ${txt(g, n)} = ${txt(a, m - n)}, and ${txt(g * b, n)} ÷ ${txt(g, n)} = ${b}.\n**Check (multiply back):** gives the original ✓\n**Answer: ${plain(ans)}**`,
+      'Biggest number that divides all coefficients, lowest power of x. Then divide each term.')
   },
   polyDiv(r) {
     const c = r.int(1, 6), k = r.int(-5, 6)
     if (k === 0) return GEN.polyDiv(r)
     const b = k - c, cc = -c * k
-    const poly = `x^2${b === 0 ? '' : b > 0 ? `+${b}x` : `${b}x`}${cc > 0 ? `+${cc}` : cc}`
-    const lin = (n: number) => `x${n < 0 ? '' : '+'}${n}`
-    return mk(r, `Divide $${poly}$ by $x-${c}$. What is the quotient?`, `$${lin(k)}$`, [`$${lin(-k)}$`, `$${lin(k + 1)}$`, `$${lin(c)}$`, `$${lin(cc)}$`],
-      `**Words:** the **quotient** is the answer to a division. We can use **synthetic division** with $c=${c}$ (from $x-${c}$).\n**Step 1 (write c and the coefficients):** ${c} | 1, ${b}, ${cc}.\n**Step 2 (bring down 1, multiply by ${c}, add):** ${c}×1 = ${c}, and ${b} + ${c} = ${b + c}.\n**Step 3 (repeat):** ${c}×${b + c} = ${c * (b + c)}, and ${cc} + ${c * (b + c)} = ${cc + c * (b + c)} (the remainder).\n**Step 4 (read the answer):** quotient 1x + ${b + c}, remainder ${cc + c * (b + c)}.\n**Answer: $${lin(k)}$**`,
+    const poly = quad(1, b, cc)
+    const ln1 = (n: number) => lin(1, n)
+    return mk(r, `Divide $${poly}$ by $x-${c}$. What is the quotient?`, `$${ln1(k)}$`, [`$${ln1(-k)}$`, `$${ln1(k + 1)}$`, `$${ln1(c)}$`, `$${ln1(cc)}$`, `$${ln1(k - 1)}$`, `$${ln1(k + 2)}$`],
+      `**Words:** the **quotient** is the answer to a division. We can use **synthetic division** with $c=${c}$ (from $x-${c}$).\n**Step 1 (write c and the coefficients):** ${c} | 1, ${b}, ${cc}.\n**Step 2 (bring down 1, multiply by ${c}, add):** ${c}×1 = ${c}, and ${b} + ${c} = ${b + c}.\n**Step 3 (repeat):** ${c}×${b + c} = ${c * (b + c)}, and ${cc} + ${c * (b + c)} = ${cc + c * (b + c)} (the remainder).\n**Step 4 (read the answer):** quotient ${ln1(b + c)}, remainder ${cc + c * (b + c)}.\n**Answer: $${ln1(k)}$**`,
       'Bring down, multiply, add, repeat. The last number is the remainder.')
   },
   ratSimp(r) {
@@ -627,18 +651,12 @@ const GEN: Record<string, (r: Rng) => Question> = {
       `**Words:** a **rational expression** is a fraction with polynomials. To simplify, FACTOR the top and bottom, then cancel common factors.\n**Step 1 (factor the top, difference of squares):** $x^2-${a * a}=(x-${a})(x+${a})$.\n**Step 2 (cancel the common factor $x-${a}$):** $\\frac{(x-${a})(x+${a})}{x-${a}}=x+${a}$.\n**Answer: $x+${a}$**`,
       'Factor, then cancel factors (never terms).')
   },
-  ratAdd(r) {
-    const k = r.int(1, 5)
-    return mk(r, `Add: $\\dfrac1x+\\dfrac1{x+${k}}$`, `$\\dfrac{2x+${k}}{x(x+${k})}$`, [`$\\dfrac{2}{2x+${k}}$`, `$\\dfrac{2}{x(x+${k})}$`, `$\\dfrac{1}{x(x+${k})}$`, `$\\dfrac{x+${k}}{x(x+${k})}$`],
-      `**Words:** to add fractions you need a **common denominator** (the LCD).\n**Step 1 (LCD):** $x(x+${k})$.\n**Step 2 (rewrite each fraction):** $\\frac1x=\\frac{x+${k}}{x(x+${k})}$ and $\\frac1{x+${k}}=\\frac{x}{x(x+${k})}$.\n**Step 3 (add the tops):** $(x+${k})+x=2x+${k}$.\n**Answer: $\\frac{2x+${k}}{x(x+${k})}$**`,
-      'LCD first, then add the tops.')
-  },
   piecewise(r) {
     const c = r.int(1, 4), a = r.int(1, 3), b = r.int(0, 3)
     const x = r.int(-3, 6)
     const v = x < c ? a * x + b : x * x
-    return mk(r, `$f(x)=\\begin{cases}${a === 1 ? '' : a}x+${b} & \\text{if } x<${c}\\\\ x^2 & \\text{if } x\\ge${c}\\end{cases}$. Find $f(${x})$.`, `${v}`, [`${x < c ? x * x : a * x + b}`, `${v + 1}`, `${v - 1}`, `${-v}`].map(String),
-      `**Words:** a **piecewise function** uses a different rule for different x-values.\n**Step 1 (which rule?):** ${x} is ${x < c ? `less than ${c}` : `${c} or more`}, so use the rule ${x < c ? `${a === 1 ? '' : a}x+${b}` : 'x²'}.\n**Step 2 (substitute x = ${x}):** ${x < c ? `${a}(${x}) + ${b}` : `(${x})²`} = ${v}.\n**Answer: ${v}**`,
+    return mk(r, `$f(x)=\\begin{cases}${lin(a, b)} & \\text{if } x<${c}\\\\ x^2 & \\text{if } x\\ge${c}\\end{cases}$. Find $f(${x})$.`, `${v}`, [`${x < c ? x * x : a * x + b}`, `${v + 1}`, `${v - 1}`, `${-v}`].map(String),
+      `**Words:** a **piecewise function** uses a different rule for different x-values.\n**Step 1 (which rule?):** ${x} is ${x < c ? `less than ${c}` : `${c} or more`}, so use the rule ${x < c ? `${lin(a, b)}` : 'x²'}.\n**Step 2 (substitute x = ${x}):** ${x < c ? `${a}(${x}) + ${b}` : `(${x})²`} = ${v}.\n**Answer: ${v}**`,
       'Decide which condition the input meets first, then use only that rule.')
   },
   logEq(r) {
@@ -737,7 +755,7 @@ const GEN: Record<string, (r: Rng) => Question> = {
     }
     if (kind === 'cylinder') {
       const rr = r.int(2, 6), h = r.int(3, 10)
-      return mk(r, `Find the volume of a cylinder with radius ${rr} and height ${h} (leave $\\pi$ in your answer).`, `$${rr * rr * h}\\pi$`, [`$${2 * rr * h}\\pi$`, `$${rr * h}\\pi$`, `$${rr * rr * h * 2}\\pi$`, `$${(rr * rr * h) / 3}\\pi$`].map(String),
+      return mk(r, `Find the volume of a cylinder with radius ${rr} and height ${h} (leave $\\pi$ in your answer).`, `$${rr * rr * h}\\pi$`, [`$${2 * rr * h}\\pi$`, `$${rr * h}\\pi$`, `$${rr * rr * h * 2}\\pi$`, `$${rr * rr + h}\\pi$`, `$${rr * rr * h + rr}\\pi$`].map(String),
         `**Words:** a **cylinder** is a can shape. Volume = base area × height.\n**Step 1 (base is a circle):** area = πr² = π × ${rr}² = ${rr * rr}π.\n**Step 2 (times height):** ${rr * rr}π × ${h} = ${rr * rr * h}π.\n**Answer: $${rr * rr * h}\\pi$**`,
         'Cylinder = πr²h.')
     }
@@ -832,21 +850,25 @@ const GEN: Record<string, (r: Rng) => Question> = {
     const S = p + q, P = p * q
     const [lo, hi] = [Math.min(p, q), Math.max(p, q)]
     const b = -S, c = P
-    const eq = `x^2${b === 0 ? '' : b > 0 ? `+${b}x` : `${b}x`}${c === 0 ? '' : c > 0 ? `+${c}` : c}=0`
-    const ans = (x: number, y: number) => `$x=${x}$ or $x=${y}$`
+    const eq = `${quad(1, b, c)}=0`
+    const ans = (x: number, y: number) => `$x=${Math.min(x, y)}$ or $x=${Math.max(x, y)}$`
+    const key = (x: number, y: number) => `${Math.min(x, y)},${Math.max(x, y)}`
+    const wrongs: string[] = []
+    for (const [x, y] of [[-lo, -hi], [lo, -hi], [-lo, hi], [lo + 1, hi + 1], [lo - 1, hi], [lo, hi + 2]])
+      if (x !== y && key(x, y) !== key(lo, hi) && !wrongs.includes(ans(x, y))) wrongs.push(ans(x, y))
     const D = b * b - 4 * c
     const rt = Math.abs(p - q)
-    return mk(r, `Use the quadratic formula to solve $${eq}$.`, ans(lo, hi), [ans(-lo, -hi), ans(lo, -hi), ans(lo + 1, hi + 1), ans(-hi, lo)],
-      `**Words:** for $ax^2+bx+c=0$ the **quadratic formula** is $x=\\dfrac{-b\\pm\\sqrt{b^2-4ac}}{2a}$.\n**Step 1 (read a, b, c):** $a=1$, $b=${b}$, $c=${c}$.\n**Step 2 (discriminant, the part under the root):** $b^2-4ac=(${b})^2-4(1)(${c})=${b * b}-(${4 * c})=${D}$.\n**Step 3 (square root):** $\\sqrt{${D}}=${rt}$.\n**Step 4 (plug in, with +):** $x=\\frac{${-b}+${rt}}{2}=${(-b + rt) / 2}$.\n**Step 5 (with −):** $x=\\frac{${-b}-${rt}}{2}=${(-b - rt) / 2}$.\n**Answer: $x=${lo}$ or $x=${hi}$**`,
+    return mk(r, `Use the quadratic formula to solve $${eq}$.`, ans(lo, hi), wrongs.slice(0, 3),
+      `**Words:** for $ax^2+bx+c=0$ the **quadratic formula** is $x=\\dfrac{-b\\pm\\sqrt{b^2-4ac}}{2a}$.\n**Step 1 (read a, b, c):** $a=1$, $b=${b}$, $c=${c}$.\n**Step 2 (discriminant, the part under the root):** $b^2-4ac=(${b})^2-4(1)(${c})=${b * b}-(${4 * c})=${D}$.\n**Step 3 (square root):** $\\sqrt{${D}}=${rt}$.\n**Step 4 (plug in, with +):** $x=\\frac{${-b}+${rt}}{2}=${(-b + rt) / 2}$.\n**Step 5 (plug in, with −):** $x=\\frac{${-b}-${rt}}{2}=${(-b - rt) / 2}$.\n**Answer: x = ${lo} or x = ${hi}**`,
       'Watch the signs: −b means the OPPOSITE of the number in front of x.')
   },
   horizAsym(r) {
     const kind = r.pick(['smaller', 'equal', 'bigger'] as const)
     const a = r.int(1, 5), c = r.int(1, 4), k = r.int(1, 6)
     let expr = '', right = '', why = ''
-    if (kind === 'smaller') { expr = `\\dfrac{${a}x+${k}}{x^2+${c}}`; right = '$y=0$'; why = 'The top has degree 1 and the bottom has degree 2. When the bottom has the bigger degree, the graph flattens to $y=0$.' }
-    else if (kind === 'equal') { expr = `\\dfrac{${a}x^2+${k}}{${c}x^2-1}`; right = `$y=${frac(a, c)}$`; why = `Both have degree 2 (equal degrees). The asymptote is the ratio of the leading coefficients: $\\frac{${a}}{${c}}=${frac(a, c)}$.` }
-    else { expr = `\\dfrac{${a}x^3+${k}}{x^2+${c}}`; right = 'There is no horizontal asymptote'; why = 'The top has degree 3 and the bottom has degree 2. When the top has the bigger degree, the graph keeps growing, so there is no horizontal asymptote (the function has a slant or curved end behavior instead).' }
+    if (kind === 'smaller') { expr = `\\dfrac{${coef(a, 'x')}+${k}}{x^2+${c}}`; right = '$y=0$'; why = 'The top has degree 1 and the bottom has degree 2. When the bottom has the bigger degree, the graph flattens to $y=0$.' }
+    else if (kind === 'equal') { expr = `\\dfrac{${coef(a, 'x^2')}+${k}}{${coef(c, 'x^2')}-1}`; right = `$y=${frac(a, c)}$`; why = `Both have degree 2 (equal degrees). The asymptote is the ratio of the leading coefficients: $\\frac{${a}}{${c}}=${frac(a, c)}$.` }
+    else { expr = `\\dfrac{${coef(a, 'x^3')}+${k}}{x^2+${c}}`; right = 'There is no horizontal asymptote'; why = 'The top has degree 3 and the bottom has degree 2. When the top has the bigger degree, the graph keeps growing, so there is no horizontal asymptote (the function has a slant or curved end behavior instead).' }
     const opts = ['$y=0$', `$y=${frac(a, c)}$`, 'There is no horizontal asymptote', `$y=${a + c}$`, `$y=${k}$`]
     return mk(r, `Find the horizontal asymptote of $f(x)=${expr}$.`, right, opts.filter(o => o !== right),
       `**Words:** a **horizontal asymptote** is the height the graph settles toward when x gets very large (or very small). Compare the **degrees** (the highest powers of x) of the top and bottom.\n**Step 1 (degrees):** ${kind === 'smaller' ? 'top 1, bottom 2' : kind === 'equal' ? 'top 2, bottom 2' : 'top 3, bottom 2'}.\n**Step 2 (rule):** top smaller → $y=0$; equal → ratio of leading coefficients; top bigger → none.\n**Step 3:** ${why}\n**Answer: ${right.replace(/\$/g, '')}**`,
@@ -869,6 +891,7 @@ const GEN: Record<string, (r: Rng) => Question> = {
   },
   diffSq(r) {
     const a = r.int(1, 5), b = r.int(2, 9)
+    if (gcd(a, b) !== 1) return GEN.diffSq(r)
     const t = (c: number) => (c === 1 ? 'x' : `${c}x`)
     return mk(r, `Factor: $${a * a === 1 ? '' : a * a}x^2-${b * b}$`, `$(${t(a)}-${b})(${t(a)}+${b})$`, [`$(${t(a)}-${b})^2$`, `$(${t(a * a)}-${b})(x+${b})$`, `$(${t(a)}+${b})^2$`, `$(${t(a)}-${b * b})(${t(a)}+1)$`],
       `**Words:** a **difference of squares** is one perfect square minus another: $A^2-B^2=(A-B)(A+B)$.\n**Step 1 (square roots of each term):** $\\sqrt{${a * a}x^2}=${t(a)}$ and $\\sqrt{${b * b}}=${b}$.\n**Step 2 (write the two brackets, one with − and one with +):** $(${t(a)}-${b})(${t(a)}+${b})$.\n**Check (multiply back):** the middle terms cancel, leaving $${a * a}x^2-${b * b}$ ✓\n**Answer: $(${t(a)}-${b})(${t(a)}+${b})$**`,
@@ -888,7 +911,7 @@ const GEN: Record<string, (r: Rng) => Question> = {
     const gt = r.pick([true, false])
     const inf = '\\infty'
     const ans = gt ? `$(-${inf},${p})\\cup(${q},${inf})$` : `$(${p},${q})$`
-    return mk(r, `Solve $(x${p < 0 ? '+' : '-'}${Math.abs(p)})(x${q < 0 ? '+' : '-'}${Math.abs(q)})${gt ? '>' : '<'}0$ and write the answer in interval notation.`, ans,
+    return mk(r, `Solve $${fx(p)}${fx(q)}${gt ? '>' : '<'}0$ and write the answer in interval notation.`, ans,
       [gt ? `$(${p},${q})$` : `$(-${inf},${p})\\cup(${q},${inf})$`, `$[${p},${q}]$`, `$(-${inf},${q})$`, `$(${p},${inf})$`],
       `**Words:** **interval notation** writes a solution set with brackets: ( ) means the endpoint is NOT included, [ ] means it is. ∞ means it goes on forever.\n**Step 1 (critical values, where each bracket is 0):** $x=${p}$ and $x=${q}$. They cut the number line into 3 parts.\n**Step 2 (sign chart: test a number in each part):** left of ${p} the product is positive; between ${p} and ${q} it is negative; right of ${q} it is positive.\n**Step 3 (keep the parts that make “${gt ? '> 0' : '< 0'}” true):** ${gt ? 'the left and right parts' : 'the middle part'}.\n**Step 4 (strict inequality, so the endpoints are NOT included):** ${ans.replace(/\$/g, '')}.\n**Answer: ${ans.replace(/\$/g, '')}**`,
       '> 0 outside the roots, < 0 between them (for an upward parabola).')
@@ -898,7 +921,7 @@ const GEN: Record<string, (r: Rng) => Question> = {
     if (p === q) return GEN.ratFnDomain(r)
     const lo = Math.min(p, q), hi = Math.max(p, q)
     const ans = `all real numbers except $${-hi}$ and $${-lo}$`
-    return mk(r, `What is the domain of $f(x)=\\dfrac{${a}x}{(x+${lo})(x+${hi})}$?`, ans, [`all real numbers except $${lo}$ and $${hi}$`, `all real numbers except $0$`, `all real numbers`, `all real numbers except $${-lo}$`],
+    return mk(r, `What is the domain of $f(x)=\\dfrac{${coef(a, 'x')}}{(x+${lo})(x+${hi})}$?`, ans, [`all real numbers except $${lo}$ and $${hi}$`, `all real numbers except $0$`, `all real numbers`, `all real numbers except $${-lo}$`],
       `**Words:** the **domain** is the set of all x-values you are allowed to use. A fraction breaks (you cannot divide by 0) when its bottom is 0.\n**Step 1 (set the bottom equal to 0):** (x + ${lo})(x + ${hi}) = 0.\n**Step 2 (each bracket can be 0):** x = ${-lo} or x = ${-hi}.\n**Step 3 (these are the forbidden values):** the domain is every real number EXCEPT ${-hi} and ${-lo}.\n**Answer: ${ans.replace(/\$/g, '')}**`,
       'Domain of a fraction: bottom ≠ 0.')
   },
@@ -906,14 +929,14 @@ const GEN: Record<string, (r: Rng) => Question> = {
     const a = r.int(1, 4), p = r.int(1, 8), d = r.int(1, 6)
     const x0 = -p / a
     if (!Number.isInteger(x0) || p === d * a) return GEN.ratXInt(r)
-    return mk(r, `Find the x-intercept of $f(x)=\\dfrac{${a === 1 ? '' : a}x+${p}}{x+${d}}$.`, `$x=${x0}$`, [`$x=${-d}$`, `$x=${-x0}$`, `$x=${p}$`, `$x=${p / d}$`].map(s => s),
+    return mk(r, `Find the x-intercept of $f(x)=\\dfrac{${a === 1 ? '' : a}x+${p}}{x+${d}}$.`, `$x=${x0}$`, [`$x=${-d}$`, `$x=${-x0}$`, `$x=${p}$`, `$x=${d}$`, '$x=0$'],
       `**Words:** the **x-intercept** is where the graph crosses the x-axis, which means $f(x)=0$.\n**Step 1 (a fraction is 0 only when its top is 0):** ${a === 1 ? '' : a}x + ${p} = 0.\n**Step 2 (solve):** ${a}x = ${-p}, so x = ${x0}.\n**Step 3 (check that the bottom is not 0 there):** ${x0} + ${d} = ${x0 + d}, which is not 0 ✓.\n**Answer: x = ${x0}**`,
       'x-intercept: top = 0 (and bottom ≠ 0).')
   },
   longDiv(r) {
     const c = r.int(1, 5), q0 = r.int(1, 6), rem = r.int(1, 7)
     const b = q0 - c, cc = rem - c * q0
-    const poly = `x^2${b === 0 ? '' : b > 0 ? `+${b}x` : `${b}x`}${cc === 0 ? '' : cc > 0 ? `+${cc}` : cc}`
+    const poly = quad(1, b, cc)
     return mk(r, `Use long division: divide $${poly}$ by $x-${c}$. What is the quotient and the remainder?`, `quotient $x+${q0}$, remainder ${rem}`, [`quotient $x+${q0}$, remainder ${rem + 1}`, `quotient $x-${q0}$, remainder ${rem}`, `quotient $x+${q0 + 1}$, remainder 0`, `quotient $x+${c}$, remainder ${rem}`],
       `**Words:** long division of polynomials works like long division of numbers: divide the leading terms, multiply back, subtract, bring down, repeat. The **quotient** is the answer; the **remainder** is what is left over.\n**Step 1 (divide the leading terms):** x² ÷ x = x. Write x on top.\n**Step 2 (multiply x by the divisor x − ${c}):** x² − ${c}x. Subtract it from ${poly}: leaves (${b} + ${c})x ${cc < 0 ? '−' : '+'} ${Math.abs(cc)} = ${q0}x ${cc < 0 ? '−' : '+'} ${Math.abs(cc)}.\n**Step 3 (divide again):** ${q0}x ÷ x = ${q0}. Write +${q0} on top.\n**Step 4 (multiply ${q0} by x − ${c}):** ${q0}x − ${q0 * c}. Subtract: ${cc} − (−${q0 * c}) = ${rem}.\n**Step 5 (nothing left to divide):** the remainder is ${rem}.\n**Answer: quotient x + ${q0}, remainder ${rem}**`,
       'Divide, multiply, subtract, repeat. Same as number long division.')
@@ -922,7 +945,7 @@ const GEN: Record<string, (r: Rng) => Question> = {
     const p = r.int(1, 6), q = r.int(1, 6)
     if (p === q) return GEN.ratSimp2(r)
     const s = p + q, pr = p * q
-    return mk(r, `Simplify $\\dfrac{x^2+${s}x+${pr}}{x+${p}}$ (for $x\\ne-${p}$).`, `$x+${q}$`, [`$x+${p}$`, `$x+${pr}$`, `$x^2+${q}$`, `$\\dfrac{x+${q}}{${p}}$`],
+    return mk(r, `Simplify $\\dfrac{x^2+${s}x+${pr}}{x+${p}}$ (for $x\\ne-${p}$).`, `$x+${q}$`, [`$x+${p}$`, `$x+${pr}$`, `$x^2+${q}$`, `$\\dfrac{x+${q}}{x+${p}}$`],
       `**Words:** to simplify a **rational expression**, factor the top and the bottom, then cancel any factor they share.\n**Step 1 (factor the top, find two numbers with product ${pr} and sum ${s}):** ${p} and ${q}, so $x^2+${s}x+${pr}=(x+${p})(x+${q})$.\n**Step 2 (write the fraction):** $\\frac{(x+${p})(x+${q})}{x+${p}}$.\n**Step 3 (cancel the shared factor $x+${p}$):** $x+${q}$.\n**Answer: $x+${q}$**`,
       'Factor the top, then cancel the bracket that also sits on the bottom.')
   },
@@ -993,7 +1016,7 @@ const GEN: Record<string, (r: Rng) => Question> = {
   lineMB(r) {
     const p = r.pick([-5, -3, -2, 2, 3, 4, 5]), q0 = r.pick([1, 1, 2, 3]), b = r.pick([-7, -5, -3, -2, 2, 3, 4, 6, 8])
     const g = (a: number, c: number): number => (c ? g(c, a % c) : Math.abs(a))
-    if (q0 > 1 && g(p, q0) !== 1) return GEN.lineMB(r)
+    if ((q0 > 1 && g(p, q0) !== 1) || p === b) return GEN.lineMB(r)
     const slope = (n: number) => (q0 === 1 ? `${n}` : n < 0 ? `-\\frac{${-n}}{${q0}}` : `\\frac{${n}}{${q0}}`)
     const bt = (n: number) => (n > 0 ? `+${n}` : `${n}`)
     const ans = `$y=${slope(p)}x${bt(b)}$`
@@ -1005,6 +1028,7 @@ const GEN: Record<string, (r: Rng) => Question> = {
   },
   pointSlopeForm(r) {
     const m = r.pick([-4, -3, -2, 2, 3, 4, 5]), x1 = r.pick([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]), y1 = r.pick([-6, -4, -3, -2, -1, 1, 2, 3, 5, 7])
+    if (x1 === y1) return GEN.pointSlopeForm(r)
     const t = (v: number, letter: string) => (v < 0 ? `${letter}+${-v}` : `${letter}-${v}`)
     const ans = `$${t(y1, 'y')}=${m}(${t(x1, 'x')})$`
     return mk(r, `A line has slope $${m}$ and passes through $(${x1},${y1})$. Write its equation in point-slope form.`, ans,
@@ -1025,9 +1049,483 @@ const GEN: Record<string, (r: Rng) => Question> = {
       `**Words:** **standard form** is $Ax+By=C$: the x and y terms are on the SAME side, and there are no fractions.\n**Step 1 (get rid of the fraction, multiply EVERYTHING by ${q0}):** ${q0}y = ${p < 0 ? '−' : ''}${A}x + ${q0 * b}.\n**Step 2 (move the x term to the left side):** ${p < 0 ? `${A}x + ${q0}y = ${q0 * b}` : `−${A}x + ${q0}y = ${q0 * b}`}.\n**Step 3 (make the x term positive, multiply both sides by −1 if needed):** ${ans.replace(/\$/g, '')}.\n**Check:** pick x = 0: y = ${b} in the original, and ${A}(0) ${B > 0 ? '+' : '−'} ${Math.abs(B)}(${b}) = ${C} ✓\n**Answer: ${ans.replace(/\$/g, '')}**`,
       'Standard form: clear fractions first, then x and y on the same side, x term positive.')
   },
+  slopeSpecial(r) {
+    const kind = r.pick(['horizontal', 'vertical', 'riseRun', 'riseRun'] as const)
+    if (kind === 'riseRun') {
+      const rise = r.pick([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]), run = r.int(1, 5)
+      if (Math.abs(rise) === run) return GEN.slopeSpecial(r)
+      const ans = `$${frac(rise, run)}$`
+      return mk(r, `Going from one point on a line to another point, you move ${rise > 0 ? 'UP' : 'DOWN'} ${Math.abs(rise)} unit${Math.abs(rise) === 1 ? '' : 's'} and ${run} unit${run === 1 ? '' : 's'} to the RIGHT. What is the slope of the line?`, ans, [`$${frac(run, rise)}$`, `$${frac(-rise, run)}$`, `$${frac(rise, run + 1)}$`],
+        `**Words:** **slope** = rise ÷ run. The **rise** is how far you go up (+) or down (−). The **run** is how far you go to the right.\n**Step 1 (rise):** ${rise > 0 ? 'up' : 'down'} ${Math.abs(rise)}, so rise = ${rise}.\n**Step 2 (run):** right ${run}, so run = ${run}.\n**Step 3 (divide):** ${rise} ÷ ${run} = ${frac(rise, run).replace(/\\frac\{(-?\d+)\}\{(\d+)\}/, '$1/$2')}.\n**Answer: ${plain(ans)}**`,
+        'Going down means a NEGATIVE rise, so the slope is negative.')
+    }
+    if (kind === 'horizontal') {
+      const y = r.pick([-6, -4, -3, 2, 3, 5, 7]), x1 = r.int(-4, 1), x2 = x1 + r.int(2, 5)
+      return mk(r, `What is the slope of the line through $(${x1},${y})$ and $(${x2},${y})$?`, '0', ['Undefined', `${y}`, '1'],
+        `**Words:** both points have the same y-value (${y}), so the line is **horizontal** (flat).\n**Step 1 (rise = change in y):** ${y} − (${y}) = 0.\n**Step 2 (run = change in x):** ${x2} − (${x1}) = ${x2 - x1}.\n**Step 3 (divide):** 0 ÷ ${x2 - x1} = 0.\n**Answer: 0** (every horizontal line has slope 0)`,
+        'Horizontal line: slope 0. Vertical line: slope is Undefined (you cannot divide by 0).')
+    }
+    const x = r.pick([-5, -3, -2, 2, 4, 6]), y1 = r.int(-4, 0), y2 = y1 + r.int(2, 6)
+    return mk(r, `What is the slope of the line through $(${x},${y1})$ and $(${x},${y2})$?`, 'Undefined', ['0', `${y2 - y1}`, '1'],
+      `**Words:** both points have the same x-value (${x}), so the line is **vertical** (straight up and down).\n**Step 1 (rise = change in y):** ${y2} − (${y1}) = ${y2 - y1}.\n**Step 2 (run = change in x):** ${x} − (${x}) = 0.\n**Step 3 (divide):** ${y2 - y1} ÷ 0 cannot be done, because you can never divide by 0.\n**Answer: Undefined** (every vertical line has an Undefined slope)`,
+      'Horizontal line: slope 0. Vertical line: slope is Undefined.')
+  },
+  distCircle(r) {
+    const [a, b, R] = r.pick([[3, 4, 5], [4, 3, 5], [6, 8, 10], [8, 6, 10], [5, 12, 13], [12, 5, 13]])
+    const sa = r.pick([1, -1]), sb = r.pick([1, -1]), h = r.int(-3, 3), k = r.int(-3, 3)
+    const px = h + sa * a, py = k + sb * b
+    return mk(r, `A circle has its center at $(${h},${k})$ and passes through the point $(${px},${py})$. What is the area of the circle?`, `$${R * R}\\pi$`, [`$${R}\\pi$`, `$${2 * R}\\pi$`, `$${2 * R * R}\\pi$`],
+      `**Words:** the **radius** is the distance from the center to any point on the circle. The **area** of a circle is $\\pi r^2$.\n**Step 1 (distance formula):** $d=\\sqrt{(x_2-x_1)^2+(y_2-y_1)^2}$.\n**Step 2 (differences):** ${px} − (${h}) = ${px - h} and ${py} − (${k}) = ${py - k}.\n**Step 3 (square and add):** ${(px - h) ** 2} + ${(py - k) ** 2} = ${R * R}.\n**Step 4 (square root, this is the radius):** r = √${R * R} = ${R}.\n**Step 5 (area):** π × ${R}² = ${R * R}π.\n**Answer: ${R * R}π**`,
+      'The distance from the center to the point IS the radius. Then area = πr².')
+  },
+  sysElim(r) {
+    const x = r.int(-4, 5), y = r.int(-4, 5), a1 = r.int(2, 4), b1 = r.pick([-5, -4, -3, -2, 2, 3, 4, 5]), b2 = r.pick([-3, -2, -1, 1, 2, 3])
+    const K = b1 - a1 * b2
+    if (K === 0 || x === y || x === 0 || y === 0) return GEN.sysElim(r)
+    const c1 = a1 * x + b1 * y, c2 = x + b2 * y
+    const eq = (a: number, b: number, c: number) => `${coef(a, 'x')}${b > 0 ? '+' : '-'}${coef(Math.abs(b), 'y')}=${c}`
+    const ans = `$(${x},${y})$`
+    return mk(r, `Solve the system: $${eq(a1, b1, c1)}$ and $${eq(1, b2, c2)}$. What is the solution $(x,y)$?`, ans, [`$(${y},${x})$`, `$(${x},${-y})$`, `$(${-x},${y})$`, `$(${x + 1},${y})$`],
+      `**Words:** **elimination** means adding the two equations so that one letter cancels.\n**Step 1 (make the x-terms opposites, multiply the second equation by ${-a1}):** $${eq(-a1, -a1 * b2, -a1 * c2)}$.\n**Step 2 (add it to the first equation, the x-terms cancel):** ${K}y = ${c1} + (${-a1 * c2}) = ${c1 - a1 * c2}.\n**Step 3 (divide by ${K}):** y = ${y}.\n**Step 4 (put y = ${y} into the second equation):** x ${b2 > 0 ? '+' : '−'} ${Math.abs(b2)}(${y}) = ${c2}, so x = ${c2} ${b2 * y >= 0 ? '−' : '+'} ${Math.abs(b2 * y)} = ${x}.\n**Check:** ${a1}(${x}) + (${b1})(${y}) = ${c1} ✓\n**Answer: (${x}, ${y})**`,
+      'Multiply one equation so a letter has opposite numbers, then add.')
+  },
+  sysSub(r) {
+    const x = r.int(-3, 5), y = r.int(-4, 8), m = r.pick([-3, -2, -1, 2, 3]), a = r.int(2, 5), c = r.pick([-4, -3, -2, 2, 3, 4])
+    const b = y - m * x
+    if (a + c * m === 0 || x === y || x === 0 || y === 0 || y + 1 === x) return GEN.sysSub(r)
+    const d = a * x + c * y
+    const ans = `$(${x},${y})$`
+    return mk(r, `Solve by substitution: $y=${lin(m, b)}$ and $${coef(a, 'x')}${c > 0 ? '+' : '-'}${coef(Math.abs(c), 'y')}=${d}$. What is $(x,y)$?`, ans, [`$(${y},${x})$`, `$(${x},${-y})$`, `$(${-x},${y})$`, `$(${x},${y + 1})$`],
+      `**Words:** **substitution** means replacing a letter with what it equals.\n**Step 1 (replace y in the second equation with ${lin(m, b)}):** ${a}x + (${c})(${lin(m, b)}) = ${d}.\n**Step 2 (distribute):** ${a}x + (${c * m})x + (${c * b}) = ${d}.\n**Step 3 (combine like terms):** ${a + c * m}x = ${d} − (${c * b}) = ${d - c * b}.\n**Step 4 (divide):** x = ${x}.\n**Step 5 (find y from the first equation):** y = ${m}(${x}) + (${b}) = ${y}.\n**Answer: (${x}, ${y})**`,
+      'If one equation already says “y = …”, plug that whole expression into the other equation.')
+  },
+  gcfBinom(r) {
+    const a = r.pick([1, 1, 2, 3]), p = r.pick([-5, -3, -2, -1, 1, 2, 4]), v = r.pick(['x', 'y']), k = r.pick([-5, -4, -3, -2, 2, 3, 4, 5])
+    if (v === 'x' && a !== 1) return GEN.gcfBinom(r)
+    const inner = lin(a, p)
+    const ans = `$(${inner})(${v}${sgn(k)})$`
+    return mk(r, `Factor: $${v}(${inner})${k > 0 ? '+' : '-'}${Math.abs(k)}(${inner})$`, ans, [`$(${inner})(${v}${sgn(-k)})$`, `$(${lin(a, -p)})(${v}${sgn(k)})$`, `$${k}${v}(${inner})$`],
+      `**Words:** here the **common factor** is a whole bracket, $(${inner})$, which appears in both terms.\n**Step 1 (take out the common bracket once):** $(${inner})(\\ \\ \\ )$.\n**Step 2 (what is left from each term):** from the first term ${v}, from the second term ${k}.\n**Step 3 (write them in the second bracket):** $(${inner})(${v}${sgn(k)})$.\n**Answer: ${plain(ans)}**`,
+      'A repeated bracket is a GCF too: pull it out once.')
+  },
+  ratGcf(r) {
+    const p = r.int(2, 7), q = r.int(2, 7), a = r.pick([-6, -4, -3, -2, 2, 3, 4, 5])
+    if (p === q || gcd(p, q) !== 1) return GEN.ratGcf(r)
+    const ans = `$\\dfrac{${p}x}{${q}}$`
+    return mk(r, `Simplify $\\dfrac{${quad(p, p * a, 0)}}{${lin(q, q * a)}}$.`, ans, [`$\\dfrac{${p}}{${q}}$`, `$\\dfrac{${q}x}{${p}}$`, `$${p}x$`, `$\\dfrac{${lin(p, a)}}{${q}}$`],
+      `**Words:** to simplify a **rational expression** (a fraction with polynomials), factor the top and bottom, then cancel what they share.\n**Step 1 (GCF of the top is ${p}x):** $${quad(p, p * a, 0)}=${p}x(${lin(1, a)})$.\n**Step 2 (GCF of the bottom is ${q}):** $${lin(q, q * a)}=${q}(${lin(1, a)})$.\n**Step 3 (cancel the shared bracket $(${lin(1, a)})$):** $\\frac{${p}x}{${q}}$.\n**Answer: ${p}x/${q}**`,
+      'Factor out the GCF on top and bottom, then cancel the matching bracket.')
+  },
+  ratNeg(r) {
+    const a = r.int(2, 9), m = r.pick([1, 2, 3]), t = r.int(1, 4), k = m * t
+    const ans = `${-t}`
+    return mk(r, `Simplify $\\dfrac{${k * a}-${coef(k, 'x')}}{${lin(m, -m * a)}}$.`, ans, [`${t}`, '0', `${-(t + 1)}`],
+      `**Words:** $(${a}-x)$ and $(x-${a})$ look alike but are OPPOSITES: $${a}-x=-(x-${a})$.\n**Step 1 (factor the top):** $${k * a}-${coef(k, 'x')}=${k}(${a}-x)=-${k}(x-${a})$.\n**Step 2 (factor the bottom):** $${lin(m, -m * a)}=${m === 1 ? '' : m}(x-${a})$.\n**Step 3 (cancel $(x-${a})$):** $\\frac{-${k}}{${m}}=${-t}$.\n**Answer: ${-t}**`,
+      '(a − x) = −(x − a): take out a −1, then cancel.')
+  },
+  ratAdd(r) {
+    if (r.int(0, 2) === 0) {
+      const a = r.int(1, 6), b = r.int(1, 6)
+      if (a === b) return GEN.ratAdd(r)
+      const ans = `$\\dfrac{${lin(a, b)}}{x^2}$`
+      return mk(r, `Add: $\\dfrac{${a}}{x}+\\dfrac{${b}}{x^2}$`, ans, [`$\\dfrac{${a + b}}{x^2}$`, `$\\dfrac{${a + b}}{x^3}$`, `$\\dfrac{${lin(b, a)}}{x^2}$`],
+        `**Words:** to add fractions you need a **common denominator** (the same bottom).\n**Step 1 (common denominator):** x².\n**Step 2 (multiply the first fraction by x/x):** $\\frac{${a}}{x}=\\frac{${a}x}{x^2}$.\n**Step 3 (add the tops):** $\\frac{${a}x+${b}}{x^2}$.\n**Answer: (${a}x + ${b})/x²**`,
+        'Same bottom first, then add the tops.')
+    }
+    const a = r.int(1, 5), b = r.int(1, 5), p = r.pick([-5, -3, -2, -1, 1, 2, 3, 4]), q = r.pick([-4, -3, -1, 1, 2, 3, 5])
+    if (p === q || a === b) return GEN.ratAdd(r)
+    const D = `(${lin(1, p)})(${lin(1, q)})`
+    const top = lin(a + b, a * q + b * p)
+    const ans = `$\\dfrac{${top}}{${D}}$`
+    return mk(r, `Add: $\\dfrac{${a}}{${lin(1, p)}}+\\dfrac{${b}}{${lin(1, q)}}$`, ans, [`$\\dfrac{${a + b}}{${lin(2, p + q)}}$`, `$\\dfrac{${a + b}}{${D}}$`, `$\\dfrac{${lin(a + b, a * p + b * q)}}{${D}}$`],
+      `**Words:** to add fractions you need a **common denominator**. Here it is the product of the two bottoms, ${D}.\n**Step 1 (multiply the first fraction top and bottom by $(${lin(1, q)})$):** top becomes ${a}(${lin(1, q)}) = ${lin(a, a * q)}.\n**Step 2 (multiply the second fraction top and bottom by $(${lin(1, p)})$):** top becomes ${b}(${lin(1, p)}) = ${lin(b, b * p)}.\n**Step 3 (add the tops, combine like terms):** ${top}.\n**Answer: (${top}) / ${D}**`,
+      'Multiply each fraction by the bottom it is missing, then add the tops.')
+  },
+  ratCross(r) {
+    const p = r.int(1, 6), q = r.int(1, 6), x = p + r.int(1, 6), t = r.int(1, 2)
+    const a = t * (x - p), b = t * (x + q)
+    if (a === b) return GEN.ratCross(r)
+    return mk(r, `Solve: $\\dfrac{${a}}{x-${p}}=\\dfrac{${b}}{x+${q}}$`, `${x}`, [`${x + 1}`, `${-x}`, `${p + q}`],
+      `**Words:** when one fraction equals another fraction, **cross multiply**: top-left × bottom-right = top-right × bottom-left.\n**Step 1 (cross multiply):** ${a}(x + ${q}) = ${b}(x − ${p}).\n**Step 2 (distribute):** ${a}x + ${a * q} = ${b}x − ${b * p}.\n**Step 3 (x-terms on one side, numbers on the other):** ${a * q} + ${b * p} = ${b}x − ${a}x, so ${a * q + b * p} = ${b - a}x.\n**Step 4 (divide):** x = ${x}.\n**Check:** the bottoms are ${x - p} and ${x + q}, not 0 ✓\n**Answer: ${x}**`,
+      'Fraction = fraction → cross multiply.')
+  },
+  ratCrossSq(r) {
+    const s = r.int(2, 9)
+    const divs = [] as number[]
+    for (let d = 1; d < s * s; d++) if ((s * s) % d === 0 && d !== s) divs.push(d)
+    const k = r.pick(divs), m = (s * s) / k
+    const ans = `$x=${s}$ or $x=-${s}$`
+    return mk(r, `Solve: $\\dfrac{${k}}{x}=\\dfrac{x}{${m}}$`, ans, [`$x=${s}$ only`, `$x=${s * s}$`, `$x=${k + m}$`],
+      `**Step 1 (cross multiply):** x · x = ${k} × ${m}, so x² = ${s * s}.\n**Step 2 (take the square root of both sides, remember ±):** x = ±√${s * s} = ±${s}.\n**Step 3 (check: neither answer makes a bottom 0):** both work.\n**Answer: x = ${s} or x = −${s}**`,
+      'x² = number → TWO answers, + and −.')
+  },
+  vertexForm(r) {
+    const a = r.pick([-3, -2, -1, 1, 2, 3]), h = r.pick([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]), k = r.pick([-6, -5, -4, -3, -1, 1, 2, 3, 6, 7])
+    if (Math.abs(h) === Math.abs(k)) return GEN.vertexForm(r)
+    const ans = `$(${h},${k})$`
+    return mk(r, `What is the vertex of $y=${a === 1 ? '' : a === -1 ? '-' : a}(x${sgn(-h)})^2${sgn(k)}$?`, ans, [`$(${-h},${k})$`, `$(${h},${-k})$`, `$(${k},${h})$`],
+      `**Words:** **vertex form** is $y=a(x-h)^2+k$, and the vertex (the turning point) is $(h,k)$.\n**Step 1 (h is the number inside the bracket with its sign SWITCHED):** the bracket is (x ${h < 0 ? '+' : '−'} ${Math.abs(h)}), so h = ${h}.\n**Step 2 (k is the number outside, sign NOT switched):** k = ${k}.\n**Answer: (${h}, ${k})**`,
+      'Vertex form: switch the sign inside the bracket, keep the sign outside.')
+  },
+  vertexFactored(r) {
+    const p = r.int(-5, 4), d = r.pick([2, 4, 6]), q = p + d, a = r.pick([1, 1, -1, 2])
+    const xv = (p + q) / 2, yv = a * (xv - p) * (xv - q)
+    const ans = `$(${xv},${yv})$`
+    const br = (n: number) => (n === 0 ? 'x' : `(x${sgn(-n)})`)
+    if (xv === 0) return GEN.vertexFactored(r)
+    return mk(r, `What is the vertex of $y=${a === 1 ? '' : a === -1 ? '-' : a}${br(p)}${br(q)}$?`, ans, [`$(${-xv},${yv})$`, `$(${xv},${-yv})$`, `$(${p},${q})$`],
+      `**Words:** in **factored form** the x-intercepts are where each bracket is 0. The vertex is exactly halfway between them.\n**Step 1 (x-intercepts):** x = ${p} and x = ${q}.\n**Step 2 (x of the vertex is their average):** (${p} + ${q}) ÷ 2 = ${xv}.\n**Step 3 (put x = ${xv} into the equation):** y = ${a}(${xv} − (${p}))(${xv} − (${q})) = ${a} × ${xv - p} × ${xv - q} = ${yv}.\n**Answer: (${xv}, ${yv})**`,
+      'Factored form: vertex x = average of the two x-intercepts.')
+  },
+  vertexA(r) {
+    const a = r.pick([-3, -2, 2, 3]), h = r.pick([-3, -2, -1, 1, 2, 3]), c = r.int(-6, 6)
+    const b = -2 * a * h, k = c - a * h * h
+    if (k === c || k === 0 || c === -k || Math.abs(h) === Math.abs(k)) return GEN.vertexA(r)
+    const ans = `$(${h},${k})$`
+    return mk(r, `What is the vertex of $y=${quad(a, b, c)}$?`, ans, [`$(${-h},${k})$`, `$(${h},${-k})$`, `$(${h},${c})$`],
+      `**Words:** in **standard form** $y=ax^2+bx+c$ the x-coordinate of the vertex is $x=-\\dfrac{b}{2a}$.\n**Step 1 (read a and b):** a = ${a}, b = ${b}.\n**Step 2 (x of the vertex):** x = −(${b}) ÷ (2 × ${a}) = ${-b} ÷ ${2 * a} = ${h}.\n**Step 3 (put x = ${h} back in to get y):** y = ${a}(${h})² + (${b})(${h}) + (${c}) = ${a * h * h} + (${b * h}) + (${c}) = ${k}.\n**Answer: (${h}, ${k})**`,
+      'x = −b/(2a), then plug that x back in for y.')
+  },
+  quadIneqFull(r) {
+    const p = r.int(-6, 3), q = p + r.int(1, 7), rel = r.pick(['>', '\\ge', '<', '\\le'] as const), moved = r.pick([true, false])
+    const b = -(p + q), c = p * q
+    const outside = rel === '>' || rel === '\\ge', closed = rel === '\\ge' || rel === '\\le'
+    const L = closed ? '[' : '(', R = closed ? ']' : ')'
+    const out = (l: string, rr: string) => `$(-\\infty,${p}${rr}\\cup${l}${q},\\infty)$`
+    const ins = (l: string, rr: string) => `$${l}${p},${q}${rr}$`
+    const ans = outside ? out(L, R) : ins(L, R)
+    const wrong = outside ? [ins(L, R), out(closed ? '(' : '[', closed ? ')' : ']'), ins(closed ? '(' : '[', closed ? ')' : ']')] : [out(L, R), ins(closed ? '(' : '[', closed ? ')' : ']'), out(closed ? '(' : '[', closed ? ')' : ']')]
+    const lhs = moved && c !== 0 ? quad(1, b, 0) : quad(1, b, c), rhs = moved && c !== 0 ? `${-c}` : '0'
+    const relWord = rel === '>' ? '> 0' : rel === '\\ge' ? '≥ 0' : rel === '<' ? '< 0' : '≤ 0'
+    return mk(r, `Solve $${lhs}${rel}${rhs}$. Write the answer in interval notation.`, ans, wrong,
+      `**Words:** **interval notation** uses ( ) when an endpoint is NOT included and [ ] when it IS included (for ≥ or ≤).\n**Step 1 (get 0 on one side):** $${quad(1, b, c)}${rel}0$.\n**Step 2 (factor):** $${p === 0 ? 'x' : `(x${sgn(-p)})`}${q === 0 ? 'x' : `(x${sgn(-q)})`}${rel}0$, so the critical points are ${p} and ${q}.\n**Step 3 (test a number in each region):** left of ${p} the product is +, between ${p} and ${q} it is −, right of ${q} it is +.\n**Step 4 (keep the regions that make it ${relWord}):** ${outside ? 'the two outside regions' : 'the middle region'}.\n**Step 5 (brackets):** ${closed ? 'the endpoints make it equal 0, which is allowed, so use [ ]' : 'the endpoints are not allowed, so use ( )'}. ∞ always gets ( ).\n**Answer: ${plain(ans)}**`,
+      '> 0 → outside the roots; < 0 → between. ≥ or ≤ → square brackets on the roots.')
+  },
+  compositeExpr(r) {
+    const a = r.int(2, 4), b = r.pick([-5, -4, -3, -1, 1, 2, 3, 5]), c = r.pick([-4, -3, -2, 2, 3, 5])
+    const fg = quad(a, 0, a * c + b), gf = quad(a * a, 2 * a * b, b * b + c)
+    if (new Set([fg, gf, quad(a, 0, c + b), quad(a, 0, b * c)]).size < 4) return GEN.compositeExpr(r)
+    const which = r.pick(['fg', 'gf'] as const)
+    const ans = `$${which === 'fg' ? fg : gf}$`
+    return mk(r, `Let $f(x)=${lin(a, b)}$ and $g(x)=${quad(1, 0, c)}$. Find $${which === 'fg' ? 'f(g(x))' : 'g(f(x))'}$.`, ans, [`$${which === 'fg' ? gf : fg}$`, `$${quad(a, 0, c + b)}$`, `$${quad(a, 0, b * c)}$`],
+      which === 'fg'
+        ? `**Words:** $f(g(x))$ means put the WHOLE of $g(x)$ in place of x inside f.\n**Step 1:** $f(g(x))=${a}(${quad(1, 0, c)})${sgn(b)}$.\n**Step 2 (distribute ${a}):** $${a}x^2${sgn(a * c)}${sgn(b)}$.\n**Step 3 (combine the numbers):** $${fg}$.\n**Answer: ${fg}**`
+        : `**Words:** $g(f(x))$ means put the WHOLE of $f(x)$ in place of x inside g.\n**Step 1:** $g(f(x))=(${lin(a, b)})^2${sgn(c)}$.\n**Step 2 (FOIL the square):** $(${lin(a, b)})(${lin(a, b)})=${quad(a * a, 2 * a * b, b * b)}$.\n**Step 3 (add ${c}):** $${gf}$.\n**Answer: ${gf}**`,
+      'Replace x with the whole inner function, in brackets.')
+  },
+  inversePoint(r) {
+    const a = r.pick([-4, -2, 1, 2, 3, 5]), b = r.pick([-3, -1, 4, 6, 7, 9])
+    if (a === b || a === -b) return GEN.inversePoint(r)
+    return mk(r, `The point $(${a},${b})$ is on the graph of $f$. Which point must be on the graph of $f^{-1}$ (the inverse)?`, `$(${b},${a})$`, [`$(${a},${b})$`, `$(${-a},${-b})$`, `$(${-b},${-a})$`],
+      `**Words:** the **inverse** function undoes f, so it SWITCHES every x and y.\n**Step 1:** (x, y) = (${a}, ${b}).\n**Step 2 (switch them):** (${b}, ${a}).\n**Answer: (${b}, ${a})**`,
+      'Inverse = switch x and y.')
+  },
+  ratHole(r) {
+    const vals = [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]
+    const a = r.pick(vals), b = r.pick(vals), c = r.pick(vals)
+    if (a === b || a === c || b === c) return GEN.ratHole(r)
+    const top = quad(1, -(a + b), a * b), bot = quad(1, -(a + c), a * c)
+    const ask = r.pick(['hole', 'va'] as const)
+    const ans = ask === 'hole' ? `$x=${a}$` : `$x=${c}$`
+    if (new Set([a, b, c, -(ask === 'hole' ? a : c)]).size < 4) return GEN.ratHole(r)
+    return mk(r, `For $f(x)=\\dfrac{${top}}{${bot}}$, where is the ${ask === 'hole' ? 'hole' : 'vertical asymptote'}?`, ans, [ask === 'hole' ? `$x=${c}$` : `$x=${a}$`, `$x=${b}$`, `$x=${-(ask === 'hole' ? a : c)}$`],
+      `**Words:** a **hole** is where a factor CANCELS from top and bottom. A **vertical asymptote** is where a factor stays on the bottom after cancelling.\n**Step 1 (factor the top):** ${top} = (x${sgn(-a)})(x${sgn(-b)}).\n**Step 2 (factor the bottom):** ${bot} = (x${sgn(-a)})(x${sgn(-c)}).\n**Step 3 (cancel the shared factor (x${sgn(-a)})):** that gives the hole at x = ${a}.\n**Step 4 (what is left on the bottom, (x${sgn(-c)})):** vertical asymptote at x = ${c}.\n**Answer: ${plain(ans)}**`,
+      'Cancelled factor → hole. Factor left on the bottom → vertical asymptote.')
+  },
+  slantAsym(r) {
+    const A = r.int(1, 3), B = r.int(-4, 4), C = r.int(-5, 6), d = r.pick([-3, -2, -1, 1, 2, 3])
+    const m0 = B + A * d, rem = C + d * m0
+    if (rem === 0 || m0 === B - A * d || m0 === (B === 0 ? 1 : B)) return GEN.slantAsym(r)
+    const ans = `$y=${lin(A, m0)}$`
+    if (new Set([ans, `$y=${lin(A, B - A * d)}$`, `$y=${lin(A, B === 0 ? 1 : B)}$`]).size < 3) return GEN.slantAsym(r)
+    return mk(r, `Find the slant (oblique) asymptote of $f(x)=\\dfrac{${quad(A, B, C)}}{${lin(1, -d)}}$.`, ans, [`$y=${lin(A, B - A * d)}$`, `$y=${lin(A, B === 0 ? 1 : B)}$`, 'There is no slant asymptote'],
+      `**Words:** when the top's degree is exactly ONE more than the bottom's, there is a **slant asymptote**: a slanted line the graph approaches. Find it with long division and IGNORE the remainder.\n**Step 1 (divide the first terms):** ${A === 1 ? '' : A}x² ÷ x = ${coef(A, 'x')}.\n**Step 2 (multiply back and subtract):** ${coef(A, 'x')}(${lin(1, -d)}) = ${quad(A, -A * d, 0)}; subtracting leaves ${lin(m0, C)}.\n**Step 3 (divide again):** ${m0}x ÷ x = ${m0}. The remainder is ${rem}, which we ignore.\n**Step 4 (the quotient is the asymptote):** y = ${lin(A, m0)}.\n**Answer: y = ${lin(A, m0)}**`,
+      'Top degree = bottom degree + 1 → slant asymptote = the quotient (drop the remainder).')
+  },
+  ratShift(r) {
+    const p = r.pick([-5, -4, -3, -2, 2, 3, 4, 6]), k = r.pick([-6, -3, -1, 1, 2, 5, 7])
+    if (p === k) return GEN.ratShift(r)
+    const ask = r.pick(['domain', 'range'] as const)
+    const iv = (n: number) => `$(-\\infty,${n})\\cup(${n},\\infty)$`
+    const ans = ask === 'domain' ? iv(p) : iv(k)
+    return mk(r, `What is the ${ask} of $y=\\dfrac{1}{${lin(1, -p)}}${sgn(k)}$?`, ans, [ask === 'domain' ? iv(k) : iv(p), iv(-p === k ? 0 : -p), '$(-\\infty,\\infty)$'],
+      `**Words:** the **domain** is every x allowed, the **range** is every y the graph reaches. Remove the vertical asymptote from the domain and the horizontal asymptote from the range.\n**Step 1 (vertical asymptote, bottom = 0):** x ${p > 0 ? '−' : '+'} ${Math.abs(p)} = 0, so x = ${p}.\n**Step 2 (horizontal asymptote):** 1/(x ${p > 0 ? '−' : '+'} ${Math.abs(p)}) goes to 0, then the ${sgn(k)} shifts it, so y = ${k}.\n**Step 3 (${ask}):** all real numbers except ${ask === 'domain' ? p : k}.\n**Answer: ${plain(ans)}**`,
+      'Domain: remove the vertical asymptote. Range: remove the horizontal asymptote.')
+  },
+  expEqTwoBase(r) {
+    const base = r.pick([2, 3]), k = r.pick([2, 3]), m2 = r.pick([1, 2]), m1 = r.int(1, 5), x = r.int(-4, 6), n2 = r.int(-4, 4)
+    if (m1 === k * m2) return GEN.expEqTwoBase(r)
+    const n1 = k * (m2 * x + n2) - m1 * x
+    const big = base ** k
+    return mk(r, `Solve for $x$: $${base}^{${lin(m1, n1)}}=${big}^{${lin(m2, n2)}}$`, `${x}`, [`${x + 1}`, `${-x}`, `${x + 2}`],
+      `**Words:** to solve an **exponential equation**, write both sides with the SAME base, then set the exponents equal.\n**Step 1 (write ${big} as a power of ${base}):** ${big} = ${base}^${k}.\n**Step 2 (power to a power: multiply the exponents):** ${big}^(${lin(m2, n2)}) = ${base}^(${k}(${lin(m2, n2)})) = ${base}^(${lin(k * m2, k * n2)}).\n**Step 3 (same base, so exponents are equal):** ${lin(m1, n1)} = ${lin(k * m2, k * n2)}.\n**Step 4 (solve):** ${n1} − (${k * n2}) = ${k * m2}x − ${m1}x, so ${n1 - k * n2} = ${k * m2 - m1}x, x = ${x}.\n**Answer: ${x}**`,
+      'Rewrite both sides with the same base, then exponents are equal.')
+  },
+  expLn(r) {
+    if (r.pick([true, false])) {
+      const n = r.pick([2, 3, 5, 6, 7, 10])
+      return mk(r, `Solve for $x$: $e^x=${n}$`, `$x=\\ln ${n}$`, [`$x=\\log ${n}$`, `$x=e^{${n}}$`, `$x=\\dfrac{${n}}{e}$`],
+        `**Words:** **ln** is the natural log, the log with base e. It undoes e.\n**Step 1 (take ln of both sides):** ln(eˣ) = ln ${n}.\n**Step 2 (move the exponent to the front):** x · ln e = ln ${n}, and ln e = 1.\n**Step 3:** x = ln ${n} (about ${Math.log(n).toFixed(4)}).\n**Answer: x = ln ${n}**`,
+        'Base e → use ln. ln e = 1.')
+    }
+    const [a, n] = r.pick([[3, 8], [2, 5], [2, 7], [3, 10], [5, 12], [4, 9], [2, 11]])
+    return mk(r, `Solve for $x$: $${a}^x=${n}$`, `$x=\\dfrac{\\log ${n}}{\\log ${a}}$`, [`$x=\\dfrac{\\log ${a}}{\\log ${n}}$`, `$x=\\log ${n}-\\log ${a}$`, `$x=\\dfrac{${n}}{${a}}$`],
+      `**Words:** ${n} is not a whole power of ${a}, so take the **log** of both sides.\n**Step 1 (log both sides):** log(${a}ˣ) = log ${n}.\n**Step 2 (power rule: move x to the front):** x · log ${a} = log ${n}.\n**Step 3 (divide by log ${a}):** x = log ${n} / log ${a} (about ${(Math.log(n) / Math.log(a)).toFixed(4)}).\n**Answer: x = log ${n} / log ${a}**`,
+      'Cannot match the bases? Take the log of both sides and bring the exponent down.')
+  },
+  logRules(r) {
+    const kind = r.pick(['power', 'product', 'quotient'] as const)
+    const [b, maxE] = r.pick([[2, 7], [3, 4], [4, 4], [5, 3]])
+    if (kind === 'power') {
+      const i = r.int(1, Math.min(3, maxE)), m = r.int(2, 6)
+      return mk(r, `Evaluate $\\log_{${b}}\\left(${b ** i}^{${m}}\\right)$.`, `${i * m}`, [`${i + m}`, `${b ** i * m}`, `${i}`],
+        `**Words:** the **power rule** says $\\log(A^n)=n\\log A$: the exponent moves to the front.\n**Step 1 (power rule):** ${m} · log_${b}(${b ** i}).\n**Step 2 (${b} to what power is ${b ** i}?):** ${b}^${i} = ${b ** i}, so log_${b}(${b ** i}) = ${i}.\n**Step 3 (multiply):** ${m} × ${i} = ${i * m}.\n**Answer: ${i * m}**`,
+        'Exponent inside a log → move it to the front.')
+    }
+    const i = r.int(2, maxE), j = r.int(1, maxE)
+    if (kind === 'quotient' && i <= j) return GEN.logRules(r)
+    const v = kind === 'product' ? i + j : i - j
+    return mk(r, `Evaluate $\\log_{${b}}${kind === 'product' ? `(${b ** i}\\times${b ** j})` : `\\dfrac{${b ** i}}{${b ** j}}`}$.`, `${v}`, [`${kind === 'product' ? i * j : i + j}`, `${kind === 'product' ? b ** i * b ** j : b ** i / b ** j}`, `${v + 1}`],
+      `**Words:** the **${kind} rule** says $\\log(AB)=\\log A+\\log B$ and $\\log\\frac AB=\\log A-\\log B$.\n**Step 1 (split):** log_${b}(${b ** i}) ${kind === 'product' ? '+' : '−'} log_${b}(${b ** j}).\n**Step 2 (each log):** ${b}^${i} = ${b ** i} gives ${i}; ${b}^${j} = ${b ** j} gives ${j}.\n**Step 3:** ${i} ${kind === 'product' ? '+' : '−'} ${j} = ${v}.\n**Answer: ${v}**`,
+      'Times → add the logs. Divide → subtract the logs.')
+  },
+  logEqForms(r) {
+    const [b, k] = r.pick([[2, 3], [2, 4], [2, 5], [3, 2], [3, 3], [3, 4], [4, 3], [5, 2], [5, 3], [10, 2], [6, 2], [7, 2]])
+    const N = b ** k
+    const kind = r.pick(['x', 'base', 'arg'] as const)
+    if (kind === 'x') return mk(r, `Solve: $\\log_{${b}}${N}=x$`, `${k}`, [`${N / b}`, `${b * k + 1}`, `${k + 1}`],
+      `**Words:** $\\log_bN=x$ means $b^x=N$ (exponential form).\n**Step 1 (rewrite):** ${b}ˣ = ${N}.\n**Step 2:** ${b}^${k} = ${N}.\n**Answer: ${k}**`, 'log form → exponential form: base^answer = number.')
+    if (kind === 'base') return mk(r, `Solve: $\\log_{x}${N}=${k}$`, `${b}`, [`${b * k}`, `${N}`, `${b + 1}`],
+      `**Step 1 (exponential form):** x^${k} = ${N}.\n**Step 2 (take the ${k === 2 ? 'square' : k === 3 ? 'cube' : k + 'th'} root):** x = ${b}, because ${b}^${k} = ${N}.\n**Answer: ${b}**`, 'log form → exponential form, then take the root.')
+    return mk(r, `Solve: $\\log_{${b}}x=${k}$`, `${N}`, [`${b * k}`, `${k ** b}`, `${N / b}`],
+      `**Step 1 (exponential form):** x = ${b}^${k}.\n**Step 2:** ${b}^${k} = ${N}.\n**Answer: ${N}**`, 'log_b x = k → x = b^k.')
+  },
+  logEqSame(r) {
+    const b = r.pick([2, 3, 5, 7]), x = r.int(1, 9), a1 = r.int(2, 7), a2 = r.int(2, 7), c1 = r.int(-3, 9)
+    if (a1 === a2) return GEN.logEqSame(r)
+    const c2 = a1 * x + c1 - a2 * x
+    if (a1 * x + c1 <= 0) return GEN.logEqSame(r)
+    return mk(r, `Solve: $\\log_{${b}}(${lin(a1, c1)})=\\log_{${b}}(${lin(a2, c2)})$`, `${x}`, [`${x + 1}`, `${-x}`, `${b}`],
+      `**Words:** if two logs with the SAME base are equal, the insides must be equal.\n**Step 1 (set the insides equal):** ${lin(a1, c1)} = ${lin(a2, c2)}.\n**Step 2 (x-terms on one side):** ${a1}x − ${a2}x = ${c2} − (${c1}), so ${a1 - a2}x = ${c2 - c1}.\n**Step 3 (divide):** x = ${x}.\n**Check (the inside must be positive):** ${a1}(${x}) + (${c1}) = ${a1 * x + c1} > 0 ✓\n**Answer: ${x}**`,
+      'Same base on both sides → drop the logs and set the insides equal.')
+  },
+  logEqSum(r) {
+    const [b, x, k, n] = r.pick([[2, 2, 2, 3], [2, 2, 6, 4], [2, 4, 4, 5], [2, 1, 7, 3], [3, 3, 6, 3], [3, 1, 8, 2], [2, 4, 12, 6], [2, 8, 8, 7]])
+    const bad = -(x + k)
+    return mk(r, `Solve: $\\log_{${b}}x+\\log_{${b}}(x+${k})=${n}$`, `$x=${x}$`, [`$x=${x}$ or $x=${bad}$`, `$x=${bad}$`, `$x=${b ** n}$`],
+      `**Words:** the **product rule** joins two logs: $\\log A+\\log B=\\log(AB)$. An **extraneous** answer is one that comes out of the algebra but does not work in the original (you can never take the log of a negative number).\n**Step 1 (join the logs):** log_${b}(x(x + ${k})) = ${n}.\n**Step 2 (exponential form):** x(x + ${k}) = ${b}^${n} = ${b ** n}.\n**Step 3 (quadratic):** x² + ${k}x − ${b ** n} = 0, so (x − ${x})(x + ${x + k}) = 0, giving x = ${x} or x = ${bad}.\n**Step 4 (check):** x = ${bad} would put a negative number inside a log, so it is extraneous.\n**Answer: x = ${x}**`,
+      'Join the logs, solve, then THROW AWAY answers that make a log of a negative.')
+  },
+  simpleIntSolve(r) {
+    const P = r.pick([2000, 3000, 4000, 5000, 8000, 10000, 25000]), rate = r.int(2, 9), t = r.int(2, 9)
+    const I = (P * rate * t) / 100
+    const peso = (n: number) => `₱${n.toLocaleString('en-US')}`
+    const kind = r.pick(['t', 'r', 'total'] as const)
+    if (kind === 't') return mk(r, `${peso(P)} is invested at ${rate}% simple interest per year. How many years will it take to earn ${peso(I)} in interest?`, `${t} years`, [`${t + 1} years`, `${t - 1} years`, `${t * 2} years`],
+      `**Words:** **simple interest** uses $I=Prt$ (P = principal, r = rate as a decimal, t = years).\n**Step 1 (rate as a decimal):** ${rate}% = ${rate / 100}.\n**Step 2 (substitute):** ${I} = ${P} × ${rate / 100} × t = ${(P * rate) / 100}t.\n**Step 3 (divide):** t = ${I} ÷ ${(P * rate) / 100} = ${t}.\n**Answer: ${t} years**`, 'I = Prt. Divide to undo the multiplying.')
+    if (kind === 'r') return mk(r, `${peso(P)} earns ${peso(I)} in simple interest in ${t} years. What is the annual interest rate?`, `${rate}%`, [`${rate + 1}%`, `${rate * t}%`, `${rate / 10}%`],
+      `**Step 1 (I = Prt):** ${I} = ${P} × r × ${t} = ${P * t}r.\n**Step 2 (divide):** r = ${I} ÷ ${P * t} = ${rate / 100}.\n**Step 3 (decimal to percent, × 100):** ${rate}%.\n**Answer: ${rate}%**`, 'Solve for r, then multiply by 100 to get a percent.')
+    return mk(r, `${peso(P)} is invested at ${rate}% simple interest for ${t} years. What is the total value of the account at the end?`, peso(P + I), [peso(I), peso(P + 2 * I), peso(P)],
+      `**Words:** the **total** (future value) is the principal PLUS the interest.\n**Step 1 (interest, I = Prt):** ${P} × ${rate / 100} × ${t} = ${I}.\n**Step 2 (add the principal):** ${P} + ${I} = ${P + I}.\n**Answer: ${peso(P + I)}**`, 'Total = principal + interest.')
+  },
+  compIntN(r) {
+    const P = r.pick([1000, 5000, 10000]), rate = r.pick([4, 6, 8, 10, 12]), [n, word] = r.pick([[2, 'semi-annually'], [4, 'quarterly'], [12, 'monthly']] as [number, string][]), t = r.int(2, 20)
+    const dec = rate / 100
+    const ans = `$${P}\\left(1+\\dfrac{${dec}}{${n}}\\right)^{${n * t}}$`
+    return mk(r, `₱${P.toLocaleString('en-US')} is invested at ${rate}% interest compounded ${word} for ${t} years. Which expression gives the final amount?`, ans,
+      [`$${P}\\left(1+\\dfrac{${dec}}{${n}}\\right)^{${t}}$`, `$${P}\\left(1+${dec}\\right)^{${n * t}}$`, `$${P}\\left(1+\\dfrac{${rate}}{${n}}\\right)^{${n * t}}$`],
+      `**Words:** the **compound interest** formula is $A=P\\left(1+\\frac rn\\right)^{nt}$. n is how many times per year interest is added: ${word} means n = ${n}.\n**Step 1 (P, r as a decimal, n, t):** P = ${P}, r = ${dec}, n = ${n}, t = ${t}.\n**Step 2 (exponent nt):** ${n} × ${t} = ${n * t}.\n**Step 3 (put them in):** ${P}(1 + ${dec}/${n})^${n * t}.\n**Answer: ${P}(1 + ${dec}/${n})^${n * t}**`,
+      'Annually n = 1, semi-annually 2, quarterly 4, monthly 12. Exponent = n × t.')
+  },
+  rule72(r) {
+    const rate = r.pick([2, 3, 4, 6, 8, 9, 12, 18])
+    const t = 72 / rate
+    return mk(r, `Using the Rule of 72, about how many years does it take money to double at ${rate}% interest per year?`, `${t} years`, [`${t * 2} years`, `${Math.round(100 / rate)} years`, `${rate * 2} years`],
+      `**Words:** the **Rule of 72** estimates doubling time: years ≈ 72 ÷ (the rate as a percent, NOT a decimal).\n**Step 1:** 72 ÷ ${rate}.\n**Step 2:** = ${t}.\n**Answer: about ${t} years**`,
+      'Doubling time ≈ 72 ÷ rate%.')
+  },
+  annuityType(r) {
+    const bank: [string, string, string[], string][] = [
+      ['In an ORDINARY annuity, the deposits are made:', 'at the END of each period', ['at the BEGINNING of each period', 'only once, at the start', 'only once, at the end'], 'Ordinary annuity: you deposit at the END of each period, after interest is credited.'],
+      ['In an annuity DUE, the deposits are made:', 'at the BEGINNING of each period', ['at the END of each period', 'only once, at the start', 'only once, at the end'], 'Annuity due: you deposit at the BEGINNING of each period, so every deposit earns one extra interest payment.'],
+      ['Same deposit, same rate, same number of years. Which has the bigger future value?', 'the annuity due', ['the ordinary annuity', 'they are always equal', 'it depends on the deposit'], 'In an annuity due each deposit is made earlier, so it gets one more interest payment. Its future value is bigger.'],
+      ['Which formula gives the future value of an ORDINARY annuity (deposit C each period, rate r, n periods)?', '$C\\cdot\\dfrac{(1+r)^n-1}{r}$', ['$C\\cdot\\dfrac{(1+r)^n-1}{r}\\cdot(1+r)$', '$C(1+r)^n$', '$C\\cdot n\\cdot r$'], 'The ordinary annuity formula is C × ((1 + r)ⁿ − 1) / r. The annuity due formula is the same times an extra (1 + r).'],
+    ]
+    const [q, a, w, why] = r.pick(bank)
+    return mk(r, q, a, w, `**Words:** an **annuity** is a series of equal deposits made every period.\n**Step 1:** ${why}\n**Answer: ${plain(a)}**`, 'Ordinary = End. Due = beginning (and worth more).')
+  },
+  logicParts(r) {
+    const bank = [['you live in Los Angeles', 'you live in California'], ['I am hungry', 'I will eat pizza'], ['it rains', 'the street is wet'], ['a number is divisible by 4', 'it is even']]
+    const [p, q] = r.pick(bank)
+    const kind = r.pick(['hyp', 'con', 'same', 'conv'] as const)
+    const st = `If ${p}, then ${q}.`
+    if (kind === 'hyp' || kind === 'con')
+      return mk(r, `In “${st}”, what is the ${kind === 'hyp' ? 'hypothesis' : 'conclusion'}?`, kind === 'hyp' ? p : q, [kind === 'hyp' ? q : p, `not ${p}`, `${p} and ${q}`],
+        `**Words:** in “If p, then q”, the **hypothesis** p is the part after “if”, and the **conclusion** q is the part after “then”.\n**Step 1:** after “if”: “${p}”. After “then”: “${q}”.\n**Answer: ${kind === 'hyp' ? p : q}**`, 'If = hypothesis, then = conclusion.')
+    if (kind === 'same')
+      return mk(r, `The statement “${st}” is true. Which statement must ALSO be true?`, 'its contrapositive', ['its converse', 'its inverse', 'none of them'],
+        `**Words:** the **contrapositive** (switch AND negate) always has the same truth value as the original statement.\n**Step 1:** the converse and inverse can be false even when the original is true.\n**Answer: its contrapositive**`, 'Original ↔ contrapositive always match. Converse ↔ inverse always match.')
+    return mk(r, `Which statement ALWAYS has the same truth value as the converse?`, 'the inverse', ['the original statement', 'the contrapositive', 'the negation of the converse'],
+      `**Step 1:** the inverse is the contrapositive of the converse, so the two always match.\n**Answer: the inverse**`, 'Converse and inverse are a matching pair.')
+  },
+  discValue(r) {
+    const a = r.pick([1, 1, 2, 3]), b = r.int(-7, 7), c = r.int(-8, 9)
+    const D = b * b - 4 * a * c
+    return mk(r, `What is the discriminant of $${quad(a, b, c)}=0$?`, `${D}`, [`${b * b + 4 * a * c}`, `${b - 4 * a * c}`, `${-D}`],
+      `**Words:** the **discriminant** is $b^2-4ac$ for $ax^2+bx+c=0$.\n**Step 1 (read a, b, c):** a = ${a}, b = ${b}, c = ${c}.\n**Step 2 (b²):** (${b})² = ${b * b}.\n**Step 3 (4ac):** 4 × ${a} × (${c}) = ${4 * a * c}.\n**Step 4 (subtract):** ${b * b} − (${4 * a * c}) = ${D}.\n**Answer: ${D}**`,
+      'Square b first (always positive), THEN subtract 4ac.')
+  },
+  quadFormulaA(r) {
+    const p = r.pick([1, 2, 3]), rr = r.pick([2, 3]), q = r.pick([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]), s = r.pick([-5, -3, -2, -1, 1, 2, 3, 4])
+    if (gcd(p, q) !== 1 || gcd(rr, s) !== 1 || q * rr === s * p || q * rr === -s * p) return GEN.quadFormulaA(r)
+    const a = p * rr, b = -(p * s + q * rr), c = q * s
+    const rt = Math.abs(p * s - q * rr), D = rt * rt
+    const v1 = q / p, v2 = s / rr
+    const [lo, hi] = v1 < v2 ? [frac(q, p), frac(s, rr)] : [frac(s, rr), frac(q, p)]
+    const pair = (x: string, y: string) => `$x=${x}$ or $x=${y}$`
+    const ans = pair(lo, hi)
+    const key = (a: number, b: number) => [a, b].sort((x, y) => x - y).map(z => z.toFixed(6)).join()
+    const show = (n1: number, d1: number, n2: number, d2: number) => (n1 / d1 < n2 / d2 ? pair(frac(n1, d1), frac(n2, d2)) : pair(frac(n2, d2), frac(n1, d1)))
+    const cand: [number, number, number, number][] = [[-q, p, -s, rr], [q, p, -s, rr], [-q, p, s, rr], [q, 1, s, 1], [q + p, p, s, rr], [q, p, s + rr, rr]]
+    const w: string[] = []
+    for (const [n1, d1, n2, d2] of cand) if (n1 * d2 !== n2 * d1 && key(n1 / d1, n2 / d2) !== key(v1, v2)) { const t = show(n1, d1, n2, d2); if (!w.includes(t)) w.push(t) }
+    return mk(r, `Use the quadratic formula to solve $${quad(a, b, c)}=0$.`, ans, w,
+      `**Words:** for $ax^2+bx+c=0$ the **quadratic formula** is $x=\\dfrac{-b\\pm\\sqrt{b^2-4ac}}{2a}$.\n**Step 1 (read a, b, c):** a = ${a}, b = ${b}, c = ${c}.\n**Step 2 (the part under the root, b² − 4ac):** (${b})² − 4(${a})(${c}) = ${b * b} − (${4 * a * c}) = ${D}.\n**Step 3 (square root):** √${D} = ${rt}.\n**Step 4 (with +):** (${-b} + ${rt}) ÷ ${2 * a} = ${frac(-b + rt, 2 * a).replace(/\\frac\{(-?\d+)\}\{(\d+)\}/, '$1/$2')}.\n**Step 5 (with −):** (${-b} − ${rt}) ÷ ${2 * a} = ${frac(-b - rt, 2 * a).replace(/\\frac\{(-?\d+)\}\{(\d+)\}/, '$1/$2')}.\n**Answer: ${plain(ans)}**`,
+      'Divide by 2a, the WHOLE top. Then reduce the fraction.')
+  },
+  arithMid(r) {
+    const a1 = r.int(-5, 12), d = r.pick([-4, -3, -2, 2, 3, 4, 5, 6])
+    const t = (n: number) => a1 + (n - 1) * d
+    if (r.pick([true, false])) {
+      const m = r.int(2, 5), k = m + r.int(3, 6)
+      return mk(r, `In an arithmetic sequence, $a_{${m}}=${t(m)}$ and the common difference is $${d}$. Find $a_{${k}}$.`, `${t(k)}`, [`${t(m) + k * d}`, `${t(k) + d}`, `${t(m) + (k - m + 1) * d}`],
+        `**Words:** an **arithmetic sequence** adds the same **common difference** d each step. To jump from term m to term k, add d exactly (k − m) times: $a_k=a_m+(k-m)d$.\n**Step 1 (how many steps):** ${k} − ${m} = ${k - m}.\n**Step 2 (add that many d's):** ${t(m)} + ${k - m}(${d}) = ${t(m)} + (${(k - m) * d}) = ${t(k)}.\n**Answer: ${t(k)}**`,
+        'From term m to term k: add (k − m) common differences.')
+    }
+    const m = r.int(1, 4), k = m + 2 * r.int(2, 4), mid = (m + k) / 2
+    return mk(r, `In an arithmetic sequence, $a_{${m}}=${t(m)}$ and $a_{${k}}=${t(k)}$. Find $a_{${mid}}$.`, `${t(mid)}`, [`${t(m) + t(k)}`, `${t(mid) + d}`, `${t(k) - t(m)}`],
+      `**Words:** the **arithmetic mean** is the average. In an arithmetic sequence, the term exactly in the middle of two terms is their average.\n**Step 1 (the middle position):** (${m} + ${k}) ÷ 2 = ${mid}.\n**Step 2 (average the two terms):** (${t(m)} + ${t(k)}) ÷ 2 = ${t(m) + t(k)} ÷ 2 = ${t(mid)}.\n**Answer: ${t(mid)}**`,
+      'Middle term = average of the two outer terms.')
+  },
+  sigmaSum(r) {
+    const a = r.int(1, 4), b = r.int(-3, 5), k = r.int(4, 6)
+    const terms = Array.from({ length: k }, (_, i) => a * (i + 1) + b)
+    const S = terms.reduce((x, y) => x + y, 0)
+    const body = `${a === 1 ? '' : a}n${b === 0 ? '' : sgn(b)}`
+    return mk(r, `Evaluate $\\displaystyle\\sum_{n=1}^{${k}}(${body})$.`, `${S}`, [`${S - terms[0]}`, `${terms[k - 1]}`, `${S + a}`],
+      `**Words:** **Σ (sigma)** means “add up”. Put n = 1, 2, 3, … up to ${k} into ${body}, then add the results.\n**Step 1 (write out the terms):** ${terms.join(', ')}.\n**Step 2 (add them):** ${terms.join(' + ')} = ${S}.\n**Check (partial sum formula, (first + last) ÷ 2 × number of terms):** (${terms[0]} + ${terms[k - 1]}) ÷ 2 × ${k} = ${S} ✓\n**Answer: ${S}**`,
+      'Write the terms out, then add. Or (first + last)/2 × how many.')
+  },
+  geoFinite(r) {
+    const a1 = r.int(1, 5), q = r.pick([2, 3]), n = r.int(4, q === 2 ? 7 : 5)
+    const S = (a1 * (q ** n - 1)) / (q - 1)
+    const terms = Array.from({ length: n }, (_, i) => a1 * q ** i)
+    return mk(r, `Find the sum of the first ${n} terms of the geometric series ${terms.slice(0, 3).join(' + ')} + …`, `${S}`, [`${terms[n - 1]}`, `${a1 * q ** n}`, `${S + a1}`],
+      `**Words:** a **geometric series** multiplies by the same **common ratio** r each time. The sum of the first n terms is $S_n=\\dfrac{a_1(1-r^n)}{1-r}$.\n**Step 1 (a₁ and r):** a₁ = ${a1}, r = ${terms[1]} ÷ ${terms[0]} = ${q}.\n**Step 2 (rⁿ):** ${q}^${n} = ${q ** n}.\n**Step 3 (formula):** ${a1}(1 − ${q ** n}) ÷ (1 − ${q}) = ${a1 * (1 - q ** n)} ÷ ${1 - q} = ${S}.\n**Check (add them):** ${terms.join(' + ')} = ${S} ✓\n**Answer: ${S}**`,
+      'Finite geometric sum: a₁(1 − rⁿ)/(1 − r).')
+  },
+  geoMean(r) {
+    const x = r.int(1, 6), q = r.int(2, 4)
+    const a = x, b = x * q * q, gm = x * q
+    return mk(r, `What is the geometric mean of ${a} and ${b}?`, `${gm}`, [`${(a + b) / 2}`, `${a * b}`, `${gm + 1}`],
+      `**Words:** the **geometric mean** of two numbers is $\\sqrt{ab}$. In a geometric sequence it is the term halfway between them.\n**Step 1 (multiply):** ${a} × ${b} = ${a * b}.\n**Step 2 (square root):** √${a * b} = ${gm}.\n**Answer: ${gm}**`,
+      'Geometric mean = √(a × b). Arithmetic mean = (a + b)/2.')
+  },
+  geoConverge(r) {
+    const [num, den, mult] = r.pick([[1, 2, 4], [1, 3, 9], [-1, 2, 4], [2, 3, 9], [2, 1, 1], [3, 1, 1], [3, 2, 4]] as [number, number, number][])
+    const a1 = mult * r.int(1, 4)
+    const t2 = (a1 * num) / den, t3 = (a1 * num * num) / (den * den)
+    const conv = Math.abs(num) < den
+    const sumVal = (a1 * den) / (den - num)
+    const sumStr = frac(a1 * den, den - num)
+    const div = 'It diverges (no finite sum)'
+    const ans = conv ? `$${sumStr}$` : div
+    return mk(r, `Does the infinite geometric series $${a1}${t2 < 0 ? '' : '+'}${t2}${t3 < 0 ? '' : '+'}${t3}+\\cdots$ converge? If it does, what is its sum?`, ans,
+      conv ? [div, `$${frac(a1 * den, den + num)}$`, `$${2 * a1}$`, `$${a1 * den}$`, `$${frac(a1 * den, den - num) === `${a1}` ? a1 + 1 : a1}$`] : [`$${sumStr}$`, `$${2 * a1}$`, `$${a1 + t2 + t3}$`],
+      `**Words:** an infinite geometric series **converges** (has a finite sum) only when the common ratio r is between −1 and 1, that is |r| < 1. Then the sum is $S=\\dfrac{a_1}{1-r}$. If |r| ≥ 1 it **diverges**.\n**Step 1 (common ratio):** r = ${t2} ÷ ${a1} = ${frac(num, den).replace(/\\frac\{(-?\d+)\}\{(\d+)\}/, '$1/$2')}.\n**Step 2 (check |r| < 1):** ${conv ? 'yes, so it converges' : `no, |r| ≥ 1, so it diverges (the formula would give ${sumVal}, which is nonsense)`}.\n${conv ? `**Step 3 (sum):** ${a1} ÷ (1 − (${frac(num, den).replace(/\\frac\{(-?\d+)\}\{(\d+)\}/, '$1/$2')})) = ${sumStr.replace(/\\frac\{(-?\d+)\}\{(\d+)\}/, '$1/$2')}.\n` : ''}**Answer: ${plain(ans)}**`,
+      'Infinite sum only works if |r| < 1. Then S = a₁/(1 − r).')
+  },
+  seqClassify(r) {
+    const kind = r.pick(['arith', 'geo', 'neither'] as const)
+    let list: number[] = []
+    if (kind === 'arith') { const a = r.int(-5, 10), d = r.pick([-4, -3, 2, 3, 5, 7]); list = [0, 1, 2, 3, 4].map(i => a + i * d) }
+    else if (kind === 'geo') { const a = r.int(1, 5), q = r.pick([-2, 2, 3, 4]); list = [0, 1, 2, 3, 4].map(i => a * q ** i) }
+    else { const s = r.int(1, 3); list = [0, 1, 2, 3, 4].map(i => (i + s) ** 2) }
+    const ans = kind === 'arith' ? 'Arithmetic' : kind === 'geo' ? 'Geometric' : 'Neither'
+    return mk(r, `Is the sequence ${list.join(', ')}, … arithmetic, geometric, or neither?`, ans, ['Arithmetic', 'Geometric', 'Neither', 'Both'],
+      `**Words:** **arithmetic** = the same number is ADDED each time (common difference). **Geometric** = the same number MULTIPLIES each time (common ratio).\n**Step 1 (differences):** ${list.slice(1).map((v, i) => v - list[i]).join(', ')}.\n**Step 2 (ratios):** ${list.slice(1).map((v, i) => frac(v, list[i]).replace(/\\frac\{(-?\d+)\}\{(\d+)\}/, '$1/$2')).join(', ')}.\n**Step 3:** ${kind === 'arith' ? 'the differences are all equal' : kind === 'geo' ? 'the ratios are all equal' : 'neither the differences nor the ratios are equal'}.\n**Answer: ${ans}**`,
+      'Check differences first, then ratios.')
+  },
+  factorNeg(r) {
+    const vals = [-8, -7, -6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8]
+    const p = r.pick(vals), q = r.pick(vals)
+    if (p === q || p === -q || (p > 0 && q > 0)) return GEN.factorNeg(r)
+    const f = (m: number, n: number) => { const [x, y] = m < n ? [m, n] : [n, m]; return `$(x${sgn(x)})(x${sgn(y)})$` }
+    const ans = f(p, q)
+    return mk(r, `Factor: $${quad(1, p + q, p * q)}$`, ans, [f(-p, -q), f(p, -q), f(-p, q)],
+      `**Words:** to **factor** $x^2+bx+c$, find two numbers that MULTIPLY to c and ADD to b. Watch the signs.\n**Step 1 (what we need):** product ${p * q}, sum ${p + q}.\n**Step 2 (signs):** ${p * q < 0 ? 'the product is negative, so one number is + and one is −' : 'the product is positive and the sum is negative, so both numbers are −'}.\n**Step 3 (the numbers):** ${p} and ${q}, because ${p} × ${q} = ${p * q} and ${p} + ${q} = ${p + q}.\n**Step 4 (write the brackets):** ${plain(ans)}.\n**Answer: ${plain(ans)}**`,
+      'Product = c, sum = b. Negative product → opposite signs.')
+  },
+  factorA(r) {
+    const p = r.pick([1, 2, 3]), rr = r.pick([2, 3]), q = r.pick([-5, -3, -2, -1, 1, 2, 3, 5]), s = r.pick([-4, -3, -1, 1, 2, 3, 5])
+    if (gcd(p, q) !== 1 || gcd(rr, s) !== 1) return GEN.factorA(r)
+    const exp = (a: number, b: number, c: number, d: number) => [a * c, a * d + b * c, b * d].join(',')
+    const target = exp(p, q, rr, s)
+    const cands: [number, number, number, number][] = [[p, s, rr, q], [p, -q, rr, -s], [p, -q, rr, s], [p, q, rr, -s]]
+    const w = cands.filter(c => exp(...c) !== target).map(([a, b, c, d]) => `$(${lin(a, b)})(${lin(c, d)})$`)
+    if (w.length < 3) return GEN.factorA(r)
+    const A = p * rr, B = p * s + q * rr, C = q * s
+    if (B === 0) return GEN.factorA(r)
+    const ans = `$(${lin(p, q)})(${lin(rr, s)})$`
+    return mk(r, `Factor: $${quad(A, B, C)}$`, ans, w,
+      `**Words:** when the number in front of x² is not 1, use the **AC method**: multiply a × c, find two numbers that multiply to it and add to b, split the middle term, then **factor by grouping**.\n**Step 1 (a × c):** ${A} × ${C} = ${A * C}.\n**Step 2 (two numbers, product ${A * C}, sum ${B}):** ${p * s} and ${q * rr}.\n**Step 3 (split the middle term):** ${quad(A, 0, 0)} ${p * s < 0 ? '−' : '+'} ${Math.abs(p * s)}x ${q * rr < 0 ? '−' : '+'} ${Math.abs(q * rr)}x ${C < 0 ? '−' : '+'} ${Math.abs(C)}.\n**Step 4 (group and take out the GCF of each pair):** the common bracket is (${lin(rr, s)}).\n**Step 5:** ${plain(ans)}.\n**Check (FOIL):** gives ${quad(A, B, C)} ✓\n**Answer: ${plain(ans)}**`,
+      'AC method: a × c, find the pair, split the middle, group.')
+  },
+  factorGroup(r) {
+    const c = r.pick([1, 2, 3]), d = r.pick([1, 2, 3, 5, 7, -2, -3, -5, -7]), a = r.pick([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5])
+    if (Math.abs(a) === Math.abs(d) || gcd(c, Math.abs(d)) !== 1) return GEN.factorGroup(r)
+    const terms = [[c, 3], [c * a, 2], [d, 1], [d * a, 0]] as [number, number][]
+    const poly = terms.map(([k, e], i) => {
+      const v = e === 0 ? `${Math.abs(k)}` : coef(Math.abs(k), e === 1 ? 'x' : `x^${e}`)
+      return i === 0 ? (k < 0 ? '-' : '') + v : (k < 0 ? '-' : '+') + v
+    }).join('')
+    const sq = (k: number) => `${coef(c, 'x^2')}${sgn(k)}`
+    const ans = `$(${sq(d)})(${lin(1, a)})$`
+    return mk(r, `Factor by grouping: $${poly}$`, ans, [`$(${sq(-d)})(${lin(1, a)})$`, `$(${sq(d)})(${lin(1, -a)})$`, `$(${sq(a)})(${lin(1, d)})$`],
+      `**Words:** **factoring by grouping** works on 4 terms: split them into two pairs, take the GCF out of each pair, then take out the bracket they share.\n**Step 1 (first pair):** ${coef(c, 'x^3')} ${c * a < 0 ? '−' : '+'} ${coef(Math.abs(c * a), 'x^2')} = ${coef(c, 'x^2')}(${lin(1, a)}).\n**Step 2 (second pair):** ${coef(d, 'x')} ${d * a < 0 ? '−' : '+'} ${Math.abs(d * a)} = ${d}(${lin(1, a)}).\n**Step 3 (take out the shared bracket (${lin(1, a)})):** (${sq(d)})(${lin(1, a)}).\n**Answer: ${plain(ans)}**`,
+      'Two pairs → GCF of each → the brackets must match → pull the bracket out.')
+  },
+  factorGcfTri(r) {
+    const g = r.pick([2, 3, 4, 5]), vals = [-6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6]
+    const p = r.pick(vals), q = r.pick(vals)
+    if (p === q || p === -q) return GEN.factorGcfTri(r)
+    const [x, y] = p < q ? [p, q] : [q, p]
+    const ans = `$${g}(x${sgn(x)})(x${sgn(y)})$`
+    return mk(r, `Factor completely: $${quad(g, g * (p + q), g * p * q)}$`, ans, [`$(x${sgn(x)})(x${sgn(y)})$`, `$${g}(x${sgn(-y)})(x${sgn(-x)})$`, `$${g}(x${sgn(x)})(x${sgn(-y)})$`],
+      `**Words:** **factor completely** means take out the GCF FIRST, then factor what is left.\n**Step 1 (GCF of ${g}, ${g * (p + q)}, ${g * p * q}):** ${g}. So it becomes ${g}(${quad(1, p + q, p * q)}).\n**Step 2 (factor the trinomial: product ${p * q}, sum ${p + q}):** ${x} and ${y}.\n**Step 3:** ${g}(x${sgn(x)})(x${sgn(y)}).\n**Answer: ${plain(ans)}**`,
+      'GCF first, then factor the trinomial. Keep the GCF in front.')
+  },
+  synthDiv(r) {
+    const c0 = r.pick([-3, -2, -1, 1, 2, 3]), b1 = r.int(-4, 5), b0 = r.int(-6, 6), R = r.pick([0, 0, 1, 2, -3, 4])
+    // dividend = (x − c0)(x² + b1 x + b0) + R
+    const A2 = b1 - c0, A1 = b0 - c0 * b1, A0 = -c0 * b0 + R
+    const cubic = `x^3${A2 === 0 ? '' : A2 > 0 ? '+' + coef(A2, 'x^2') : '-' + coef(-A2, 'x^2')}${A1 === 0 ? '' : A1 > 0 ? '+' + coef(A1, 'x') : '-' + coef(-A1, 'x')}${A0 === 0 ? '' : sgn(A0)}`
+    const qt = quad(1, b1, b0)
+    const show = (q: string, rem: number) => `quotient $${q}$, remainder ${rem}`
+    const ans = show(qt, R)
+    const w = [show(quad(1, b1, b0 + 1), R), show(quad(1, -b1, b0), R), show(qt, R + 2), show(quad(1, b1 + 2 * c0, b0), R)].filter(s => s !== ans)
+    return mk(r, `Use synthetic division to divide $${cubic}$ by $(x${sgn(-c0)})$. What are the quotient and the remainder?`, ans, w,
+      `**Words:** **synthetic division** divides a polynomial by $(x-c)$ using only the coefficients. The last number is the **remainder**; the other numbers are the coefficients of the **quotient** (one power lower).\n**Step 1 (c and the coefficients, put 0 for any missing term):** c = ${c0} (from x ${c0 > 0 ? '−' : '+'} ${Math.abs(c0)}, switch the sign); coefficients 1, ${A2}, ${A1}, ${A0}.\n**Step 2 (bring down the 1):** 1.\n**Step 3 (multiply by ${c0}, add):** ${A2} + ${c0} = ${b1}.\n**Step 4 (multiply by ${c0}, add):** ${A1} + (${c0 * b1}) = ${b0}.\n**Step 5 (multiply by ${c0}, add, this is the remainder):** ${A0} + (${c0 * b0}) = ${R}.\n**Step 6 (read the quotient):** 1, ${b1}, ${b0} means ${qt}.${R === 0 ? ` The remainder is 0, so (x${sgn(-c0)}) IS a factor and x = ${c0} is a zero.` : ''}\n**Answer: quotient ${qt}, remainder ${R}**`,
+      'Switch the sign of c. Bring down, multiply, add, repeat. Remainder 0 means it is a factor.')
+  },
 }
 
 export const DRILL_KINDS = Object.keys(GEN)
+/** Tidy the worked solution: 1x → x, −1x → −x, a + -b → a − b. */
+const tidy = (e: string) =>
+  e.replace(/(^|[^\d.\w^])([-−]?)1x(?![\d])/g, '$1$2x').replace(/ \+ -(\d)/g, ' − $1')
+
 export function mathDrill(r: Rng, kind?: string): Question {
-  return GEN[kind ?? r.pick(DRILL_KINDS)](r)
+  const q = GEN[kind ?? r.pick(DRILL_KINDS)](r)
+  return { ...q, e: tidy(q.e) }
 }
