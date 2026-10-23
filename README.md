@@ -3,7 +3,7 @@
 A personal entrance-exam trainer: YouTube video lessons, written lessons with worked examples, interactive labs, quizzes with step-by-step explanations, a timed mock exam, a mistakes notebook, an essay studio, and a 5-day study plan (5 h × 4 days + 10 h on the last day, math-heavy).
 
 - **Guided lessons (Finlab-style):** video → checkpoint → written lesson with a question after every section → interactive → checkpoint → tricks → extra practice → final quiz. 500+ written questions plus unlimited generated ones.
-- **Math (34 lessons, JHS + General Mathematics):** fundamentals, algebra (systems, polynomials, rational expressions, quadratics, variation), functions, rational functions, exponentials and logarithms, business math, geometry (congruence, quadrilaterals, circles), trigonometry (including laws of sines and cosines), counting, probability, statistics and logic.
+- **Math (35 lessons, JHS + General Mathematics):** fundamentals, algebra (systems, polynomials, rational expressions, quadratics, variation), functions, rational functions, exponentials and logarithms, business math, geometry (congruence, quadrilaterals, circles), trigonometry (including laws of sines and cosines), counting, probability, statistics and logic.
 - **English (5) + Reading (2):** vocabulary, grammar, sentence errors, analogies, passage questions.
 - **Mental ability (5):** number/letter series, figure sequences, matrices, odd-one-out, spatial and logic. Unlimited procedurally generated puzzles.
 - **Essay (2):** structure, style, timed practice with checklist and a model essay.
