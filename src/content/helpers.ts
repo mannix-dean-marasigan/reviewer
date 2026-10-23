@@ -155,6 +155,8 @@ export const VID: Record<string, Video> = {
   ocLawSines: { id: '9fS0uA4iLxI', title: 'Law of Sines: Basic Introduction (AAS & SSA)', channel: OCT, why: 'The Law of Sines and when it gives 0, 1 or 2 triangles.' },
   ocProbVenn: { id: 'X6usGgwXFyU', title: 'Probability of Mutually Exclusive Events With Venn Diagrams', channel: OCT, why: 'Probability with Venn diagrams.' },
   ocAsymptotes: { id: 'qGCKjuhA4eQ', title: 'Horizontal and Vertical Asymptotes: Slant / Oblique, Holes, Rational Function, Domain & Range', channel: OCT, why: 'Everything about rational function graphs.' },
+  ocComposite: { id: 'ZFPkQkURSxk', title: 'Composite Functions', channel: OCT, why: 'f(g(x)) with algebraic functions.' },
+  ocInverse: { id: 'TN4ybFiuV3k', title: 'Introduction to Inverse Functions', channel: OCT, why: 'Find the inverse by swapping x and y.' },
   mcq: { id: 'Q1y8c_MZYvE', title: '5 Rules (and One Secret Weapon) for Acing Multiple Choice Tests', channel: 'Thomas Frank', why: 'Test-taking tactics that actually work.' },
   mcq2: { id: '0aF7G0TMh7M', title: '7 Tips and Strategies for Answering Multiple Choice Questions', channel: '2 Minute Classroom', why: 'A 3-minute checklist for test day.' },
 }

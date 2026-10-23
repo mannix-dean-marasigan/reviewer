@@ -798,6 +798,82 @@ const GEN: Record<string, (r: Rng) => Question> = {
       `**Words:** the **standard deviation** tells how far the data are from the mean on average. It is the square root of the **variance**.\n**Step 1 (mean):** (${xs[0]} + ${xs[1]}) ÷ 2 = ${mean}.\n**Step 2 (distances squared):** (${xs[0]} − ${mean})² = ${d * d} and (${xs[1]} − ${mean})² = ${d * d}.\n**Step 3 (variance = average of those):** ${d * d}.\n**Step 4 (square root):** √${d * d} = ${d}.\n**Answer: ${d}**`,
       'Mean → squared distances → average → square root.')
   },
+  isFunction(r) {
+    const xs = r.shuffle([1, 2, 3, 4, 5, 6, -1, -2, 0]).slice(0, 3).sort((a, b) => a - b)
+    const ys = () => r.shuffle([1, 2, 3, 4, 5, 6, 7, 8, -3, -2]).slice(0, 3)
+    const fmt = (pairs: number[][]) => `$\\{${pairs.map(([x, y]) => `(${x},${y})`).join(',')}\\}$`
+    const good = fmt(xs.map((x, i) => [x, ys()[i]]))
+    const bad = () => {
+      const yy = ys(); const k = r.int(0, 1)
+      const pairs = xs.map((x, i) => [x, yy[i]])
+      pairs[k + 1] = [pairs[k][0], pairs[k + 1][1] === pairs[k][1] ? pairs[k + 1][1] + 1 : pairs[k + 1][1]]
+      return fmt(pairs)
+    }
+    const wrongs = [bad(), bad(), bad()]
+    if (new Set([good, ...wrongs]).size < 4) return GEN.isFunction(r)
+    return mk(r, 'Which relation is a function?', good, wrongs,
+      `**Words:** a **relation** is a set of ordered pairs $(x,y)$. It is a **function** when every input $x$ has exactly ONE output $y$ (no x-value is used twice with different y’s).\n**Step 1 (look at the first number of each pair):** in the correct choice the x-values ${xs.join(', ')} are all different. ✓\n**Step 2 (the others):** each of the other choices uses the same x-value twice with two different y-values, so it fails the test.\n**Answer: ${good.replace(/\$/g, '')}**`,
+      'Repeated x with different y → not a function.')
+  },
+  relDomain(r) {
+    const xs = r.shuffle([-2, -1, 0, 1, 2, 3, 4, 5]).slice(0, 3).sort((a, b) => a - b)
+    const ys = r.shuffle([-3, 0, 2, 4, 6, 7, 9]).slice(0, 3).sort((a, b) => a - b)
+    const pairs = xs.map((x, i) => `(${x},${ys[(i + 1) % 3]})`)
+    const asked = r.pick(['domain', 'range'] as const)
+    const set = (a: number[]) => `$\\{${a.join(',')}\\}$`
+    const right = asked === 'domain' ? set(xs) : set(ys)
+    return mk(r, `What is the ${asked} of $\\{${pairs.join(',')}\\}$?`, right, [asked === 'domain' ? set(ys) : set(xs), set([...xs, ...ys].slice(0, 5)), set(xs.map(x => x + 1)), set(ys.map(y => y + 1))],
+      `**Words:** the **domain** is the set of all inputs (the FIRST numbers of the pairs). The **range** is the set of all outputs (the SECOND numbers).\n**Step 1 (list the first numbers):** ${xs.join(', ')}.\n**Step 2 (list the second numbers):** ${ys.join(', ')}.\n**Step 3 (pick what the question asks):** the ${asked}.\n**Answer: ${right.replace(/\$/g, '')}**`,
+      'Domain = x’s. Range = y’s.')
+  },
+  quadFormula(r) {
+    let p = r.int(-6, 6), q = r.int(-6, 6)
+    if (p === q) q = p + 3
+    const S = p + q, P = p * q
+    const [lo, hi] = [Math.min(p, q), Math.max(p, q)]
+    const b = -S, c = P
+    const eq = `x^2${b === 0 ? '' : b > 0 ? `+${b}x` : `${b}x`}${c === 0 ? '' : c > 0 ? `+${c}` : c}=0`
+    const ans = (x: number, y: number) => `$x=${x}$ or $x=${y}$`
+    const D = b * b - 4 * c
+    const rt = Math.abs(p - q)
+    return mk(r, `Use the quadratic formula to solve $${eq}$.`, ans(lo, hi), [ans(-lo, -hi), ans(lo, -hi), ans(lo + 1, hi + 1), ans(-hi, lo)],
+      `**Words:** for $ax^2+bx+c=0$ the **quadratic formula** is $x=\\dfrac{-b\\pm\\sqrt{b^2-4ac}}{2a}$.\n**Step 1 (read a, b, c):** $a=1$, $b=${b}$, $c=${c}$.\n**Step 2 (discriminant, the part under the root):** $b^2-4ac=(${b})^2-4(1)(${c})=${b * b}-(${4 * c})=${D}$.\n**Step 3 (square root):** $\\sqrt{${D}}=${rt}$.\n**Step 4 (plug in, with +):** $x=\\frac{${-b}+${rt}}{2}=${(-b + rt) / 2}$.\n**Step 5 (with −):** $x=\\frac{${-b}-${rt}}{2}=${(-b - rt) / 2}$.\n**Answer: $x=${lo}$ or $x=${hi}$**`,
+      'Watch the signs: −b means the OPPOSITE of the number in front of x.')
+  },
+  horizAsym(r) {
+    const kind = r.pick(['smaller', 'equal', 'bigger'] as const)
+    const a = r.int(1, 5), c = r.int(1, 4), k = r.int(1, 6)
+    let expr = '', right = '', why = ''
+    if (kind === 'smaller') { expr = `\\dfrac{${a}x+${k}}{x^2+${c}}`; right = '$y=0$'; why = 'The top has degree 1 and the bottom has degree 2. When the bottom has the bigger degree, the graph flattens to $y=0$.' }
+    else if (kind === 'equal') { expr = `\\dfrac{${a}x^2+${k}}{${c}x^2-1}`; right = `$y=${frac(a, c)}$`; why = `Both have degree 2 (equal degrees). The asymptote is the ratio of the leading coefficients: $\\frac{${a}}{${c}}=${frac(a, c)}$.` }
+    else { expr = `\\dfrac{${a}x^3+${k}}{x^2+${c}}`; right = 'There is no horizontal asymptote'; why = 'The top has degree 3 and the bottom has degree 2. When the top has the bigger degree, the graph keeps growing, so there is no horizontal asymptote (the function has a slant or curved end behavior instead).' }
+    const opts = ['$y=0$', `$y=${frac(a, c)}$`, 'There is no horizontal asymptote', `$y=${a + c}$`, `$y=${k}$`]
+    return mk(r, `Find the horizontal asymptote of $f(x)=${expr}$.`, right, opts.filter(o => o !== right),
+      `**Words:** a **horizontal asymptote** is the height the graph settles toward when x gets very large (or very small). Compare the **degrees** (the highest powers of x) of the top and bottom.\n**Step 1 (degrees):** ${kind === 'smaller' ? 'top 1, bottom 2' : kind === 'equal' ? 'top 2, bottom 2' : 'top 3, bottom 2'}.\n**Step 2 (rule):** top smaller → $y=0$; equal → ratio of leading coefficients; top bigger → none.\n**Step 3:** ${why}\n**Answer: ${right.replace(/\$/g, '')}**`,
+      'Compare the highest powers: smaller → 0, equal → ratio, bigger → none.')
+  },
+  arithSum(r) {
+    const a = r.int(1, 9), d = r.int(2, 6), n = r.pick([8, 10, 12, 15, 20])
+    const an = a + (n - 1) * d
+    const S = (n * (a + an)) / 2
+    return mk(r, `Find the sum of the first ${n} terms of the arithmetic sequence ${a}, ${a + d}, ${a + 2 * d}, …`, `${S}`, [`${S + n}`, `${(n * an) / 2}`, `${n * (a + an)}`, `${S - d}`].map(String),
+      `**Words:** an **arithmetic series** is the SUM of an arithmetic sequence. Formula: $S_n=\\frac{n}{2}(a_1+a_n)$ (number of terms ÷ 2 × (first + last)).\n**Step 1 (common difference):** ${a + d} − ${a} = ${d}.\n**Step 2 (the last term, $a_n=a_1+(n-1)d$):** ${a} + ${n - 1} × ${d} = ${an}.\n**Step 3 (formula):** ${n} ÷ 2 × (${a} + ${an}) = ${n / 2} × ${a + an}.\n**Step 4:** ${S}.\n**Answer: ${S}**`,
+      'Sum = (number of terms ÷ 2) × (first + last).')
+  },
+  geoSum(r) {
+    const k = r.pick([2, 3]), m = r.int(1, 3)
+    const a = (k === 2 ? 4 : 18) * m, S = (a * k) / (k - 1)
+    return mk(r, `Find the sum of the infinite geometric series ${a} + ${a / k} + ${a / (k * k)} + …`.replace(/(\d+\.\d+)/g, x => x), `${S}`, [`${S + m}`, `${a * k * k}`, `${a + a / k}`, `${Math.round((a * k) / (k + 1))}`].map(String),
+      `**Words:** a **geometric series** multiplies by the same number each time (the **common ratio**, r). If $|r|<1$ the infinite sum is $S=\\frac{a_1}{1-r}$.\n**Step 1 (ratio):** the second term ÷ the first term = $\\frac1{${k}}$.\n**Step 2 (check it is less than 1):** yes, so the series has a sum.\n**Step 3 (formula):** $S=\\frac{${a}}{1-\\frac1{${k}}}=\\frac{${a}}{\\frac{${k - 1}}{${k}}}$.\n**Step 4 (divide by a fraction = multiply by its flip):** ${a} × $\\frac{${k}}{${k - 1}}$ = ${S}.\n**Answer: ${S}**`,
+      'Infinite sum = first term ÷ (1 − ratio).')
+  },
+  diffSq(r) {
+    const a = r.int(1, 5), b = r.int(2, 9)
+    const t = (c: number) => (c === 1 ? 'x' : `${c}x`)
+    return mk(r, `Factor: $${a * a === 1 ? '' : a * a}x^2-${b * b}$`, `$(${t(a)}-${b})(${t(a)}+${b})$`, [`$(${t(a)}-${b})^2$`, `$(${t(a * a)}-${b})(x+${b})$`, `$(${t(a)}+${b})^2$`, `$(${t(a)}-${b * b})(${t(a)}+1)$`],
+      `**Words:** a **difference of squares** is one perfect square minus another: $A^2-B^2=(A-B)(A+B)$.\n**Step 1 (square roots of each term):** $\\sqrt{${a * a}x^2}=${t(a)}$ and $\\sqrt{${b * b}}=${b}$.\n**Step 2 (write the two brackets, one with − and one with +):** $(${t(a)}-${b})(${t(a)}+${b})$.\n**Check (multiply back):** the middle terms cancel, leaving $${a * a}x^2-${b * b}$ ✓\n**Answer: $(${t(a)}-${b})(${t(a)}+${b})$**`,
+      'A² − B² = (A − B)(A + B). No middle term.')
+  },
 }
 
 export const DRILL_KINDS = Object.keys(GEN)

@@ -8,7 +8,7 @@ export const MATH7: Lesson[] = [
   {
     id: 'm-functions', subject: 'math', title: 'Functions: Domain, Range, Piecewise, Composition & Inverse', minutes: 55,
     blurb: 'What a function is, how to evaluate it, piecewise rules, combining functions, and finding inverses.',
-    videos: [VID.functions, VID.piecewise, VID.compInv],
+    videos: [VID.functions, VID.piecewise, VID.ocComposite, VID.ocInverse],
     interactive: { k: 'flash', data: { frontLabel: 'TERM / QUESTION', cards: [['function', 'A rule that gives each input (x) exactly ONE output (y)'], ['domain', 'The set of all allowed inputs (x-values)'], ['range', 'The set of all outputs (y-values) the function can produce'], ['vertical line test', 'A graph is a function if every vertical line crosses it at most once'], ['$f(3)$', 'Replace every x by 3 and calculate'], ['$(f\\circ g)(x)$', '$f(g(x))$: do g first, then f'], ['$f^{-1}(x)$', 'The inverse: undoes f. Swap x and y, then solve for y'], ['domain of $\\sqrt{x-3}$', '$x\\ge3$ (cannot take the root of a negative)'], ['domain of $\\frac1{x-2}$', '$x\\ne2$ (cannot divide by zero)']] } },
     blocks: [
       { t: 'h', text: 'What is a function? Domain and range' },
