@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { Question } from '../types'
 import { Rich } from './Rich'
+import { QFig } from './QFig'
 import { rng, shuffleChoices } from '../lib/rand'
 import { termsIn } from '../lib/glossary'
 
@@ -63,6 +64,7 @@ export function Quiz({ questions: source, onFinish, title = 'Check yourself', re
             {result.wrongIdx.map(k => (
               <div key={k} className="review">
                 <p><b>Q{k + 1}.</b> <Rich text={questions[k].q} /></p>
+                <QFig spec={questions[k].fig} />
                 <p className="ans">Correct: <Rich text={questions[k].c[questions[k].a]} /></p>
                 <div className="expl"><Rich text={questions[k].e} block /></div>
                 {glossary && <Words text={`${questions[k].q} ${questions[k].e}`} />}
@@ -82,6 +84,7 @@ export function Quiz({ questions: source, onFinish, title = 'Check yourself', re
       <div className="progress"><i style={{ width: `${((i + (shown ? 1 : 0)) / questions.length) * 100}%` }} /></div>
       {q.passage && <blockquote className="passage"><Rich text={q.passage} block /></blockquote>}
       <p className="qtext"><Rich text={q.q} /></p>
+      <QFig spec={q.fig} />
       <div className="choices">
         {q.c.map((c, k) => (
           <button key={k}

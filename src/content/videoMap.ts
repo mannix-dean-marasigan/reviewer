@@ -12,7 +12,7 @@ export const VIDEO_MAP: Record<string, VideoMapEntry> = {
   'm-equations': { kinds: [['linear'], ['work']], q: [[], []] },
   'm-word-problems': { kinds: [['numWord', 'lessThan'], ['ageWord'], ['consecutive'], ['work', 'workFind']], q: [[0], [1], [2], [3]] },
   'm-variation': { kinds: [['varDI', 'joint']], q: [[0, 1]] },
-  'm-lines': { kinds: [['slope', 'slopeSpecial'], ['lineMB', 'lineEq', 'pointSlopeForm', 'stdForm'], ['distance', 'distCircle']], q: [[0], [1], []] },
+  'm-lines': { kinds: [['slope', 'slopeSpecial', 'slopeGraph'], ['lineMB', 'lineEq', 'pointSlopeForm', 'stdForm', 'lineGraph'], ['distance', 'distCircle']], q: [[0], [1], []] },
   'm-systems': { kinds: [['sys2', 'sysElim', 'sysSub'], ['sysWord']], q: [[], []] },
   'm-sequences': { kinds: [['arith', 'arithSum', 'arithMid', 'sigmaSum'], ['geo', 'geoSum', 'geoFinite', 'geoMean', 'geoConverge', 'seqClassify']], q: [[0], [1]] },
   'm-factoring': { kinds: [['factor', 'factorNeg', 'factorA', 'factorGroup', 'factorGcfTri', 'diffSq'], ['gcfPoly', 'gcfBinom']], q: [[0], [1]] },

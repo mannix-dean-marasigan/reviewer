@@ -1518,6 +1518,29 @@ const GEN: Record<string, (r: Rng) => Question> = {
       `**Words:** **synthetic division** divides a polynomial by $(x-c)$ using only the coefficients. The last number is the **remainder**; the other numbers are the coefficients of the **quotient** (one power lower).\n**Step 1 (c and the coefficients, put 0 for any missing term):** c = ${c0} (from x ${c0 > 0 ? '−' : '+'} ${Math.abs(c0)}, switch the sign); coefficients 1, ${A2}, ${A1}, ${A0}.\n**Step 2 (bring down the 1):** 1.\n**Step 3 (multiply by ${c0}, add):** ${A2} + ${c0} = ${b1}.\n**Step 4 (multiply by ${c0}, add):** ${A1} + (${c0 * b1}) = ${b0}.\n**Step 5 (multiply by ${c0}, add, this is the remainder):** ${A0} + (${c0 * b0}) = ${R}.\n**Step 6 (read the quotient):** 1, ${b1}, ${b0} means ${qt}.${R === 0 ? ` The remainder is 0, so (x${sgn(-c0)}) IS a factor and x = ${c0} is a zero.` : ''}\n**Answer: quotient ${qt}, remainder ${R}**`,
       'Switch the sign of c. Bring down, multiply, add, repeat. Remainder 0 means it is a factor.')
   },
+  lineGraph(r) {
+    const run = r.int(1, 4), rise = r.pick([-4, -3, -2, -1, 1, 2, 3, 4]), b = r.int(-4, 4)
+    const x2 = run * (Math.abs(b + 2 * rise) <= 6 && 2 * run <= 6 ? 2 : 1), y2 = b + (rise * x2) / run
+    if (Math.abs(y2) > 6 || gcd(Math.abs(rise), run) !== 1) return GEN.lineGraph(r)
+    const sl = (n: number, d: number) => (d === 1 ? coef(n, 'x') : `${n < 0 ? '-' : ''}\\frac{${Math.abs(n)}}{${d}}x`)
+    const eq = (n: number, d: number, bb: number) => `$y=${sl(n, d)}${bb === 0 ? '' : sgn(bb)}$`
+    const ans = eq(rise, run, b)
+    const w = [eq(-rise, run, b), eq(rise, run, -b === b ? b + 1 : -b), Math.abs(rise) === 1 && run === 1 ? eq(2 * rise, 1, b) : eq(run * Math.sign(rise), Math.abs(rise), b)]
+    const q = mk(r, `Write the equation of the line shown in the graph, in slope-intercept form. (The two marked points sit exactly on grid corners.)`, ans, w,
+      `**Words:** **slope-intercept form** is $y=mx+b$. The **y-intercept** b is where the line crosses the y-axis. The **slope** m is rise ÷ run.\n**Step 1 (y-intercept, read where the line crosses the y-axis):** (0, ${b}), so b = ${b}.\n**Step 2 (rise and run between the marked points (0, ${b}) and (${x2}, ${y2})):** rise = ${y2} − (${b}) = ${y2 - b}, run = ${x2} − 0 = ${x2}.\n**Step 3 (slope):** ${y2 - b} ÷ ${x2} = ${run === 1 ? rise : `${rise}/${run}`}.\n**Step 4 (put m and b into y = mx + b):** ${plain(ans)}.\n**Answer: ${plain(ans)}**`,
+      'Read b where the line hits the y-axis, then count rise over run.')
+    return { ...q, fig: `line:0,${b},${x2},${y2}` }
+  },
+  slopeGraph(r) {
+    const run = r.int(1, 5), rise = r.pick([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]), x1 = r.int(-5, 0), y1 = r.int(-3, 3)
+    const x2 = x1 + run, y2 = y1 + rise
+    if (Math.abs(y2) > 6 || x2 > 6 || Math.abs(rise) === run) return GEN.slopeGraph(r)
+    const ans = `$${frac(rise, run)}$`
+    const q = mk(r, `What is the slope of the line shown in the graph? (The two marked points sit exactly on grid corners.)`, ans, [`$${frac(run, rise)}$`, `$${frac(-rise, run)}$`, `$${frac(rise, run + 1)}$`],
+      `**Words:** **slope** = rise ÷ run. Count how far you go up or down (rise) and how far right (run) from one marked point to the other.\n**Step 1 (the points):** (${x1}, ${y1}) and (${x2}, ${y2}).\n**Step 2 (rise, moving left to right):** ${rise > 0 ? 'up' : 'down'} ${Math.abs(rise)}, so rise = ${rise}.\n**Step 3 (run):** right ${run}.\n**Step 4 (slope):** ${rise} ÷ ${run} = ${frac(rise, run).replace(/\\frac\{(-?\d+)\}\{(\d+)\}/, '$1/$2')}.\n**Check (formula):** (${y2} − (${y1})) ÷ (${x2} − (${x1})) = ${rise}/${run} ✓\n**Answer: ${plain(ans)}**`,
+      'Line goes DOWN from left to right → negative slope.')
+    return { ...q, fig: `line:${x1},${y1},${x2},${y2}` }
+  },
 }
 
 export const DRILL_KINDS = Object.keys(GEN)

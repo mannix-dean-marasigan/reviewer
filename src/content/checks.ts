@@ -20,7 +20,7 @@ const DRILLS: Record<string, string[]> = {
   'm-equations': ['linear', 'work'],
   'm-factoring': ['factor', 'factorNeg', 'factorA', 'factorGroup', 'factorGcfTri', 'diffSq', 'gcfPoly', 'gcfBinom'],
   'm-quadratics': ['quadFormula', 'quadFormulaA', 'discriminant', 'discValue', 'quadRoot'],
-  'm-lines': ['slope', 'slopeSpecial', 'lineEq', 'pointSlopeForm', 'stdForm', 'distance', 'distCircle'],
+  'm-lines': ['slope', 'slopeSpecial', 'slopeGraph', 'lineGraph', 'lineEq', 'pointSlopeForm', 'stdForm', 'distance', 'distCircle'],
   'm-sequences': ['arith', 'arithSum', 'arithMid', 'sigmaSum', 'geo', 'geoFinite', 'geoSum', 'geoMean', 'geoConverge', 'seqClassify'],
   'm-angles': ['angles', 'polyAngle'],
   'm-shapes': ['circle', 'rect'],
