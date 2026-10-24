@@ -113,13 +113,13 @@ function VideoFlow({ lesson, onDone }: { lesson: Lesson; onDone: () => void }) {
   const k = order[Math.min(pos, n - 1)]
   const v = lesson.videos[k]
   const last = pos >= n - 1
-  const bank = sprint ? { qs: banks[k].qs.slice(0, 5), idxs: banks[k].idxs.slice(0, 5) } : banks[k]
+  const bank = sprint ? { qs: banks[k].qs.slice(0, 3), idxs: banks[k].idxs.slice(0, 3) } : banks[k]
   const done = cleared[k] || !bank.qs.length
   return (
     <section>
       {picks && (
         <p className="muted">
-          {sprint ? <><b>⭐ Sprint mode:</b> the {n} key videos of {total}, 5 checkpoint questions each. </> : <><b>All {total} videos.</b> </>}
+          {sprint ? <><b>⭐ Sprint mode:</b> the {n} key videos of {total}, 3 checkpoint questions each. </> : <><b>All {total} videos.</b> </>}
           <button className="btn small ghost" onClick={() => { setSprint(x => !x); setPos(0) }}>{sprint ? `Show all ${total} videos` : 'Back to sprint mode'}</button>
         </p>
       )}

@@ -19,7 +19,7 @@ export const PRIORITY_IDS = [
 ]
 /** The videos worth watching if you are short on time (the app starts in sprint mode for these lessons). */
 export const SPRINT_VIDEOS: Record<string, string[]> = {
-  geometry: ['VjRXfemAbuc', 'ndqxxAUDF5Y', 'e4o7X6LyX-I', 'DdAwGinauoI', 'd8EA5TxGzcY', 'xzMirNSv1d0', 'p70UBGCHZrQ', 'YiFwvAFk-xs', 'JnLDmw3bbuw', 'VYGrZZEPq5Y', 'WxqNG1E_pi8', 'nd46bA9DKE0', 'SyzkgBjXtIs', 'cemF45vNOhg'],
+  geometry: ['YiFwvAFk-xs', 'VYGrZZEPq5Y', 'WxqNG1E_pi8', 'nd46bA9DKE0', 'SyzkgBjXtIs'],
 }
 export const isPriority = (id: string) => PRIORITY_IDS.includes(id)
 
@@ -40,8 +40,8 @@ export const PLAN: PlanDay[] = [
     { label: 'Polynomials: operations, division & remainder theorem', minutes: 45, lesson: 'm-polynomials', tier: 'stretch' },
     { label: 'Mistakes notebook', minutes: 20, route: '/mistakes' },
   ] },
-  { day: 2, minHours: 5.5, hours: 5.5, theme: '⭐ THE 4-HOUR SPRINT (mostly geometry, then basic trig) + THE 1-HOUR MOCK. Geometry opens in sprint mode: 14 key videos, 5 checkpoint questions each. Skip the Learn tab and the final quiz.', items: [
-    { group: 'THE 4-HOUR SPRINT', label: '⭐ GEOMETRY sprint: 14 key videos, chosen from the UPCAT geometry PDF (angles, parallel lines, triangles, Pythagorean, 45-45-90, 30-60-90, similar, area, volume, quadrilaterals, circle theorems, triangle lines, skew lines)', minutes: 190, lesson: 'geometry' },
+  { day: 2, minHours: 4, hours: 4, theme: '⭐ THE 4-HOUR SPRINT (mostly geometry, then basic trig) + THE 1-HOUR MOCK. Geometry opens in sprint mode: 5 key videos, 3 checkpoint questions each. Skip the Learn tab and the final quiz.', items: [
+    { group: 'THE 4-HOUR SPRINT', label: '⭐ GEOMETRY (2-hour version, 5 videos): similar triangles, volume, quadrilaterals, circle theorems, triangle lines. First memorize for 5 min: 30-60-90 = 1:√3:2, 45-45-90 = 1:1:√2, interior angles (n−2)×180°, exterior angles = 360°', minutes: 115, lesson: 'geometry' },
     { label: 'BASIC TRIGONOMETRY: 3 videos (SOH-CAH-TOA, special angles, elevation and depression)', minutes: 40, lesson: 'm-trig' },
     { label: 'Mistakes notebook: clear what you missed (geometry first)', minutes: 15, route: '/mistakes' },
     { group: 'THEN THE 1-HOUR MOCK', label: '⭐ PRIORITY MOCK (60 questions in 60 minutes) + look at every miss', minutes: 60, route: '/mock' },
