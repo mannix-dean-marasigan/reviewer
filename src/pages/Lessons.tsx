@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { LESSONS, SUBJECTS, isPriority, lessonById, lessonNumber } from '../content'
+import { LESSONS, SPRINT_VIDEOS, SUBJECTS, isPriority, lessonById, lessonNumber } from '../content'
 import { Blocks, VideoCard } from '../components/Blocks'
 import { Quiz } from '../components/Quiz'
 import { Rich } from '../components/Rich'
-import { INTERACTIVES } from '../interactives'
 import { addMinutes, recordQuiz, recordWrong, update, useStore } from '../lib/store'
 import { mathDrill } from '../lib/drills'
 import { makeLetterSeries, makeNumberSeries } from '../lib/patterns'
@@ -43,7 +42,7 @@ export function LessonList() {
   )
 }
 
-type Tab = 'watch' | 'learn' | 'try' | 'tricks' | 'practice' | 'quiz'
+type Tab = 'watch' | 'learn' | 'tricks' | 'practice' | 'quiz'
 
 /** Split the written lesson into sections at each heading so a checkpoint can follow each one. */
 function sections(blocks: Block[]): Block[][] {
@@ -77,13 +76,17 @@ function Checkpoint({ lesson, qs, offset, idxs, onDone, title = '✋ Checkpoint'
 function VideoFlow({ lesson, onDone }: { lesson: Lesson; onDone: () => void }) {
   const c = lesson.checks
   const off = poolOffsets(lesson)
-  const n = lesson.videos.length
-  const [k, setK] = useState(0)
+  const total = lesson.videos.length
+  const picks = SPRINT_VIDEOS[lesson.id]
+  const [sprint, setSprint] = useState(!!picks)
+  const order = useMemo(() => lesson.videos.map((_, i) => i).filter(i => !sprint || !picks || picks.includes(lesson.videos[i].id)), [lesson, sprint]) // eslint-disable-line react-hooks/exhaustive-deps
+  const n = order.length
+  const [pos, setK] = useState(0)
   const [cleared, setCleared] = useState<Record<number, boolean>>({})
   const banks = useMemo(() => {
     const r = rng((Date.now() + 7919) % 2147483000)
     const extra = c?.extra ?? []
-    const per = Math.ceil(extra.length / n)
+    const per = Math.ceil(extra.length / total)
     const map = VIDEO_MAP[lesson.id]
     return lesson.videos.map((_, i) => {
       const qs: Question[] = []
@@ -105,18 +108,26 @@ function VideoFlow({ lesson, onDone }: { lesson: Lesson; onDone: () => void }) {
       return { qs, idxs }
     })
   }, [lesson]) // eslint-disable-line react-hooks/exhaustive-deps
+  const k = order[Math.min(pos, n - 1)]
   const v = lesson.videos[k]
-  const last = k === n - 1
-  const done = cleared[k] || !banks[k].qs.length
+  const last = pos >= n - 1
+  const bank = sprint ? { qs: banks[k].qs.slice(0, 5), idxs: banks[k].idxs.slice(0, 5) } : banks[k]
+  const done = cleared[k] || !bank.qs.length
   return (
     <section>
-      {n > 1 && <p className="muted"><b>Video {k + 1} of {n}</b>: watch it, then clear the checkpoint to unlock {last ? 'the written lesson' : 'the next video'}.</p>}
+      {picks && (
+        <p className="muted">
+          {sprint ? <><b>⭐ Sprint mode:</b> the {n} key videos of {total}, 5 checkpoint questions each. </> : <><b>All {total} videos.</b> </>}
+          <button className="btn small ghost" onClick={() => { setSprint(x => !x); setK(0) }}>{sprint ? `Show all ${total} videos` : 'Back to sprint mode'}</button>
+        </p>
+      )}
+      {n > 1 && <p className="muted"><b>Video {pos + 1} of {n}</b>: watch it, then clear the checkpoint to unlock {last ? 'the written lesson' : 'the next video'}.</p>}
       {n === 1 && <p className="muted">Watch at 1.25× if you already know the basics. Pause and try the example before the teacher solves it.</p>}
       <VideoCard key={v.id} v={v} onWatched={() => update(s => ({ ...s, watched: { ...s.watched, [v.id]: true } }))} />
-      <Checkpoint key={k} lesson={lesson} qs={banks[k].qs} idxs={banks[k].idxs} onDone={() => setCleared(x => ({ ...x, [k]: true }))} title={`✋ Checkpoint ${k + 1}: ${banks[k].qs.length} questions`} />
+      <Checkpoint key={`${sprint}-${k}`} lesson={lesson} qs={bank.qs} idxs={bank.idxs} onDone={() => setCleared(x => ({ ...x, [k]: true }))} title={`✋ Checkpoint ${pos + 1}: ${bank.qs.length} questions`} />
       {done && (last
         ? <button className="btn" onClick={onDone}>Next: written lesson →</button>
-        : <button className="btn" onClick={() => { setK(k + 1); window.scrollTo(0, 0) }}>Next video →</button>)}
+        : <button className="btn" onClick={() => { setK(pos + 1); window.scrollTo(0, 0) }}>Next video →</button>)}
       {!done && <p className="muted">Finish the checkpoint ↑ (or skip it) to continue.</p>}
     </section>
   )
@@ -160,13 +171,12 @@ export function LessonPage() {
   if (!lesson) return <p>Lesson not found. <Link to="/lessons">Back to lessons</Link></p>
   const idx = LESSONS.findIndex(l => l.id === lesson.id)
   const next = LESSONS[idx + 1], prev = LESSONS[idx - 1]
-  const Lab = lesson.interactive ? INTERACTIVES[lesson.interactive.k] : undefined
   const c = lesson.checks
   const off = poolOffsets(lesson)
   const hasPractice = !!(c?.more?.length || c?.drill?.length)
-  const tabs: [Tab, string][] = [['watch', '1 · Watch'], ['learn', '2 · Learn'], ...(Lab ? [['try', '3 · Try it'] as [Tab, string]] : []), ['tricks', '⚡ Tricks'], ...(hasPractice ? [['practice', '✏️ Practice'] as [Tab, string]] : []), ['quiz', '🏁 Quiz']]
+  const tabs: [Tab, string][] = [['watch', '1 · Watch'], ['learn', '2 · Learn'], ['tricks', '⚡ Tricks'], ...(hasPractice ? [['practice', '✏️ Practice'] as [Tab, string]] : []), ['quiz', '🏁 Quiz']]
   const go = (t: Tab) => { setTab(t); window.scrollTo(0, 0) }
-  const afterLearn: Tab = Lab ? 'try' : 'tricks'
+  const afterLearn: Tab = 'tricks'
   const learnChecks = c?.learn ?? []
   const allUnlocked = unlocked >= secs.length
   return (
@@ -189,15 +199,8 @@ export function LessonPage() {
             </div>
           ))}
           {allUnlocked && learnChecks.length > secs.length && <Checkpoint lesson={lesson} qs={learnChecks.slice(secs.length)} offset={off.learn + secs.length} title="✋ Section recap" />}
-          {allUnlocked && <button className="btn" onClick={() => go(afterLearn)}>{Lab ? 'Next: interactive →' : 'Next: tricks →'}</button>}
+          {allUnlocked && <button className="btn" onClick={() => go(afterLearn)}>Next: tricks →</button>}
           {!allUnlocked && <p className="muted">Answer the checkpoint to unlock the next part ↑</p>}
-        </section>
-      )}
-      {tab === 'try' && Lab && (
-        <section>
-          <div className="card"><h3>Play with it</h3><Lab data={lesson.interactive?.data} /></div>
-          <Checkpoint lesson={lesson} qs={c?.lab ?? []} offset={off.lab} title="✋ Use what you just played with" />
-          <button className="btn" onClick={() => go('tricks')}>Next: tricks →</button>
         </section>
       )}
       {tab === 'tricks' && (

@@ -11,6 +11,7 @@ export interface State {
   checks: Record<string, true> // plan checklist
   essays: Record<string, string>
   drills: { at: number; kind: string; score: number; total: number }[]
+  v?: number // saved-data version (2 = the lab questions were removed)
 }
 
 const KEY = 'uap-prep-v1'

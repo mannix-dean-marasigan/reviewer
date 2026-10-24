@@ -27,15 +27,23 @@ function buildDay(day: number, r: ReturnType<typeof rng>): Item[] {
 
 function buildFrom(ids: string[], total: number, r: ReturnType<typeof rng>): Item[] {
   const lessons = ids.map(id => LESSONS.find(l => l.id === id)!).filter(Boolean)
-  const base = Math.floor(total / lessons.length)
+  // a merged lesson (geometry, trigonometry) counts as many lessons as it contains, so it gets its share of the questions
+  const weights = lessons.map(l => l.parts ?? 1)
+  const sum = weights.reduce((x, y) => x + y, 0)
+  const raw = weights.map(w => (total * w) / sum)
+  const want = raw.map(x => Math.max(1, Math.floor(x)))
+  let diff = total - want.reduce((x, y) => x + y, 0)
+  while (diff !== 0) {
+    if (diff > 0) { let bi = 0; raw.forEach((x, i) => { if (x - want[i] > raw[bi] - want[bi]) bi = i }); want[bi]++; diff-- }
+    else { let bi = 0; want.forEach((x, i) => { if (x - raw[i] > want[bi] - raw[bi] && x > 1) bi = i }); want[bi]--; diff++ }
+  }
   const items: Item[] = []
   lessons.forEach((l, i) => {
-    const want = base + (i < total - base * lessons.length ? 1 : 0)
     const topic = `${lessonNumber(l.id) ? `${lessonNumber(l.id)}. ` : ''}${l.title}`
-    const written = r.shuffle(lessonPool(l)).slice(0, Math.ceil(want * 0.6))
+    const written = r.shuffle(lessonPool(l)).slice(0, Math.ceil(want[i] * 0.6))
     written.forEach(q => items.push({ sub: l.subject, q, topic }))
     const kinds = l.checks?.drill ?? []
-    for (let k = written.length; k < want; k++) {
+    for (let k = written.length; k < want[i]; k++) {
       items.push({ sub: l.subject, topic, q: kinds.length ? mathDrill(r, r.pick(kinds)) : r.pick(lessonPool(l)) })
     }
   })
@@ -69,7 +77,7 @@ function build(kind: MockKind, r: ReturnType<typeof rng>): Item[] {
   return [...pool('english').slice(0, 12), ...pool('reading').slice(0, 6), ...mathItems(30), ...mentalItems(14)]
 }
 
-const TIMES: Record<MockKind, number> = { priority: 75, full: 90, math: 40, mental: 25, english: 35, day1: 75, day2: 75, day3: 75 }
+const TIMES: Record<MockKind, number> = { priority: 60, full: 90, math: 40, mental: 25, english: 35, day1: 75, day2: 75, day3: 75 }
 
 export default function Mock() {
   const st = useStore()

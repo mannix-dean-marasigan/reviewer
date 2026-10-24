@@ -47,7 +47,9 @@ export interface Lesson {
   videos: Video[]
   blocks: Block[]
   tricks: string[]
-  interactive?: { k: string; data?: any } // key into the interactives registry + optional data
+  interactive?: { k: string; data?: any; label?: string } // key into the interactives registry + optional data
+  moreInteractives?: { k: string; data?: any; label?: string }[] // extra interactives of a merged lesson
+  parts?: number // how many original lessons were merged into this one (used to weight mock exams)
   quiz: Question[]
   checks?: Checks
 }
