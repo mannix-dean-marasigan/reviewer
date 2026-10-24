@@ -32,6 +32,17 @@ const pstr = (cs: number[]) => {
   })
   return out || '0'
 }
+/** n/d of π in LaTeX: piFrac(5, 6) → \\frac{5\\pi}{6}, piFrac(-1, 1) → -\\pi. */
+const piFrac = (n: number, d: number): string => {
+  const g = gcd(n, d)
+  n /= g; d /= g
+  if (d < 0) { n = -n; d = -d }
+  if (n === 0) return '0'
+  const sign = n < 0 ? '-' : ''
+  const a = Math.abs(n)
+  if (d === 1) return `${sign}${a === 1 ? '' : a}\\pi`
+  return `${sign}\\frac{${a === 1 ? '' : a}\\pi}{${d}}`
+}
 /** Build a Question from a correct answer string + wrong candidates (deduped, padded). */
 function mk(r: Rng, q: string, correct: string, wrongs: string[], e: string, trick?: string): Question {
   const w: string[] = []
@@ -1682,6 +1693,321 @@ const GEN: Record<string, (r: Rng) => Question> = {
     return mk(r, `Let $f(x)=${f}$ and $g(x)=${g}$. Find $${kind === 'sum' ? '(f+g)(x)' : kind === 'diff' ? '(f-g)(x)' : '(f\\cdot g)(x)'}$.`, ans, w,
       `**Words:** $(f${kind === 'sum' ? '+' : kind === 'diff' ? '-' : '\\cdot '}g)(x)$ means ${kind === 'sum' ? 'add' : kind === 'diff' ? 'subtract' : 'multiply'} the two formulas.\n**Step 1:** (${f}) ${kind === 'sum' ? '+' : kind === 'diff' ? '−' : '×'} (${g}).\n${kind === 'diff' ? `**Step 2 (the minus changes EVERY sign in g):** ${f} − x² ${c > 0 ? '−' : '+'} ${Math.abs(c)}.\n` : kind === 'prod' ? `**Step 2 (distribute each term of f):** ${coef(a, 'x')}·x² + ${coef(a, 'x')}·(${c}) + (${b})·x² + (${b})(${c}).\n` : ''}**Step 3 (combine like terms, highest power first):** ${plain(ans)}.\n**Answer: ${plain(ans)}**`,
       'f − g: subtract the WHOLE of g, so every sign in g flips.')
+  },
+  cylSA(r) {
+    const rr = r.int(2, 9), h = r.int(3, 15), kind = r.pick(['sa', 'vol', 'fromVol'] as const)
+    const pi = (n: number) => `$${n}\\pi$`
+    if (rr === h || h === 2 * rr || 2 * h === rr) return GEN.cylSA(r)
+    if (kind === 'vol') {
+      const ans = pi(rr * rr * h)
+      return mk(r, `A cylinder has radius ${rr} cm and height ${h} cm. What is its volume? (leave $\\pi$ in your answer)`, ans, [pi(2 * rr * h), pi(rr * h), pi(2 * rr * rr * h), pi(rr * rr + h)],
+        `**Words:** the **volume** of a cylinder is the area of the circle at the bottom (the **base**, $\\pi r^2$) times the **height**: $V=\\pi r^2h$.\n**Step 1 (area of the base):** π × ${rr}² = ${rr * rr}π.\n**Step 2 (times the height):** ${rr * rr}π × ${h} = ${rr * rr * h}π.\n**Answer: ${rr * rr * h}π cubic cm**`,
+        'Cylinder volume = (area of base) × height = πr²h.')
+    }
+    if (kind === 'sa') {
+      const ans = pi(2 * rr * rr + 2 * rr * h)
+      return mk(r, `A cylinder has radius ${rr} in and height ${h} in. What is its surface area? (leave $\\pi$ in your answer)`, ans, [pi(rr * rr * h), pi(2 * rr * h), pi(rr * rr + 2 * rr * h), pi(2 * rr * rr), pi(2 * rr * rr + rr * h)],
+        `**Words:** the **surface area** is the total area of the outside. A cylinder has 2 circles (top and bottom, area $2\\pi r^2$) and a curved side (the **lateral area**, $2\\pi r h$, a rectangle that rolls up).\n**Step 1 (two circles):** 2π(${rr})² = ${2 * rr * rr}π.\n**Step 2 (curved side):** 2π(${rr})(${h}) = ${2 * rr * h}π.\n**Step 3 (add):** ${2 * rr * rr}π + ${2 * rr * h}π = ${2 * rr * rr + 2 * rr * h}π.\n**Answer: ${2 * rr * rr + 2 * rr * h}π square inches**`,
+        'Cylinder surface area = 2πr² + 2πrh (two circles + the side).')
+    }
+    const V = rr * rr * h
+    const ans = pi(2 * rr * rr + 2 * rr * h)
+    return mk(r, `A cylinder has volume $${V}\\pi$ cubic cm and height ${h} cm. What is its surface area? (leave $\\pi$ in your answer)`, ans, [pi(rr * rr * h), pi(2 * rr * h), pi(2 * rr * rr + rr * h), pi(2 * rr), pi(2 * rr * rr + 2 * rr * h + rr)],
+      `**Words:** to find the surface area we first need the radius. Use the volume formula $V=\\pi r^2h$ to find r.\n**Step 1 (put in the volume and height):** ${V}π = π r² (${h}).\n**Step 2 (divide both sides by π and by ${h}):** r² = ${V} ÷ ${h} = ${rr * rr}.\n**Step 3 (square root):** r = ${rr}.\n**Step 4 (surface area, 2πr² + 2πrh):** 2π(${rr})² + 2π(${rr})(${h}) = ${2 * rr * rr}π + ${2 * rr * h}π = ${2 * rr * rr + 2 * rr * h}π.\n**Answer: ${2 * rr * rr + 2 * rr * h}π square cm**`,
+      'Volume given? Find r first, then use the surface area formula.')
+  },
+  arcSector(r) {
+    const th = r.pick([30, 40, 45, 60, 72, 90, 120, 135, 150, 180]), rad = r.pick([3, 4, 5, 6, 9, 10, 12]), ask = r.pick(['arc', 'sector', 'arcCirc'] as const)
+    const pi = (n: number, d: number) => `$${n === 0 ? 0 : frac(n, d)}\\pi$`
+    if (ask === 'arc') {
+      const n = th * rad, d = 180
+      const ans = pi(n, d)
+      return mk(r, `A circle has radius ${rad} cm. What is the length of an arc with a central angle of ${th}°? (leave $\\pi$ in your answer)`, ans, [pi(th * rad, 360), pi(th * rad * rad, 360), pi(th * rad, 90), pi(rad * 2, 1), pi(th * rad, 45), pi(th * rad + 1, 180)],
+        `**Words:** an **arc** is a piece of the circle's edge. A **central angle** has its corner at the center. The arc is the same fraction of the whole circumference as the angle is of 360°.\n**Step 1 (fraction of the circle):** ${th}/360.\n**Step 2 (whole circumference, 2πr):** 2π(${rad}) = ${2 * rad}π.\n**Step 3 (multiply):** (${th}/360) × ${2 * rad}π = ${frac(n, d).replace(/\\frac\{(\d+)\}\{(\d+)\}/, '$1/$2')}π.\n**Answer: ${frac(n, d).replace(/\\frac\{(\d+)\}\{(\d+)\}/, '$1/$2')}π cm**`,
+        'Arc length = (angle ÷ 360) × 2πr.')
+    }
+    if (ask === 'sector') {
+      const n = th * rad * rad, d = 360
+      const ans = pi(n, d)
+      return mk(r, `A circle has radius ${rad} cm. What is the area of a sector with a central angle of ${th}°? (leave $\\pi$ in your answer)`, ans, [pi(th * rad, 180), pi(th * rad * rad, 180), pi(rad * rad, 1), pi(th * rad, 360), pi(th * rad * rad, 90), pi(th * rad * rad + 1, 360)],
+        `**Words:** a **sector** is a "pizza slice" of the circle. Its area is the same fraction of the whole circle's area as the angle is of 360°.\n**Step 1 (fraction of the circle):** ${th}/360.\n**Step 2 (area of the whole circle, πr²):** π(${rad})² = ${rad * rad}π.\n**Step 3 (multiply):** (${th}/360) × ${rad * rad}π = ${frac(n, d).replace(/\\frac\{(\d+)\}\{(\d+)\}/, '$1/$2')}π.\n**Answer: ${frac(n, d).replace(/\\frac\{(\d+)\}\{(\d+)\}/, '$1/$2')}π square cm**`,
+        'Sector area = (angle ÷ 360) × πr².')
+    }
+    const circ = 36, arcTh = r.pick([40, 60, 90, 120, 180]), len = (circ * arcTh) / 360
+    return mk(r, `The circumference of a circle is ${circ}π. What is the length of an arc with a central angle of ${arcTh}°? (leave $\\pi$ in your answer)`, `$${len}\\pi$`, [`$${len * 2}\\pi$`, `$${len / 2}\\pi$`, `$${circ - len}\\pi$`, `$${arcTh}\\pi$`],
+      `**Words:** the **circumference** is the distance all the way around the circle. An arc is a fraction of it.\n**Step 1 (fraction of the circle):** ${arcTh}/360 = ${frac(arcTh, 360).replace(/\\frac\{(\d+)\}\{(\d+)\}/, '$1/$2')}.\n**Step 2 (multiply by the circumference):** (${frac(arcTh, 360).replace(/\\frac\{(\d+)\}\{(\d+)\}/, '$1/$2')}) × ${circ}π = ${len}π.\n**Answer: ${len}π**`,
+      'Arc = fraction of the angle × the whole circumference.')
+  },
+  triSegments(r) {
+    const bank: [string, string, string, string][] = [
+      ['A segment from a vertex of a triangle to the MIDPOINT of the opposite side is a:', 'median', 'A **median** joins a vertex to the midpoint of the opposite side, so it splits that side into two equal parts.', 'Median = to the midpoint.'],
+      ['A segment from a vertex that is PERPENDICULAR to the opposite side is an:', 'altitude', 'An **altitude** forms right angles (90°) with the opposite side. It does not have to split the side in half.', 'Altitude = height, makes 90°.'],
+      ['A ray from a vertex that splits the angle into two EQUAL angles is an:', 'angle bisector', 'An **angle bisector** cuts an angle into two congruent (equal) angles.', 'Angle bisector = splits the angle.'],
+      ['A line that is perpendicular to a segment AND passes through its midpoint is a:', 'perpendicular bisector', 'A **perpendicular bisector** does both jobs: it makes right angles AND cuts the segment into two equal parts.', 'Perpendicular bisector = 90° + midpoint.'],
+    ]
+    const [q, a, why, tip] = r.pick(bank)
+    const names = ['median', 'altitude', 'angle bisector', 'perpendicular bisector']
+    return mk(r, q, a, names.filter(n => n !== a), `**Words:** triangles have four special lines.\n**Step 1 (read what the segment does):** ${q.replace(':', '')}.\n**Step 2 (match):** ${why}\n**Answer: ${a}**`, tip)
+  },
+  medianSolve(r) {
+    const x = r.int(3, 12), a = r.int(2, 5), b = r.int(1, 9), c = r.int(1, a - 1)
+    const d = (a - c) * x + b
+    const total = 2 * (a * x + b)
+    const kind = r.pick(['median', 'bisector'] as const)
+    const word = kind === 'median' ? 'BD is a median of triangle ABC (D is on AC)' : 'The line through D is the perpendicular bisector of $\\overline{AC}$ and crosses it at D'
+    return mk(r, `${word}. $AD=${lin(a, b)}$ and $DC=${lin(c, d)}$. What is $AC$?`, `${total}`, [`${a * x + b}`, `${x}`, `${total + 2}`, `${total - 2}`].map(String),
+      `**Words:** a ${kind === 'median' ? '**median** goes to the **midpoint** of the opposite side' : '**perpendicular bisector** passes through the **midpoint** of the segment'}, so the two pieces are EQUAL: AD = DC.\n**Step 1 (set equal):** ${lin(a, b)} = ${lin(c, d)}.\n**Step 2 (solve):** ${a - c}x = ${d - b}, so x = ${x}.\n**Step 3 (find one piece):** AD = ${a}(${x}) + ${b} = ${a * x + b}.\n**Step 4 (AC is both pieces):** 2 × ${a * x + b} = ${total}.\n**Answer: ${total}**`,
+      'Median or bisector → two equal halves: set them equal, solve, then double.')
+  },
+  degToRad(r) {
+    const degs = [30, 45, 60, 90, 120, 135, 150, 180, 210, 225, 240, 270, 300, 315, 330, -30, -45, -60, -90, -120, -135, -150, -225]
+    const d = r.pick(degs)
+    const f = (n: number, m: number) => `$${piFrac(n, m)}$`
+    const ans = f(d, 180)
+    const w = [f(d, 90), f(d, 360), f(180, d), f(-d, 180), f(d * 2, 180 * 3), f(d + 90, 180)]
+    return mk(r, `Convert $${d}^\\circ$ to radians.`, ans, w.filter(x => x !== ans),
+      `**Words:** a **radian** is another way to measure angles. A full turn is 360° = 2π radians, so 180° = π radians.\n**Step 1 (the conversion factor):** multiply by π/180, so the degrees cancel.\n**Step 2 (multiply):** ${d} × π/180 = ${d}π/180.\n**Step 3 (simplify the fraction):** ${plain(ans)}.\n**Answer: ${plain(ans)} radians**`,
+      'Degrees → radians: multiply by π/180.')
+  },
+  radToDeg(r) {
+    const degs = [30, 45, 60, 90, 120, 135, 150, 180, 210, 225, 240, 270, 300, 315, 330, -30, -45, -90, -135, -180, -270, -315]
+    const d = r.pick(degs)
+    const ans = `$${d}^\\circ$`
+    const w = [`$${d / 2}^\\circ$`, `$${d * 2}^\\circ$`, `$${-d}^\\circ$`, `$${d + 90}^\\circ$`, `$${d - 30}^\\circ$`, `$${d + 60}^\\circ$`]
+    return mk(r, `Convert $${piFrac(d, 180)}$ radians to degrees.`, ans, w.filter(x => x !== ans),
+      `**Words:** 180° = π radians.\n**Step 1 (the conversion factor):** multiply by 180/π, so the π cancels.\n**Step 2 (multiply):** (${plain(`${piFrac(d, 180)}`)}) × 180/π.\n**Step 3 (cancel π and simplify):** ${d}°.\n**Answer: ${d}°**`,
+      'Radians → degrees: multiply by 180/π.')
+  },
+  refAngle(r) {
+    let t = r.int(10, 350)
+    if (t % 90 === 0) t += 7
+    const q = t < 90 ? 1 : t < 180 ? 2 : t < 270 ? 3 : 4
+    const ref = q === 1 ? t : q === 2 ? 180 - t : q === 3 ? t - 180 : 360 - t
+    const wrongs = [t % 90, 90 - ref, Math.abs(180 - t), 360 - t, t - 90, 180 - ref, ref + 10, ref + 20, Math.abs(ref - 15), 90 - Math.abs(ref - 5)].filter(v => v !== ref && v > 0 && v <= 360)
+    const w = [...new Set(wrongs)].map(v => `$${v}^\\circ$`)
+    return mk(r, `What is the reference angle of $${t}^\\circ$?`, `$${ref}^\\circ$`, w,
+      `**Words:** the **reference angle** is the small positive angle between the terminal side (where the angle ends) and the x-axis. It is always between 0° and 90°.\n**Step 1 (which quadrant is ${t}° in?):** quadrant ${['I', 'II', 'III', 'IV'][q - 1]}.\n**Step 2 (rule):** ${q === 1 ? 'quadrant I: the angle itself' : q === 2 ? 'quadrant II: 180° − angle' : q === 3 ? 'quadrant III: angle − 180°' : 'quadrant IV: 360° − angle'}.\n**Step 3 (compute):** ${q === 1 ? `${t}°` : q === 2 ? `180 − ${t}` : q === 3 ? `${t} − 180` : `360 − ${t}`} = ${ref}°.\n**Answer: ${ref}°**`,
+      'Quadrant II: 180 − θ. III: θ − 180. IV: 360 − θ.')
+  },
+  trigValue(r) {
+    const angs = [120, 135, 150, 210, 225, 240, 300, 315, 330, 30, 45, 60]
+    const th = r.pick(angs), fn = r.pick(['sin', 'cos', 'tan'] as const)
+    const q = th < 90 ? 1 : th < 180 ? 2 : th < 270 ? 3 : 4
+    const ref = q === 1 ? th : q === 2 ? 180 - th : q === 3 ? th - 180 : 360 - th
+    const base = { sin: { 30: '\\frac12', 45: '\\frac{\\sqrt2}{2}', 60: '\\frac{\\sqrt3}{2}' }, cos: { 30: '\\frac{\\sqrt3}{2}', 45: '\\frac{\\sqrt2}{2}', 60: '\\frac12' }, tan: { 30: '\\frac{\\sqrt3}{3}', 45: '1', 60: '\\sqrt3' } } as Record<string, Record<number, string>>
+    const pos = fn === 'sin' ? [1, 2] : fn === 'cos' ? [1, 4] : [1, 3]
+    const sign = pos.includes(q) ? '' : '-'
+    const val = (f: string, rf: number, sg: string) => `$${sg}${base[f][rf]}$`
+    const ans = val(fn, ref, sign)
+    const other = fn === 'sin' ? 'cos' : 'sin'
+    const swapRef = ref === 30 ? 60 : ref === 60 ? 30 : 45
+    const pool = ['\\frac12', '-\\frac12', '\\frac{\\sqrt3}{2}', '-\\frac{\\sqrt3}{2}', '\\frac{\\sqrt2}{2}', '-\\frac{\\sqrt2}{2}', '1', '-1', '\\sqrt3', '-\\sqrt3', '\\frac{\\sqrt3}{3}', '-\\frac{\\sqrt3}{3}'].map(v => `$${v}$`)
+    const cands = [val(fn, ref, sign ? '' : '-'), val(other, ref, sign), val(fn, swapRef, sign), val(other === 'sin' ? 'sin' : 'cos', swapRef, sign ? '' : '-')]
+    const w = [...new Set([...cands, ...r.shuffle(pool)])].filter(x => x !== ans).slice(0, 5)
+    const tri = ref === 45 ? 'the 45-45-90 triangle (sides 1, 1, √2)' : 'the 30-60-90 triangle (sides 1, √3, 2; the 30° is opposite 1, the 60° is opposite √3)'
+    const ratio = fn === 'sin' ? 'opposite ÷ hypotenuse (SOH)' : fn === 'cos' ? 'adjacent ÷ hypotenuse (CAH)' : 'opposite ÷ adjacent (TOA)'
+    return mk(r, `Find the exact value of $\\${fn} ${th}^\\circ$.`, ans, w,
+      `**Words:** to find a trig value of a big angle, use its **reference angle** (the small angle to the x-axis) and the **sign** of the quadrant. **All Students Take Calculus**: in quadrant I all are positive, II only sine, III only tangent, IV only cosine.\n**Step 1 (quadrant of ${th}°):** ${['I', 'II', 'III', 'IV'][q - 1]}.\n**Step 2 (reference angle):** ${q === 1 ? th : q === 2 ? `180 − ${th}` : q === 3 ? `${th} − 180` : `360 − ${th}`} = ${ref}°.\n**Step 3 (value for ${ref}°, from ${tri}):** ${fn} = ${ratio}, which is ${plain(val(fn, ref, ''))}.\n**Step 4 (sign):** ${fn} is ${sign ? 'negative' : 'positive'} in quadrant ${['I', 'II', 'III', 'IV'][q - 1]}.\n**Answer: ${plain(ans)}**`,
+      'Reference angle for the number, quadrant for the sign (ASTC).')
+  },
+  sixFn(r) {
+    const [a, b, c] = r.pick([[3, 4, 5], [5, 12, 13], [8, 15, 17], [7, 24, 25]])
+    const fn = r.pick(['csc', 'sec', 'cot'] as const)
+    const ans = fn === 'csc' ? `$${frac(c, a)}$` : fn === 'sec' ? `$${frac(c, b)}$` : `$${frac(b, a)}$`
+    const w = [`$${frac(a, c)}$`, `$${frac(b, c)}$`, `$${frac(a, b)}$`, `$${frac(c, b)}$`, `$${frac(c, a)}$`, `$${frac(b, a)}$`]
+    const def = fn === 'csc' ? 'cosecant is the reciprocal of sine: hypotenuse ÷ opposite' : fn === 'sec' ? 'secant is the reciprocal of cosine: hypotenuse ÷ adjacent' : 'cotangent is the reciprocal of tangent: adjacent ÷ opposite'
+    return mk(r, `In a right triangle the side opposite θ is ${a}, the side adjacent to θ is ${b} and the hypotenuse is ${c}. Find $\\${fn}\\theta$.`, ans, w.filter(x => x !== ans),
+      `**Words:** there are 6 trig functions. sin = opposite/hypotenuse, cos = adjacent/hypotenuse, tan = opposite/adjacent. Their reciprocals (flipped fractions) are csc, sec and cot.\n**Step 1 (which one?):** ${def}.\n**Step 2 (put in the sides):** ${fn === 'csc' ? `${c}/${a}` : fn === 'sec' ? `${c}/${b}` : `${b}/${a}`}.\n**Answer: ${plain(ans)}**`,
+      'csc ↔ sin, sec ↔ cos, cot ↔ tan: flip the fraction.')
+  },
+  quadSign(r) {
+    const bank: [string, string, string[], string][] = [
+      ['In which quadrants is $\\sin\\theta$ positive?', 'I and II', ['I and IV', 'I and III', 'II and IV'], 'sine is the y-value, and y is positive on the top half of the circle (quadrants I and II)'],
+      ['In which quadrants is $\\cos\\theta$ positive?', 'I and IV', ['I and II', 'II and III', 'III and IV'], 'cosine is the x-value, and x is positive on the right half of the circle (quadrants I and IV)'],
+      ['In which quadrants is $\\tan\\theta$ positive?', 'I and III', ['I and II', 'II and IV', 'III and IV'], 'tangent is y ÷ x, which is positive when x and y have the SAME sign (quadrants I and III)'],
+      ['In which quadrant is $\\sin\\theta$ negative and $\\cos\\theta$ positive?', 'IV', ['I', 'II', 'III'], 'sine is negative below the x-axis and cosine is positive to the right of the y-axis: quadrant IV'],
+      ['In which quadrant are BOTH $\\sin\\theta$ and $\\cos\\theta$ negative?', 'III', ['I', 'II', 'IV'], 'x and y are both negative in quadrant III'],
+    ]
+    const [q, a, w, why] = r.pick(bank)
+    return mk(r, q, a, w, `**Words:** on the unit circle (a circle of radius 1), a point is (x, y) = (cos θ, sin θ), and tan θ = y/x. The signs depend on the quadrant.\n**Step 1 (think of the point):** ${why}.\n**Memory trick:** All Students Take Calculus (I: All, II: Sine, III: Tangent, IV: Cosine are positive).\n**Answer: ${a}**`,
+      'All Students Take Calculus: I all, II sin, III tan, IV cos.')
+  },
+  radianArc(r) {
+    const rad = r.int(2, 9), th = r.int(2, 6)
+    if (r.pick([true, false])) {
+      const s = rad * th
+      return mk(r, `A circle has radius ${rad} cm. An arc on it is ${s} cm long. What is the central angle in radians?`, `${th}`, [`${s}`, `${rad}`, `${s * rad}`, `${th + 1}`],
+        `**Words:** one **radian** is the angle that cuts off an arc exactly as long as the radius. So the angle in radians = arc length ÷ radius.\n**Step 1 (θ = s ÷ r):** ${s} ÷ ${rad}.\n**Step 2:** = ${th}.\n**Answer: ${th} radians**`, 'Angle in radians = arc length ÷ radius.')
+    }
+    const s = rad * th
+    return mk(r, `A central angle of ${th} radians cuts off an arc on a circle of radius ${rad} cm. How long is the arc?`, `${s} cm`, [`${th + rad} cm`, `${rad + th * 2} cm`, `${th * rad * 2} cm`, `${s + rad} cm`],
+      `**Words:** one **radian** is the angle that cuts off an arc exactly as long as the radius. So arc length s = radius × angle in radians.\n**Step 1 (s = rθ):** ${rad} × ${th}.\n**Step 2:** = ${s}.\n**Answer: ${s} cm**`, 'Arc length (radians): s = r × θ.')
+  },
+  pythId(r) {
+    const [a, b, c] = r.pick([[3, 4, 5], [5, 12, 13], [8, 15, 17], [7, 24, 25], [20, 21, 29]])
+    const quad4 = r.int(1, 4), given = r.pick(['sin', 'cos'] as const)
+    const sinNeg = quad4 >= 3, cosNeg = quad4 === 2 || quad4 === 3
+    const sinV = (sinNeg ? '-' : '') + frac(a, c), cosV = (cosNeg ? '-' : '') + frac(b, c)
+    const g = given === 'sin' ? `$\\sin\\theta=${sinV}$` : `$\\cos\\theta=${cosV}$`
+    const wantV = given === 'sin' ? cosV : sinV
+    const ask = given === 'sin' ? 'cos' : 'sin'
+    const gv = given === 'sin' ? a : b, wv = given === 'sin' ? b : a
+    const flipSign = wantV.startsWith('-') ? wantV.slice(1) : '-' + wantV
+    const w = [flipSign, frac(gv, c), (wantV.startsWith('-') ? '-' : '') + frac(wv, gv), frac(c, wv), (wantV.startsWith('-') ? '' : '-') + frac(gv, wv)]
+    return mk(r, `${g} and θ is in quadrant ${['I', 'II', 'III', 'IV'][quad4 - 1]}. Find $\\${ask}\\theta$.`, `$${wantV}$`, [...new Set(w)].filter(x => x !== wantV).map(x => `$${x}$`),
+      `**Words:** the **Pythagorean identity** is sin²θ + cos²θ = 1. If you know one of them you can find the other. The quadrant tells you the sign.\n**Step 1 (square the one you know):** (${gv}/${c})² = ${gv * gv}/${c * c}.\n**Step 2 (the other one squared is 1 minus that):** ${ask}²θ = 1 − ${gv * gv}/${c * c} = ${c * c - gv * gv}/${c * c}.\n**Step 3 (square root):** ${ask}θ = ±${wv}/${c}.\n**Step 4 (sign for quadrant ${['I', 'II', 'III', 'IV'][quad4 - 1]}):** ${ask} is ${wantV.startsWith('-') ? 'negative' : 'positive'} there.\n**Answer: ${wantV.replace(/\\frac\{(\d+)\}\{(\d+)\}/, '$1/$2')}**`,
+      'sin² + cos² = 1. Square root gives ±, so use the quadrant for the sign.')
+  },
+  simplifyTrig(r) {
+    const bank: [string, string, string[], string][] = [
+      ['\\sec\\theta\\cdot\\cos\\theta', '1', ['\\sin\\theta', '\\tan\\theta', '\\cos^2\\theta'], 'sec θ is 1/cos θ, so (1/cos θ) × cos θ = 1'],
+      ['\\tan\\theta\\cdot\\cos\\theta', '\\sin\\theta', ['\\cos\\theta', '1', '\\sec\\theta'], 'tan θ = sin θ/cos θ, so the cos θ cancels and leaves sin θ'],
+      ['\\sin\\theta\\cdot\\csc\\theta', '1', ['\\sin^2\\theta', '\\cos\\theta', '\\tan\\theta'], 'csc θ = 1/sin θ, so they cancel to 1'],
+      ['1-\\sin^2\\theta', '\\cos^2\\theta', ['\\sin^2\\theta', '\\tan^2\\theta', '1'], 'from sin²θ + cos²θ = 1, move sin²θ to the other side'],
+      ['1-\\cos^2\\theta', '\\sin^2\\theta', ['\\cos^2\\theta', '\\tan^2\\theta', '1'], 'from sin²θ + cos²θ = 1, move cos²θ to the other side'],
+      ['\\tan^2\\theta+1', '\\sec^2\\theta', ['\\csc^2\\theta', '\\sin^2\\theta', '\\cos^2\\theta'], 'this is one of the Pythagorean identities: 1 + tan²θ = sec²θ'],
+      ['1+\\cot^2\\theta', '\\csc^2\\theta', ['\\sec^2\\theta', '\\cos^2\\theta', '\\tan^2\\theta'], 'this is one of the Pythagorean identities: 1 + cot²θ = csc²θ'],
+      ['\\dfrac{\\sin\\theta}{\\tan\\theta}', '\\cos\\theta', ['\\sin\\theta', '\\sec\\theta', '1'], 'tan θ = sin θ/cos θ, so dividing by it flips it and leaves cos θ'],
+      ['\\dfrac{\\cos\\theta}{\\sin\\theta}', '\\cot\\theta', ['\\tan\\theta', '\\sec\\theta', '\\csc\\theta'], 'cos θ ÷ sin θ is the definition of cot θ'],
+      ['\\cot\\theta\\cdot\\tan\\theta', '1', ['\\sin\\theta', '\\cos\\theta', '\\cot^2\\theta'], 'cot θ and tan θ are reciprocals, so they multiply to 1'],
+      ['\\sec^2\\theta-\\tan^2\\theta', '1', ['\\sin^2\\theta', '\\cos^2\\theta', '0'], 'from 1 + tan²θ = sec²θ, subtract tan²θ'],
+      ['\\sin^2\\theta+\\cos^2\\theta+\\tan^2\\theta', '\\sec^2\\theta', ['1', '\\tan^2\\theta', '\\csc^2\\theta'], 'first sin²θ + cos²θ = 1, then 1 + tan²θ = sec²θ'],
+    ]
+    const [e, a, w, why] = r.pick(bank)
+    return mk(r, `Simplify: $${e}$`, `$${a}$`, w.map(x => `$${x}$`),
+      `**Words:** to **simplify** a trig expression, change everything to sine and cosine or use an identity. The basic identities: tan = sin/cos, cot = cos/sin, sec = 1/cos, csc = 1/sin, and sin²θ + cos²θ = 1.\n**Step 1 (what identity helps?):** ${why}.\n**Step 2 (simplify):** the expression becomes $${a}$.\n**Answer: $${a}$**`,
+      'Rewrite in sin and cos, cancel, or spot sin² + cos² = 1.')
+  },
+  solveTrig(r) {
+    const T: [string, number[], string][] = [
+      ['\\sin x=\\frac12', [30, 150], 'sine is positive in quadrants I and II, and sin 30° = 1/2'],
+      ['\\sin x=\\frac{\\sqrt3}{2}', [60, 120], 'sine is positive in quadrants I and II, and sin 60° = √3/2'],
+      ['\\sin x=-\\frac12', [210, 330], 'sine is negative in quadrants III and IV, and the reference angle is 30°'],
+      ['\\sin x=-\\frac{\\sqrt3}{2}', [240, 300], 'sine is negative in quadrants III and IV, and the reference angle is 60°'],
+      ['\\cos x=\\frac12', [60, 300], 'cosine is positive in quadrants I and IV, and cos 60° = 1/2'],
+      ['\\cos x=-\\frac12', [120, 240], 'cosine is negative in quadrants II and III, and the reference angle is 60°'],
+      ['\\cos x=\\frac{\\sqrt2}{2}', [45, 315], 'cosine is positive in quadrants I and IV, and cos 45° = √2/2'],
+      ['\\cos x=-\\frac{\\sqrt2}{2}', [135, 225], 'cosine is negative in quadrants II and III, and the reference angle is 45°'],
+      ['\\tan x=1', [45, 225], 'tangent is positive in quadrants I and III, and tan 45° = 1'],
+      ['\\tan x=-1', [135, 315], 'tangent is negative in quadrants II and IV, and the reference angle is 45°'],
+      ['\\tan x=\\sqrt3', [60, 240], 'tangent is positive in quadrants I and III, and tan 60° = √3'],
+    ]
+    const [eq, sol, why] = r.pick(T)
+    const rad = r.pick([true, false])
+    const show = (a0: number, b0: number) => { const [a, b] = a0 <= b0 ? [a0, b0] : [b0, a0]; return rad ? `$x=${piFrac(a, 180)}$ and $x=${piFrac(b, 180)}$` : `$x=${a}^\\circ$ and $x=${b}^\\circ$` }
+    const ans = show(sol[0], sol[1])
+    const cand = [show(sol[0], 360 - sol[0]), show(sol[0], 180 + sol[0]), show(sol[1], 360 - sol[1]), show(180 - sol[0], sol[1]), show(sol[0], sol[0] + 90), show(sol[0] + 90, sol[1] + 90)]
+    const w = [...new Set(cand)].filter(x => x !== ans)
+    return mk(r, `Solve $${eq}$ for $${rad ? '0\\le x<2\\pi' : '0^\\circ\\le x<360^\\circ'}$.`, ans, w,
+      `**Words:** solving a trig equation means finding the angles that give that value. Use the unit circle: there are usually TWO angles in one turn.\n**Step 1 (quadrants):** ${why}.\n**Step 2 (the angles in degrees):** ${sol[0]}° and ${sol[1]}°.\n**Step 3 (${rad ? 'convert to radians, multiply by π/180' : 'write them'}):** ${plain(ans)}.\n**Answer: ${plain(ans)}**`,
+      'Two quadrants share each sign. Use the reference angle in both.')
+  },
+  solveTrigAll(r) {
+    const T: [string, string, string, string][] = [
+      ['\\sin x=\\frac12', '\\frac{\\pi}{6}', '\\frac{5\\pi}{6}', '2\\pi n'],
+      ['\\cos x=\\frac12', '\\frac{\\pi}{3}', '\\frac{5\\pi}{3}', '2\\pi n'],
+      ['\\cos x=-\\frac{\\sqrt2}{2}', '\\frac{3\\pi}{4}', '\\frac{5\\pi}{4}', '2\\pi n'],
+      ['\\sin x=\\frac{\\sqrt3}{2}', '\\frac{\\pi}{3}', '\\frac{2\\pi}{3}', '2\\pi n'],
+    ]
+    const [eq, s1, s2, per] = r.pick(T)
+    const ans = `$x=${s1}+${per}$ or $x=${s2}+${per}$`
+    const w = [`$x=${s1}+\\pi n$ or $x=${s2}+\\pi n$`, `$x=${s1}$ or $x=${s2}$ only`, `$x=${s1}+${per}$ only`, `$x=${s2}+${per}$ or $x=${s1}+\\pi n$`]
+    return mk(r, `Find ALL solutions of $${eq}$ (n is any integer).`, ans, w,
+      `**Words:** sine and cosine repeat every full turn (2π). So after finding the angles in one turn, add 2πn to each, where n is any whole number (positive, negative or zero). **All solutions** means writing it this way.\n**Step 1 (the angles in one turn):** ${plain(s1)} and ${plain(s2)}.\n**Step 2 (add the period 2πn to each):** x = ${plain(s1)} + 2πn or x = ${plain(s2)} + 2πn.\n**Answer: ${plain(ans)}**`,
+      'All solutions: add 2πn (sine, cosine) or πn (tangent).')
+  },
+  solveTrigLin(r) {
+    const T: [string, string, string, string[], string][] = [
+      ['2\\sin x+\\sqrt3=0', '\\sin x=-\\frac{\\sqrt3}{2}', '2 sin x = −√3, then sin x = −√3/2', ['\\frac{4\\pi}{3}', '\\frac{5\\pi}{3}'], 'sine is negative in quadrants III and IV, and the reference angle is π/3'],
+      ['2\\sin x-1=0', '\\sin x=\\frac12', '2 sin x = 1, then sin x = 1/2', ['\\frac{\\pi}{6}', '\\frac{5\\pi}{6}'], 'sine is positive in quadrants I and II, and the reference angle is π/6'],
+      ['2\\cos x+1=0', '\\cos x=-\\frac12', '2 cos x = −1, then cos x = −1/2', ['\\frac{2\\pi}{3}', '\\frac{4\\pi}{3}'], 'cosine is negative in quadrants II and III, and the reference angle is π/3'],
+      ['2\\cos x-\\sqrt2=0', '\\cos x=\\frac{\\sqrt2}{2}', '2 cos x = √2, then cos x = √2/2', ['\\frac{\\pi}{4}', '\\frac{7\\pi}{4}'], 'cosine is positive in quadrants I and IV, and the reference angle is π/4'],
+    ]
+    const [eq, simp, how, sol, why] = r.pick(T)
+    const ans = `$x=${sol[0]}$ and $x=${sol[1]}$`
+    const pool = ['\\frac{\\pi}{6}', '\\frac{5\\pi}{6}', '\\frac{\\pi}{3}', '\\frac{2\\pi}{3}', '\\frac{4\\pi}{3}', '\\frac{5\\pi}{3}', '\\frac{\\pi}{4}', '\\frac{3\\pi}{4}', '\\frac{5\\pi}{4}', '\\frac{7\\pi}{4}']
+    const picks = r.shuffle(pool.filter(p => !sol.includes(p))).slice(0, 6)
+    const w = [`$x=${picks[0]}$ and $x=${picks[1]}$`, `$x=${sol[0]}$ and $x=${picks[2]}$`, `$x=${picks[3]}$ and $x=${sol[1]}$`, `$x=${picks[4]}$ and $x=${picks[5]}$`]
+    return mk(r, `Solve $${eq}$ for $0\\le x<2\\pi$.`, ans, w,
+      `**Words:** first get the trig function ALONE (like solving a normal equation), then find the angles on the unit circle.\n**Step 1 (isolate the trig function):** ${how}.\n**Step 2 (which quadrants?):** ${why}.\n**Step 3 (the two angles in 0 to 2π):** ${plain(sol[0])} and ${plain(sol[1])}.\n**Answer: ${plain(ans)}**`,
+      'Isolate sin/cos/tan first, then use the reference angle in the two right quadrants.')
+  },
+  ampPeriod(r) {
+    const A = r.pick([2, 3, 4, 5, -2, -3]), fn = r.pick(['sin', 'cos'] as const)
+    const Bs: [string, string][] = [['2', '\\pi'], ['4', '\\frac{\\pi}{2}'], ['3', '\\frac{2\\pi}{3}'], ['\\frac12', '4\\pi'], ['\\frac13', '6\\pi'], ['\\pi', '2'], ['1', '2\\pi']]
+    const [B, P] = r.pick(Bs)
+    const ask = r.pick(['amp', 'period'] as const)
+    const fnTxt = `y=${A === 1 ? '' : A === -1 ? '-' : A}\\${fn}${B === '1' ? '\\,x' : `\\left(${B}${B === '\\pi' ? '\\,' : ''}x\\right)`}`
+    if (ask === 'amp') {
+      const ans = `$${Math.abs(A)}$`
+      return mk(r, `What is the amplitude of $${fnTxt}$?`, ans, [`$${A}$`, `$${Math.abs(A) * 2}$`, `$1$`, `$${Math.abs(A) + 1}$`].filter(x => x !== ans),
+        `**Words:** the **amplitude** is how far the wave goes above (and below) its middle line. In $y=A\\${fn}(Bx)$ it is |A|, ALWAYS positive (a negative A just flips the wave upside down).\n**Step 1 (find A):** A = ${A}.\n**Step 2 (absolute value):** |${A}| = ${Math.abs(A)}.\n**Answer: ${Math.abs(A)}**`, 'Amplitude = |A|. Never negative.')
+    }
+    const ans = `$${P}$`
+    const pool = ['\\pi', '2\\pi', '4\\pi', '\\frac{\\pi}{2}', '6\\pi', '2', '\\frac{2\\pi}{3}', '3\\pi']
+    const w = [...new Set([`${B === '1' ? '2\\pi' : B}`, ...r.shuffle(pool)])].filter(x => x !== P).slice(0, 4).map(x => `$${x}$`)
+    return mk(r, `What is the period of $${fnTxt}$?`, ans, w,
+      `**Words:** the **period** is the length of one full wave before it repeats. In $y=A\\${fn}(Bx)$ the period is $\\dfrac{2\\pi}{B}$.\n**Step 1 (find B):** B = ${plain(B)}.\n**Step 2 (2π ÷ B):** 2π ÷ ${plain(B)} = ${plain(P)}.\n**Answer: ${plain(P)}**`, 'Period = 2π ÷ B. Fraction B → longer wave; bigger B → shorter wave.')
+  },
+  trigRange(r) {
+    const A = r.int(1, 5), D = r.pick([-4, -3, -2, -1, 1, 2, 3, 4]), fn = r.pick(['sin', 'cos'] as const)
+    const lo = D - A, hi = D + A
+    const eq = `y=${A === 1 ? '' : A}\\${fn} x${D < 0 ? D : '+' + D}`
+    const ask = r.pick(['range', 'mid'] as const)
+    if (ask === 'mid') return mk(r, `What is the midline (the horizontal center line) of $${eq}$?`, `$y=${D}$`, [`$y=${A}$`, `$y=${lo}$`, `$y=${hi}$`, `$y=${-D}$`].filter(x => x !== `$y=${D}$`),
+      `**Words:** in $y=A\\${fn}(Bx)+D$ the number D is the **vertical shift**. The wave goes up and down around the **midline** y = D.\n**Step 1 (find D, the number added at the end):** D = ${D}.\n**Answer: y = ${D}**`, 'Midline: y = D (the number added at the end).')
+    return mk(r, `What is the range of $${eq}$?`, `$[${lo},${hi}]$`, [`$[${-A},${A}]$`, `$[${D - 1},${D + 1}]$`, `$[${lo - 1},${hi + 1}]$`, `$[${D},${hi}]$`, `$[${lo},${D}]$`],
+      `**Words:** the **range** is every y-value the graph reaches, from its lowest point to its highest point. The wave goes A above and A below the midline.\n**Step 1 (midline and amplitude):** midline y = ${D}, amplitude ${A}.\n**Step 2 (highest):** ${D} + ${A} = ${hi}.\n**Step 3 (lowest):** ${D} − ${A} = ${lo}.\n**Answer: from ${lo} to ${hi}**`, 'Range = midline − amplitude to midline + amplitude.')
+  },
+  phaseShift(r) {
+    const c = r.pick([[1, 4], [1, 2], [1, 3], [1, 6], [3, 4], [2, 3], [5, 6]]), dir = r.pick(['right', 'left'] as const), fn = r.pick(['sin', 'cos'] as const)
+    const sh = piFrac(c[0], c[1])
+    const eq = `y=\\${fn}\\left(x${dir === 'right' ? '-' : '+'}${sh}\\right)`
+    const ans = `$${sh}$ units to the ${dir}`
+    const other = dir === 'right' ? 'left' : 'right'
+    return mk(r, `The graph of $${eq}$ is the basic ${fn} wave shifted how?`, ans, [`$${sh}$ units to the ${other}`, `$${piFrac(c[0], c[1] * 2)}$ units to the ${dir}`, `$${piFrac(c[0] * 2, c[1])}$ units to the ${other}`, `up $${sh}$ units`],
+      `**Words:** a **phase shift** slides the wave left or right. Set the inside of the bracket equal to 0 to find where the wave "starts".\n**Step 1 (inside = 0):** x ${dir === 'right' ? '−' : '+'} ${plain(sh)} = 0.\n**Step 2 (solve):** x = ${dir === 'right' ? '' : '−'}${plain(sh)}.\n**Step 3 (meaning):** the start moves to x = ${dir === 'right' ? '' : '−'}${plain(sh)}, which is ${dir === 'right' ? 'RIGHT of 0 (x − c shifts right)' : 'LEFT of 0 (x + c shifts left)'}.\n**Answer: ${plain(sh)} units to the ${dir}**`,
+      'x − c shifts RIGHT. x + c shifts LEFT. (It feels backwards, but set the inside to 0.)')
+  },
+  graphMatch(r) {
+    const A = r.int(2, 5), D = r.pick([-2, -1, 1, 2, 3]), [B, P] = r.pick([['2', '\\pi'], ['4', '\\frac{\\pi}{2}'], ['3', '\\frac{2\\pi}{3}'], ['\\frac12', '4\\pi']] as [string, string][])
+    const f = (a: number, b: string, d: number) => `$y=${a}\\sin\\left(${b}x\\right)${d < 0 ? d : '+' + d}$`
+    const ans = f(A, B, D)
+    const w = [f(A, B === '2' ? '4' : '2', D), f(A + 1, B, D), f(A, B, -D), f(D, B, A)]
+    return mk(r, `Which function has amplitude ${A}, period $${P}$ and midline $y=${D}$?`, ans, [...new Set(w)].filter(x => x !== ans),
+      `**Words:** $y=A\\sin(Bx)+D$ has amplitude |A|, period 2π ÷ B, and midline y = D.\n**Step 1 (A):** amplitude ${A}, so A = ${A}.\n**Step 2 (D):** midline y = ${D}, so D = ${D}.\n**Step 3 (B, from period = 2π ÷ B):** B = 2π ÷ (${plain(P)}) = ${plain(B)}.\n**Step 4 (put together):** ${plain(ans)}.\n**Answer: ${plain(ans)}**`,
+      'Amplitude → A, period → B (B = 2π ÷ period), midline → D.')
+  },
+  periodicVal(r) {
+    const base = r.pick([30, 45, 60, 120, 135, 150, 210, 225, 240, 300, 315, 330]), k = r.pick([1, 2, -1]), fn = r.pick(['sin', 'cos'] as const)
+    const big = base + 360 * k
+    const q = base < 90 ? 1 : base < 180 ? 2 : base < 270 ? 3 : 4
+    const ref = q === 1 ? base : q === 2 ? 180 - base : q === 3 ? base - 180 : 360 - base
+    const tab: Record<string, Record<number, string>> = { sin: { 30: '\\frac12', 45: '\\frac{\\sqrt2}{2}', 60: '\\frac{\\sqrt3}{2}' }, cos: { 30: '\\frac{\\sqrt3}{2}', 45: '\\frac{\\sqrt2}{2}', 60: '\\frac12' } }
+    const pos = fn === 'sin' ? [1, 2] : [1, 4]
+    const sg = pos.includes(q) ? '' : '-'
+    const ans = `$${sg}${tab[fn][ref]}$`
+    const pool = ['\\frac12', '-\\frac12', '\\frac{\\sqrt3}{2}', '-\\frac{\\sqrt3}{2}', '\\frac{\\sqrt2}{2}', '-\\frac{\\sqrt2}{2}', '1', '-1', '0'].map(x => `$${x}$`)
+    const flip = `$${sg ? '' : '-'}${tab[fn][ref]}$`
+    const w = [...new Set([flip, ...r.shuffle(pool)])].filter(x => x !== ans).slice(0, 4)
+    return mk(r, `Using the periodic property, find the exact value of $\\${fn} ${big}^\\circ$.`, ans, w,
+      `**Words:** sine and cosine are **periodic**: they repeat every 360° (a full turn). So $\\${fn}(\\theta+360^\\circ)=\\${fn}\\theta$.\n**Step 1 (subtract or add 360° until the angle is between 0° and 360°):** ${big}° ${k > 0 ? `− ${360 * k}` : `+ 360`} = ${base}°.\n**Step 2 (so they are equal):** ${fn} ${big}° = ${fn} ${base}°.\n**Step 3 (${base}° is in quadrant ${['I', 'II', 'III', 'IV'][q - 1]}, reference angle ${ref}°, ${fn} is ${sg ? 'negative' : 'positive'} there):** ${plain(ans)}.\n**Answer: ${plain(ans)}**`,
+      'Big angle? Subtract 360° until it is in 0° to 360°, then use the unit circle.')
+  },
+  trigAtZero(r) {
+    const A = r.pick([2, 3, 4, 5, -2, -3]), D = r.pick([-3, -1, 0, 1, 2, 4]), fn = r.pick(['sin', 'cos'] as const)
+    const v = fn === 'sin' ? D : A + D
+    const eq = `y=${A}\\${fn} x${D === 0 ? '' : D < 0 ? D : '+' + D}`
+    return mk(r, `For $${eq}$, what is y when $x=0$?`, `${v}`, [`${fn === 'sin' ? A + D : D}`, `${A}`, `${A * D}`, `${-v}`, `${v + 1}`].map(String),
+      `**Words:** to find y at x = 0, substitute x = 0. Remember sin 0 = 0 and cos 0 = 1.\n**Step 1 (substitute):** y = ${A}·${fn}(0)${D === 0 ? '' : ` + (${D})`}.\n**Step 2 (${fn} 0 = ${fn === 'sin' ? '0' : '1'}):** y = ${A}·${fn === 'sin' ? '0' : '1'}${D === 0 ? '' : ` + (${D})`}.\n**Step 3 (compute):** ${v}.\n**Answer: ${v}**`, 'Sine starts at the midline (sin 0 = 0). Cosine starts at its maximum (cos 0 = 1).')
+  },
+  trigValueAcute(r) {
+    for (let i = 0; i < 80; i++) {
+      const x = GEN.trigValue(r)
+      const m = x.q.match(/(\d+)\^\\circ/)
+      if (m && [30, 45, 60].includes(Number(m[1]))) return x
+    }
+    return GEN.trigValue(r)
   },
 }
 

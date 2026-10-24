@@ -8,10 +8,15 @@ import { CHECKS_MATH1 } from './checks-math1'
 import { CHECKS_MATH2 } from './checks-math2'
 import { CHECKS_OTHER } from './checks-other'
 import { CHECKS_WP } from './checks-wp'
+import { CHECKS_NEW } from './math10'
 import { EXTRA } from './checks-extra'
 
 // generated-problem kinds (see lib/drills.ts) that match each math lesson; they fill the checkpoint after every video
 const DRILLS: Record<string, string[]> = {
+  'g-extras': ['cylSA', 'arcSector', 'triSegments', 'medianSolve'],
+  'm-trig-angles': ['degToRad', 'radToDeg', 'refAngle', 'trigValue', 'sixFn', 'quadSign', 'radianArc'],
+  'm-trig-identities': ['pythId', 'simplifyTrig', 'solveTrigLin', 'solveTrig', 'solveTrigAll'],
+  'm-trig-graphs': ['ampPeriod', 'trigRange', 'phaseShift', 'graphMatch', 'periodicVal', 'trigAtZero'],
   'm-number-sense': ['order', 'lcm'],
   'm-fractions': ['fracAdd', 'fracDiv', 'percentOf'],
   'm-exponents': ['exponent', 'radical', 'sciNot'],
@@ -49,7 +54,7 @@ const DRILLS: Record<string, string[]> = {
   'g-lines-planes': ['pythCheck', 'triIneq', 'angles'],
 }
 
-const BASE: Record<string, Checks> = { ...CHECKS_MATH1, ...CHECKS_MATH2, ...CHECKS_ALG, ...CHECKS_GM, ...CHECKS_JHS, ...CHECKS_GEO, ...CHECKS_LANG, ...CHECKS_OTHER, ...CHECKS_WP }
+const BASE: Record<string, Checks> = { ...CHECKS_MATH1, ...CHECKS_MATH2, ...CHECKS_ALG, ...CHECKS_GM, ...CHECKS_JHS, ...CHECKS_GEO, ...CHECKS_LANG, ...CHECKS_OTHER, ...CHECKS_WP, ...CHECKS_NEW }
 export const CHECKS: Record<string, Checks> = Object.fromEntries(
   Object.entries(BASE).map(([id, c]) => [id, { ...c, drill: DRILLS[id] ?? c.drill, extra: EXTRA[id], gen: id === 'a-series' ? 'series' : undefined }]),
 )
