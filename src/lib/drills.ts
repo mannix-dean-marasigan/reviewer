@@ -2029,6 +2029,19 @@ const GEN: Record<string, (r: Rng) => Question> = {
     return mk(r, `In a 30-60-90 triangle the hypotenuse is ${2 * s}. What is the side across the 60° angle?`, T(`${s}\\sqrt3`), [T(`${2 * s}\\sqrt3`), T(`${s}`), T(`${s}\\sqrt2`), T(`${3 * s}`)],
       `${common}**Step 1 (hypotenuse to the 30° side, divide by 2):** ${2 * s} ÷ 2 = ${s}.\n**Step 2 (30° side to the 60° side, multiply by √3):** ${s} × √3 = ${s}√3.\n**Answer: ${s}√3**`, 'Never go straight 60° → 90°. Go through the short side.')
   },
+  skewLines(r) {
+    const bank: [string, string, string[], string][] = [
+      ['A rectangular box has 12 edges. Not counting the edge itself, how many edges are PARALLEL to one given edge?', '3', ['2', '4', '5', '6'], 'Each edge has 3 other edges running in the same direction (the 4 edges of one direction in a box are all parallel).'],
+      ['A rectangular box has 12 edges. How many edges are SKEW to one given edge?', '4', ['2', '3', '5', '6'], 'Skew edges are not parallel AND never touch it. Of the 11 other edges: 3 are parallel, 4 touch it at its two ends, so the other 4 are skew.'],
+      ['A rectangular box has 12 edges. How many edges INTERSECT (touch) one given edge?', '4', ['2', '3', '5', '6'], 'An edge has two ends, and 2 other edges meet at each end, so 4 edges touch it.'],
+      ['Two lines that are NOT in the same plane, do not meet, and are not parallel are called:', 'skew lines', ['parallel lines', 'perpendicular lines', 'intersecting lines'], 'That is the definition of skew lines: they pass each other without ever meeting (like a road and a bridge crossing over it).'],
+      ['Two lines in the SAME plane that never meet are called:', 'parallel lines', ['skew lines', 'perpendicular lines', 'intersecting lines'], 'Parallel lines lie in one plane and never meet. If they are not in the same plane they are skew, not parallel.'],
+      ['The top face and the bottom face of a rectangular box are:', 'parallel planes', ['skew planes', 'perpendicular planes', 'intersecting planes'], 'The top and bottom faces are flat planes that never meet, so they are parallel planes.'],
+      ['The front face and the right face of a rectangular box are:', 'perpendicular planes', ['parallel planes', 'skew planes', 'the same plane'], 'They meet along an edge and make a 90° angle (a corner of a box), so they are perpendicular planes.'],
+    ]
+    const [q, a, w, why] = r.pick(bank)
+    return mk(r, q, a, w, `**Words:** **parallel** lines are in one plane and never meet. **Skew** lines are in different planes and never meet. **Intersecting** lines meet at one point. Picture a rectangular box.\n**Step 1 (picture one edge of the box and look at the other edges):** ${why}\n**Answer: ${a}**`, 'Box edge: 3 parallel, 4 touching, 4 skew.')
+  },
 }
 
 export const DRILL_KINDS = Object.keys(GEN)

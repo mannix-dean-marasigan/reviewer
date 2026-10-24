@@ -31,7 +31,7 @@ export const VIDEO_MAP: Record<string, VideoMapEntry> = {
   'm-shapes': { kinds: [['areaShapes', 'rect'], ['circle'], ['volume']], q: [[0], [1], []] },
   'g-quads': { kinds: [['parAngle'], ['rectDiag', 'rectDiagLen']], q: [[0, 1], []] },
   'g-circles': { kinds: [['arcAngle'], ['chordPower']], q: [[0, 1], []] },
-  'g-lines-planes': { kinds: [[], ['pythag']], q: [[0], []] },
+  'g-lines-planes': { kinds: [['skewLines'], ['pythag']], q: [[0], []] },
   'm-trig': { kinds: [['trig'], ['trig'], ['elevation']], q: [[0, 1], [], []] },
   'g-extras': { kinds: [['cylSA'], ['arcSector'], ['triSegments', 'medianSolve']], q: [[0], [1], [2]] },
   'm-trig-angles': { kinds: [['degToRad', 'radToDeg', 'radianArc'], ['sixFn'], ['trigValueAcute'], ['refAngle', 'trigValue', 'quadSign']], q: [[0], [1], [2], [3]] },
