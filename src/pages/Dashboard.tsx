@@ -59,11 +59,14 @@ export default function Dashboard() {
               const k = `${day.day}:${item.label}`
               const l = item.lesson ? lessonById(item.lesson) : undefined
               return (
-                <div className="item" key={k}>
+                <div key={k}>
+                {item.group && <h3 className="grouphead">{item.group}</h3>}
+                <div className="item">
                   <input type="checkbox" checked={!!st.checks[k]} onChange={e => update(s => { const c = { ...s.checks }; if (e.target.checked) c[k] = true; else delete c[k]; return { ...s, checks: c } })} aria-label={`Done: ${item.label}`} />
                   {l ? <Link to={`/lesson/${l.id}`} className={isPriority(l.id) ? 'prio-link' : ''}>{isPriority(l.id) && !item.label.startsWith('⭐') ? '⭐ ' : ''}{item.label}</Link> : item.route ? <Link to={item.route}>{item.label}</Link> : <span>{item.label}</span>}
                   {l && st.done[l.id] !== undefined && <span className="pill">{st.done[l.id]}%</span>}
                   <span className="min">{item.tier === 'stretch' ? 'stretch · ' : item.tier === 'bonus' ? 'bonus · ' : ''}{item.minutes} min</span>
+                </div>
                 </div>
               )
             })}

@@ -109,10 +109,11 @@ describe('math learning order', () => {
     expect([...MATH_ORDER].sort()).toEqual([...ids].sort())
     expect(ids).toEqual(MATH_ORDER)
   })
-  it('inside each plan day the lessons follow the learning order', () => {
+  it('inside each group of a plan day the lessons follow the learning order', () => {
     for (const d of PLAN) {
       let last = -1
       for (const it of d.items) {
+        if (it.group) last = -1
         if (!it.lesson) continue
         const r = MATH_ORDER.indexOf(it.lesson)
         expect(r, `${it.lesson} is out of order on day ${d.day}`).toBeGreaterThan(last)

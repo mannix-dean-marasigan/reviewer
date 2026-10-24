@@ -57,6 +57,7 @@ export interface PlanItem {
   minutes: number
   lesson?: string
   route?: string
+  group?: string // heading shown above this item (and the ones after it) on the dashboard
   tier?: 'stretch' | 'bonus' // none = core; stretch = to fill an 8-hour day; bonus = only if time is left
 }
 export interface PlanDay {
