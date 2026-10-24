@@ -5,7 +5,7 @@ export const MATH4: Lesson[] = [
   {
     id: 'm-similar', subject: 'math', title: 'Pythagorean Theorem & Similar Triangles', minutes: 45,
     blurb: 'Right-triangle shortcuts, special triangles, and setting up similar-triangle proportions.',
-    videos: [VID.ocPyth, VID.ocSpecial, VID.similar],
+    videos: [VID.ocPyth, VID.ocSpecial45, VID.ocSpecial, VID.similar],
     interactive: { k: 'similar' },
     blocks: [
       { t: 'h', text: 'Pythagorean theorem' },

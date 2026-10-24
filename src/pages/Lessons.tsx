@@ -81,7 +81,9 @@ function VideoFlow({ lesson, onDone }: { lesson: Lesson; onDone: () => void }) {
   const [sprint, setSprint] = useState(!!picks)
   const order = useMemo(() => lesson.videos.map((_, i) => i).filter(i => !sprint || !picks || picks.includes(lesson.videos[i].id)), [lesson, sprint]) // eslint-disable-line react-hooks/exhaustive-deps
   const n = order.length
-  const [pos, setK] = useState(0)
+  const memKey = `uap-vpos-${lesson.id}-${sprint ? 's' : 'a'}`
+  const [pos, setPos] = useState(() => { try { return Math.max(0, Number(localStorage.getItem(memKey)) || 0) } catch { return 0 } })
+  const setK = (i: number) => { setPos(i); try { localStorage.setItem(memKey, String(i)) } catch { /* storage may be unavailable */ } }
   const [cleared, setCleared] = useState<Record<number, boolean>>({})
   const banks = useMemo(() => {
     const r = rng((Date.now() + 7919) % 2147483000)
@@ -118,8 +120,13 @@ function VideoFlow({ lesson, onDone }: { lesson: Lesson; onDone: () => void }) {
       {picks && (
         <p className="muted">
           {sprint ? <><b>⭐ Sprint mode:</b> the {n} key videos of {total}, 5 checkpoint questions each. </> : <><b>All {total} videos.</b> </>}
-          <button className="btn small ghost" onClick={() => { setSprint(x => !x); setK(0) }}>{sprint ? `Show all ${total} videos` : 'Back to sprint mode'}</button>
+          <button className="btn small ghost" onClick={() => { setSprint(x => !x); setPos(0) }}>{sprint ? `Show all ${total} videos` : 'Back to sprint mode'}</button>
         </p>
+      )}
+      {n > 1 && (
+        <p className="muted">Jump to video: <select value={Math.min(pos, n - 1)} onChange={e => { setK(Number(e.target.value)); window.scrollTo(0, 0) }}>
+          {order.map((vi, j) => <option key={vi} value={j}>{j + 1}. {lesson.videos[vi].title.slice(0, 70)}</option>)}
+        </select></p>
       )}
       {n > 1 && <p className="muted"><b>Video {pos + 1} of {n}</b>: watch it, then clear the checkpoint to unlock {last ? 'the written lesson' : 'the next video'}.</p>}
       {n === 1 && <p className="muted">Watch at 1.25× if you already know the basics. Pause and try the example before the teacher solves it.</p>}

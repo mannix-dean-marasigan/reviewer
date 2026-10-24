@@ -27,7 +27,7 @@ export const VIDEO_MAP: Record<string, VideoMapEntry> = {
   'g-basics': { kinds: [[], ['midpointXY', 'segAdd'], ['logicForm']], q: [[0, 1], [], []] },
   'm-angles': { kinds: [['compSupp'], ['angles'], ['transversal']], q: [[1], [0], []] },
   'g-congruence': { kinds: [['cpctc'], ['triClass']], q: [[1], [0]] },
-  'm-similar': { kinds: [['pythag'], ['special'], ['similarSide']], q: [[0], [], [1]] },
+  'm-similar': { kinds: [['pythag'], ['special45'], ['special30'], ['similarSide']], q: [[0], [], [], [1]] },
   'm-shapes': { kinds: [['areaShapes', 'rect'], ['circle'], ['volume']], q: [[0], [1], []] },
   'g-quads': { kinds: [['parAngle'], ['rectDiag', 'rectDiagLen']], q: [[0, 1], []] },
   'g-circles': { kinds: [['arcAngle'], ['chordPower']], q: [[0, 1], []] },

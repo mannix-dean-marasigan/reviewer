@@ -2009,6 +2009,26 @@ const GEN: Record<string, (r: Rng) => Question> = {
     }
     return GEN.trigValue(r)
   },
+  special45(r) {
+    for (let i = 0; i < 60; i++) { const x = GEN.special(r); if (x.q.includes('45-45-90')) return x }
+    return GEN.special(r)
+  },
+  special30(r) {
+    const s = r.int(2, 9), kind = r.pick(['long', 'hyp', 'shortFromHyp', 'longFromHyp'] as const)
+    const T = (n: string) => `$${n}$`
+    const common = `**Words:** a **30-60-90 triangle** has sides in the ratio $1:\\sqrt3:2$. The shortest side is across the 30° angle, the middle side across the 60° angle, and the hypotenuse (the longest side, across the 90° angle) is twice the short side.\n`
+    if (kind === 'long')
+      return mk(r, `In a 30-60-90 triangle the side across the 30° angle is ${s}. What is the side across the 60° angle?`, T(`${s}\\sqrt3`), [T(`${2 * s}`), T(`${s}\\sqrt2`), T(`${s}`), T(`${3 * s}`)],
+        `${common}**Step 1 (going from the 30° side to the 60° side, a LONGER side, so multiply):** multiply by √3.\n**Step 2:** ${s} × √3 = ${s}√3.\n**Answer: ${s}√3**`, 'Short → long leg: × √3. Short → hypotenuse: × 2.')
+    if (kind === 'hyp')
+      return mk(r, `In a 30-60-90 triangle the side across the 30° angle is ${s}. What is the hypotenuse?`, `${2 * s}`, [`${s}`, `${3 * s}`, `${s * s}`, `${s + 2}`].map(String),
+        `${common}**Step 1 (30° side to hypotenuse, a LONGER side, so multiply by 2):** 2 × ${s}.\n**Step 2:** = ${2 * s}.\n**Answer: ${2 * s}**`, 'Short leg × 2 = hypotenuse.')
+    if (kind === 'shortFromHyp')
+      return mk(r, `In a 30-60-90 triangle the hypotenuse is ${2 * s}. What is the side across the 30° angle?`, `${s}`, [`${2 * s}`, `${4 * s}`, `${s + 1}`, `${s - 1}`].map(String),
+        `${common}**Step 1 (hypotenuse back to the 30° side, a SHORTER side, so divide by 2):** ${2 * s} ÷ 2.\n**Step 2:** = ${s}.\n**Answer: ${s}**`, 'Going to a shorter side: divide.')
+    return mk(r, `In a 30-60-90 triangle the hypotenuse is ${2 * s}. What is the side across the 60° angle?`, T(`${s}\\sqrt3`), [T(`${2 * s}\\sqrt3`), T(`${s}`), T(`${s}\\sqrt2`), T(`${3 * s}`)],
+      `${common}**Step 1 (hypotenuse to the 30° side, divide by 2):** ${2 * s} ÷ 2 = ${s}.\n**Step 2 (30° side to the 60° side, multiply by √3):** ${s} × √3 = ${s}√3.\n**Answer: ${s}√3**`, 'Never go straight 60° → 90°. Go through the short side.')
+  },
 }
 
 export const DRILL_KINDS = Object.keys(GEN)

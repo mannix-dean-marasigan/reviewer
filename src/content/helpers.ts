@@ -162,6 +162,7 @@ export const VID: Record<string, Video> = {
   ocTriangles: { id: 'DdAwGinauoI', title: 'Triangles', channel: OCT, why: 'Types of triangles and their properties.' },
   ocPyth: { id: 'd8EA5TxGzcY', title: 'Pythagorean Theorem', channel: OCT, why: 'The theorem with examples.' },
   ocPyth2: { id: 'pbf4lcJhIfI', title: 'Pythagorean Theorem: Basic Introduction', channel: OCT, why: 'A second pass at the theorem.' },
+  ocSpecial45: { id: 'xzMirNSv1d0', title: 'Special Right Triangles - 45 45 90 - Trigonometry & Geometry | SAT Math', channel: OCT, why: 'The 45-45-90 triangle: hypotenuse = leg × √2.' },
   ocSpecial: { id: 'p70UBGCHZrQ', title: 'Special Right Triangles: 30 60 90', channel: OCT, why: 'Side ratios of 30-60-90 triangles.' },
   ocVolume: { id: 'VYGrZZEPq5Y', title: 'Volume', channel: OCT, why: 'Volume formulas of common solids.' },
   ocRect: { id: 'Ov4aTty67A8', title: 'Rectangles: Properties of Parallelograms, Special Quadrilaterals', channel: OCT, why: 'Rectangle properties.' },
