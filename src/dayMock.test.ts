@@ -4,9 +4,9 @@ import { buildMock } from './pages/Mock'
 
 describe('daily mock exams', () => {
   for (const day of [1, 2, 3] as const) {
-    it(`day ${day} has 100 valid questions that cover every lesson of that day`, () => {
+    it(`day ${day} has 60 valid questions that cover every lesson of that day`, () => {
       const items = buildMock(`day${day}` as 'day1', 12345 + day)
-      expect(items.length).toBe(100)
+      expect(items.length).toBe(60)
       items.forEach((it, i) => {
         expect(it.q, `item ${i}`).toBeDefined()
         expect(new Set(it.q!.c).size, `item ${i} duplicate choices`).toBe(4)

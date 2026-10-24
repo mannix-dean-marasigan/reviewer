@@ -36,7 +36,7 @@ export const PLAN: PlanDay[] = [
     { label: 'Polynomials: operations, division & remainder theorem', minutes: 45, lesson: 'm-polynomials', tier: 'stretch' },
     { label: 'Mistakes notebook', minutes: 20, route: '/mistakes' },
   ] },
-  { day: 2, minHours: 11, hours: 11, theme: '⭐ ALL ALGEBRA + ALL GEOMETRY (about 11 h, a long day: split it over two sittings). Re-drill = Practice + Quiz tabs only. Test-takers report basic algebra, geometry, percentages, fractions, mean/mode.', items: [
+  { day: 2, minHours: 11.5, hours: 11.5, theme: '⭐ ALL ALGEBRA + ALL GEOMETRY (about 11.5 h, a long day: split it over two sittings). Re-drill = Practice + Quiz tabs only. Test-takers report basic algebra, geometry, percentages, fractions, mean/mode.', items: [
     { label: '⭐ Fractions & decimals: re-drill', minutes: 15, lesson: 'm-fractions' },
     { label: '⭐ Exponents & radicals: quick re-drill', minutes: 15, lesson: 'm-exponents', tier: 'bonus' },
     { label: '⭐ Ratio & proportion: re-drill', minutes: 10, lesson: 'm-ratio' },
@@ -64,7 +64,7 @@ export const PLAN: PlanDay[] = [
     { label: 'Skew lines, planes & right-triangle tests', minutes: 20, lesson: 'g-lines-planes' },
     { label: '⭐ Circles: arcs, chords, tangents', minutes: 25, lesson: 'g-circles' },
     { label: '⭐ Counting (factorial), mean, median & mode', minutes: 35, lesson: 'm-counting' },
-    { label: '⭐ PRIORITY MOCK (54 questions) + review every miss', minutes: 60, route: '/mock' },
+    { label: '⭐ PRIORITY MOCK (60 questions) + review every miss', minutes: 90, route: '/mock' },
     { label: 'Mistakes notebook: retry what you missed', minutes: 25, route: '/mistakes' },
   ] },
   { day: 3, minHours: 3, hours: 3, theme: 'What is left (about 3 h): trigonometry, sets, probability, then a final mixed mock.', items: [
